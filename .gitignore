@@ -1,0 +1,12 @@
+_pycache_/
+*.zip
+*.exe
+*.msi
+*.lnk
+wifi/
+venv/
+.env
+.env.
+.log
+.vscode/
+.idea/
