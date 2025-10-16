@@ -1746,842 +1746,271 @@ def logo_coinex():
 def time_now():
     return JSONResponse({"serverTimeUTC": dt.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")})
 # ------------- PAGE (HTML) -------------
-_OPPS_HTML = """<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Arbexa Profit Finder — /opps</title>
+_OPPS_HTML = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Arbexa Profit Finder — Opportunities</title>
 <style>
-:root{--bg:#0b1220;--card:#111a2e;--muted:#7a8aa0;--txt:#e7eefc;--acc:#2bd576;--warn:#ffcf5a;--bad:#ff6b6b;--chip:#1a2440;}
-*{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,'Helvetica Neue',Arial,'Apple Color Emoji','Segoe UI Emoji';background:var(--bg);color:var(--txt)}
+:root{
+  --bg:#0b1220;--card:#111a2e;--txt:#e7eefc;--muted:#9fb2d9;--line:#1b274a;
+  --acc:#2bd576;--warn:#ffcf5a;--bad:#ff6b6b;--chip:#0e1a35
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu}
 a{color:var(--acc);text-decoration:none}
-header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,#0b1220 70%,transparent);padding:6px 12px 6px;border-bottom:1px solid #182241}
-.brandrow{position:relative;display:flex;align-items:center;gap:14px;padding:4px 0 8px;flex-wrap:wrap}
-.brandlogo{height:36px;width:auto;display:block}
-.brandurl{text-decoration:none;text-transform:uppercase;letter-spacing:.8px;font-weight:700;color:#2bd576;border:1px solid #26345e;background:#0e1a35;padding:4px 8px;border-radius:8px}
-.lastbox{display:inline-flex;align-items:baseline;gap:8px;background:#0e1a3500;padding:2px 6px;border-radius:8px}
-.lastbox .lastlabel{font-size:12px;color:var(--muted)}
-.lastbox .lasttime{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;letter-spacing:1px;font-size:20px;font-weight:800;color:#e7eefc;white-space:nowrap}
-.lastbox .oppcount{font-size:12px;color:var(--muted);font-style:oblique;opacity:.9;white-space:nowrap}
-.menu-anchor{position:absolute; right:12px; top:2px; display:flex; gap:8px; align-items:center;}
-.menu-anchor details{display:inline-block}
-.refresh-btn{width:36px;height:36px;border-radius:10px;border:1px solid #26345e;background:#0e1a35;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.2) inset}
-.refresh-btn:focus{outline:2px solid #2bd57644;outline-offset:2px}
-.refresh-btn:hover{filter:brightness(1.05)}
-.refresh-btn svg{width:22px;height:22px;display:block}
-.auth-anchor{display:flex; gap:8px; align-items:center;}
-.auth-btn{height:36px; padding:0 10px; border-radius:10px; border:1px solid #26345e; background:#0e1a35; color:#e7eefc; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; justify-content:center;}
-.auth-btn:hover{filter:brightness(1.05)}
-.auth-btn.primary{background:#2bd576; color:#04120a; border-color:#1b9d5b}
-.menu-panel{min-width:780px; max-width:90vw; background:var(--card); border:1px solid #23345f; border-radius:12px; padding:10px; box-shadow:0 6px 24px rgba(0,0,0,.45)}
-.menu-panel .group{margin-bottom:10px; border:1px solid #182241; border-radius:12px; padding:8px; background:#0f1a33}
-.menu-panel .group summary{font-weight:600}
-.menu-list a{display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:8px}
-.menu-list a:hover{background:#132042}
-.menu-list img{width:16px;height:16px;border-radius:4px;object-fit:contain;vertical-align:-2px}
-.set-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
-.set-filters .block{background:#0f1a33;border:1px solid #182241;padding:8px 10px;border-radius:12px;display:flex;gap:8px;align-items:center}
-.set-ex h4{margin:4px 0 8px;font-size:14px;color:#b8c8e8}
-.exgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.extable{width:100%;border-collapse:collapse;font-size:13px}
-.extable td{border:1px solid #23345f;padding:6px 8px}
-.extable td label{display:flex;align-items:center;gap:8px}
-.extable img.exlogo{width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-align:-2px;}
-.ex-toolbar{display:flex;gap:8px;margin-top:8px}
-.btnpdf{border:1px solid #23345f;background:#0e1a35;color:#b8c8e8;border-radius:10px;padding:6px 10px;cursor:pointer;display:inline-flex;gap:8px;align-items:center;font-weight:600}
-.btnpdf:hover{filter:brightness(1.1)}
-.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
-.filters .block{background:var(--card);border:1px solid #182241;padding:8px 10px;border-radius:12px;display:flex;gap:8px;align-items:center}
-#tblwrap{padding:8px 10px 18px}
-table{width:100%;border-collapse:separate;border-spacing:0 10px}
-thead th{text-align:left;font-size:12px;color:var(--muted);padding:0 10px}
-tbody tr{background:var(--card);border:1px solid #1a2547}
-tbody td{padding:12px 10px;vertical-align:top;border-top:1px solid #1a2547;border-bottom:1px solid #1a2547}
-tbody td:first-child{border-left:1px solid #1a2547;border-top-left-radius:14px;border-bottom-left-radius:14px}
-tbody td:last-child{border-right:1px solid #1a2547;border-top-right-radius:14px;border-bottom-right-radius:14px}
-.badge{display:inline-flex;align-items:center;gap:6px;background:#0e1a35;border:1px solid #23345f;padding:4px 8px;border-radius:999px;font-size:12px;color:#b8c8e8}
-.edge{font-weight:700}.edge.good{color:var(--acc)}.edge.warn{color:var(--warn)}
-.mononu{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.kv{display:flex;flex-wrap:wrap;gap:8px 14px;color:#c5d3f2}.kv div{display:flex;gap:6px;align-items:center}
-.details summary{cursor:pointer;color:#b8c8e8}
-.obtbl{width:100%;border-collapse:collapse;margin-top:6px;font-size:12px}
-.obtbl th,.obtbl td{border:1px solid #203058;padding:4px 6px;text-align:right}
-.obtbl th:first-child,.obtbl td:first-child{text-align:left}
-.obtbl.ob-ask td:nth-child(1), .obtbl.ob-ask td:nth-child(2){ color:#2bd576; }
-.obtbl.ob-bid  td:nth-child(1), .obtbl.ob-bid  td:nth-child(2){ color:#ff6b6b; }
-.obtbl td:nth-child(3){ color:#e7eefc; }
-footer{color:#8ea3c8;font-size:12px;padding:6px 12px 18px}
-.grid-cards{display:none}
-@media(max-width:920px){table{display:none}.grid-cards{display:grid;gap:10px;padding:10px;grid-template-columns:1fr}.card{background:var(--card);border:1px solid #1a2547;border-radius:16px;padding:10px}.card h3{margin:4px 0 8px;font-size:16px}.kv{gap:6px 10px;font-size:13px}}
-.cell-ob .stack details+details{margin-top:6px}
-.disc{color:#cfe0ff}.disc ul{margin:8px 0 0 0; padding-left:18px}.disc li{margin:4px 0}
-.tradecontent{ max-width:460px; max-height:60vh; overflow:auto; padding-right:6px;}
-.tradecontent iframe{ width:100%; min-height:320px; height:60vh; border:1px solid #23345f; border-radius:10px; background:#0e1a35;}
-.emptymsg{ font-style: italic; font-weight: 700; }
-#loadOverlay{position:fixed;inset:0;background:rgba(7,12,22,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:9998}
-#loadOverlay.hidden{display:none}
-.logoWrap{display:grid;place-items:center}
-.logoPulse{width:min(520px,70vw);height:auto;filter:drop-shadow(0 6px 22px rgba(43,213,118,.25));animation:pulse 1.3s ease-in-out infinite}
-@keyframes pulse{0%{transform:scale(.96);opacity:.8}50%{transform:scale(1.03);opacity:1}100%{transform:scale(.96);opacity:.8}}
-.loadCaption{color:#e7eefc;font-weight:800;letter-spacing:.6px;text-shadow:0 1px 0 #04120a}
-.loadBar{width:min(520px,80vw);height:10px;border-radius:999px;background:#0e1a35;border:1px solid #26345e;overflow:hidden}
-.loadBarFill{height:100%;width:100%;transform-origin:left center;transform:scaleX(0);background:linear-gradient(90deg,#2bd576,#22c35e);box-shadow:0 0 16px rgba(43,213,118,.45) inset, 0 0 10px rgba(43,213,118,.25)}
-.modal{position:fixed;inset:0;background:rgba(7,12,22,.7);display:flex;align-items:center;justify-content:center;z-index:9999}
-.modal.hidden{display:none}
-.modal .box{background:var(--card);border:1px solid #23345f;border-radius:14px;max-width:460px;width:calc(100% - 40px);padding:16px 18px;color:#e7eefc;box-shadow:0 6px 30px rgba(0,0,0,.45);text-align:center}
-.modal .box p{margin:0 0 12px 0;font-weight:700}
-.modal .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-img.exlogo{width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-align:-2px;}
 
-.dash-tip{font-style:italic;color:#2bd576;text-align:center;margin:8px 12px;font-weight:700}
-.chatfab{position:fixed;right:14px;bottom:18px;width:52px;height:52px;border-radius:999px;border:1px solid #23345f;background:#0e1a35;z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.35)}
-.chatfab:hover{filter:brightness(1.06)}
-.chatfab .dot{font-size:22px;line-height:1}
-@media (max-width:520px){.chatfab{width:48px;height:48px}}
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:50;padding:8px 12px;border-bottom:1px solid #172246;
+  background:linear-gradient(180deg,#0b1220 85%,transparent)}
+.hrow{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.brand{display:flex;gap:10px;align-items:center}
+.brand img{height:28px}
+.brand .tag{display:inline-block;padding:2px 8px;border:1px solid #23345f;background:#0e1a35;border-radius:8px;
+  color:#2bd576;font-weight:900;letter-spacing:.5px}
+.meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.last{display:flex;gap:8px;align-items:baseline}
+.last .lab{font-size:12px;color:var(--muted)}
+.last .val{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;font-weight:900;letter-spacing:.5px}
+.count{font-size:12px;color:var(--muted)}
+.btn,button{display:inline-flex;align-items:center;justify-content:center;height:36px;padding:0 12px;border-radius:10px;
+  border:1px solid #26345e;background:#0e1a35;color:var(--txt);font-weight:800;cursor:pointer}
+.btn:hover,button:hover{filter:brightness(1.06)}
+.btn.primary{background:var(--acc);border-color:#1b9d5b;color:#04120a}
 
-.btn-pro{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 12px;border-radius:10px;
-  border:1px solid #846200;background:linear-gradient(135deg,#ffe089,#efb800);color:#2b1e00;font-weight:900;letter-spacing:.2px;cursor:pointer;white-space:nowrap}
-.btn-pro:hover{filter:brightness(1.05)}
-@media(max-width:520px){.btn-pro{height:32px;padding:0 10px;font-size:12px}}
-.free-banner{margin:8px 12px 0 12px; color:#22c55e; font-style:italic; font-size:14px}
-.free-banner.hide{display:none}
+/* ---------- containers ---------- */
+.wrap{max-width:1100px;margin:0 auto;padding:12px}
+.notice{margin:8px 0 12px;padding:10px;border:1px dashed #2a3a6a;border-radius:12px;background:#0e1733;color:#cfe0ff}
+.notice.hide{display:none}
+.controls{display:grid;grid-template-columns:1fr;gap:8px;margin:8px 0 10px}
+.ctrlrow{display:flex;gap:8px;flex-wrap:wrap}
+.input,select{height:36px;padding:0 10px;border-radius:10px;border:1px solid #26345e;background:#0e1a35;color:#var(--txt);font-weight:700}
+.small{font-size:12px;color:#var(--muted)}
+
+/* ---------- cards (mobile first) ---------- */
+.list{display:grid;gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:10px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pair{display:flex;gap:8px;align-items:center}
+.pair .sym{font-weight:900;letter-spacing:.3px}
+.pair .chip{font-size:12px;border:1px solid #22335d;background:#0e1a35;border-radius:999px;padding:2px 8px;color:#bdd2ff}
+.edge{font-weight:900}
+.edge.good{color:var(--acc)} .edge.bad{color:var(--bad)}
+.row{display:grid;gap:6px}
+.kv{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.kv .k{color:var(--muted);font-size:12px}
+.kv .v{font-weight:800}
+.prices{display:grid;gap:6px}
+.pricebox{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #22335d;background:#0e1a35;border-radius:12px;padding:8px}
+.pricebox .ex{display:flex;gap:6px;align-items:center}
+.pricebox .ex img{height:16px;width:16px;border-radius:3px}
+.badge{display:inline-block;border:1px solid #23345f;background:#0e1a35;border-radius:999px;padding:2px 8px;font-size:12px;color:#cfe0ff}
+.inline{display:flex;gap:8px;flex-wrap:wrap}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.meta2{display:flex;gap:8px;flex-wrap:wrap}
+.hide{display:none}
+
+/* ---------- tablet/desktop enhancements ---------- */
+@media(min-width:700px){
+  .controls{grid-template-columns:1fr 1fr}
+  .list{grid-template-columns:1fr 1fr}
+}
+@media(min-width:1000px){
+  .list{grid-template-columns:1fr 1fr 1fr}
+}
 </style>
-</head><body>
+</head>
+<body>
 <header>
-  <div class="brandrow">
-    <img src="/brandlogo" alt="Arbexa Profit Finder" class="brandlogo">
-    <a class="brandurl" href="https://arbexaprofitfinder.com" target="_blank" rel="noopener">ARBEXAPROFITFINDER.COM</a>
-    <div class="lastbox" id="lastBox">
-      <span class="lastlabel">Last updated</span>
-      <span id="lastUTCtime" class="lasttime">--:-- AM</span>
-      <span id="oppCount" class="oppcount">· -- possible opportunities</span>
+  <div class="hrow">
+    <div class="brand">
+      <img src="/brandlogo" alt="Arbexa">
+      <span class="tag">ARBEXAPROFITFINDER.COM</span>
     </div>
-
-    <div class="menu-anchor">
-      <details id="menuDD">
-        <summary class="btnpdf" title="Menu">☰ Menu ▾</summary>
-        <div class="menu-panel">
-          <details id="settingsDD" class="group">
-            <summary class="btnpdf">⚙️ Settings ▾</summary>
-            <div>
-              <div class="set-filters">
-                <div class="block"><button id="soundToggle" class="btnpdf" type="button" aria-pressed="true">🔊 Sound: ON</button></div>
-                <div class="block"><span>📈 Edge %</span><input id="minEdge" type="number" step="0.1" value="1" style="width:70px"><span>–</span><input id="maxEdge" type="number" step="0.1" value="25" style="width:70px"></div>
-                <div class="block"><span>🔎 Pair</span><input id="q" placeholder="e.g. BTC/USDT" style="width:160px"></div>
-                <div class="block"><span>💧 Min $24h Vol</span><input id="minVol" type="number" step="1000" value="0" style="width:120px"></div>
-                <div class="block"><span>🧪 Min Liquidity</span><input id="minLiq" type="number" min="0" max="100" step="1" value="0" style="width:70px"></div>
-                <div class="block"><span>💡 Trade Size $</span><input id="tsMin" type="number" step="1" placeholder="100" style="width:90px"><span>–</span><input id="tsMax" type="number" step="1" placeholder="6500" style="width:90px"></div>
-              </div>
-              <div class="set-ex">
-                <h4>🏦 Exchanges</h4>
-                <div class="exgrid">
-                  <table class="extable" id="extable1"></table>
-                  <table class="extable" id="extable2"></table>
-                </div>
-                <div class="ex-toolbar">
-                  <button type="button" id="exAll" class="btnpdf">Select All</button>
-                  <button type="button" id="exNone" class="btnpdf">None</button>
-                  <button type="button" id="exApply" class="btnpdf">Apply</button>
-                  <button type="button" id="exDefault" class="btnpdf" title="Tick all exchanges and reset filters to Edge 1–26">Default</button>
-                  <!-- ✨ NEW: Change Password button (beside Default) -->
-                  <button type="button" id="exChangePassword" class="btnpdf" title="Change your password (logged-in only)">Change Password</button>
-                </div>
-              </div>
-            </div>
-          </details>
-
-          <details id="socialsDD" class="group" open>
-            <summary class="btnpdf">👥 Socials ▾</summary>
-            <div class="menu-list">
-              <a href="https://www.tiktok.com/@arbexaprofitfinder" target="_blank" rel="noopener"><img src="https://www.tiktok.com/favicon.ico" alt=""> TikTok</a>
-              <a href="https://x.com/arbexascanner?s=21" target="_blank" rel="noopener"><img src="https://x.com/favicon.ico" alt=""> Twitter / X</a>
-              <a href="https://www.youtube.com/@ArbexaProfitFinder" target="_blank" rel="noopener"><img src="https://www.youtube.com/favicon.ico" alt=""> YouTube</a>
-              <a href="https://t.me/ArbexaProfitFinderSupport" target="_blank" rel="noopener"><img src="https://telegram.org/favicon.ico" alt=""> Telegram Channel</a>
-              <a href="https://t.me/ArbexaProfitFinderSupport" target="_blank" rel="noopener"><img src="https://telegram.org/favicon.ico" alt=""> Telegram Chat</a>
-              <a href="https://t.me/ArbexaProfitFinderSupport" target="_blank" rel="noopener"><img src="https://telegram.org/favicon.ico" alt=""> Telegram Support</a>
-            </div>
-          </details>
-
-          <details id="tncDD" class="group">
-            <summary class="btnpdf">T&amp;C ▾</summary>
-            <div class="menu-list">
-              <a id="tncLink" href="https://www.dropbox.com/scl/fi/aw3wca53knh4n89m8t2ec/Arbexa_Terms_And_Conditions_And-Privacy-Policy.pdf?dl=0" target="_blank" rel="noopener">📄 Terms &amp; Conditions / Privacy Policy</a>
-              <div style="padding:6px 8px"><button id="agreeBtn" class="btnpdf" type="button">Agreed?</button></div>
-            </div>
-          </details>
-        </div>
-      </details>
-
-      <button id="refreshNow" class="refresh-btn" title="Refresh now" aria-label="Refresh now">
-        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-          <polyline points="21 3 21 9 15 9"/>
-        </svg>
-      </button>
-
-      <!-- Profile dropdown -->
-      <details id="profileDD">
-        <summary class="btnpdf" title="Profile">👤 Profile ▾</summary>
-        <div id="profileCard" class="menu-panel" style="max-width:420px; padding:12px">
-          <div style="color:#9fb2d9">Loading…</div>
-        </div>
-      </details>
-
-      <div class="auth-anchor">
-        <button id="btnSignup" class="auth-btn" type="button" title="Create account">Sign up</button>
-        <button id="btnLogin"  class="auth-btn primary" type="button" title="Login">Log in</button>
-        <button id="btnLogout" class="auth-btn" type="button" title="Logout" style="display:none">Log out</button>
-      </div>
+    <div class="meta">
+      <div class="last"><span class="lab">Last updated</span> <span id="ts" class="val">—</span></div>
+      <div id="count" class="count">0 opportunities</div>
+      <button id="btnRefresh" class="btn" title="Refresh">↻</button>
+      <a id="btnMenu" class="btn" href="/pro">Menu</a>
+      <a id="btnProfile" class="btn" href="/login">Profile ▾</a>
+      <a id="btnLogout" class="btn" href="/login" onclick="logout();return false;">Log out</a>
     </div>
   </div>
-
-  <div class="filters">
-    <div class="block"><a id="extDoc" class="btnpdf" href="#" target="_blank" rel="noopener" style="display:none"></a></div>
-    <div class="block"><details id="tradeDD"><summary class="btnpdf">TRADE DETAILS‼️</summary><div class="tradecontent" id="tradeContent"></div></details></div>
-    <div class="block">
-      <details id="msgDD"><summary id="msgSummary" class="btnpdf">📩Message</summary>
-        <div class="tradecontent">Make sure to apply the ⚠️Trade Cautions before each trade!</div>
-      </details>
-    </div>
-  </div>
-
-  <a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
 </header>
-<div id="freeBanner" class="free-banner hide">You’re currently on the free plan with limited features, subscribe to unlock full potentials.</div>
-<div class="dash-tip">Most Profitable and executable Opportunities last no more than 10-15 Minutes so act fast,but carefully!</div>
 
-
-<!-- Loading overlay -->
-<div id="loadOverlay" class="hidden" aria-hidden="true">
-  <div class="logoWrap"><img class="logoPulse" src="/brandlogo" alt="Loading…" /></div>
-  <div class="loadCaption">Loading latest opportunities…</div>
-  <div class="loadBar" aria-hidden="true"><div id="loadBarFill" class="loadBarFill"></div></div>
-</div>
-
-<!-- Reminder modal -->
-<div id="remindModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="remindText">
-  <div class="box"><p id="remindText">⚠️Make sure to apply trade details before each trade!</p>
-    <div class="actions"><button id="remindOk" class="btnpdf" type="button">Okay</button><button id="remindSkip" class="btnpdf" type="button">Do not remind me today</button></div>
-  </div>
-</div>
-
-<!-- ✨ NEW: Change Password modal -->
-<div id="cpModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cpTitle">
-  <div class="box">
-    <p id="cpTitle">Change Password</p>
-    <div style="display:grid;gap:8px;margin:8px 0">
-      <input id="cpCur" type="password" placeholder="Current password">
-      <input id="cpNew" type="password" placeholder="New password (min 6)">
-      <input id="cpNew2" type="password" placeholder="Confirm new password">
-    </div>
-    <div class="actions">
-      <button id="cpSubmit" class="btnpdf" type="button">Change Password</button>
-      <button id="cpCancel" class="btnpdf" type="button">Cancel</button>
+<div class="wrap">
+  <!-- free banner (auto-hidden if pro) -->
+  <div id="freeBanner" class="notice">
+    You’re on the free plan with limited features. <a href="/pro" class="btn primary" style="height:28px">GO PRO 👑</a>
+    <div class="small" style="margin-top:6px">
+      Most profitable & executable opportunities last no more than 10–15 minutes — act fast, but carefully!
     </div>
   </div>
-</div>
-<div id="tblwrap">
-  <table id="opptable">
-    <thead><tr>
-      <th>Pair 🔁</th><th>Edge% 📈</th><th>Buy @ 🛒</th><th>Sell @ 💸</th>
-      <th>$24h Vol (Buy/Sell) 💧</th>
-      <th title="Higher score reflects stronger 24h volume and tighter order-book depth near the top price.">Liquidity score 🧪</th>
-      <th>Suggest Size 💡</th><th>Example Profit 🤑</th><th>Price ($)</th><th>Best Ask 🔼</th><th>Best Bid 🔽</th><th>Details 📚</th>
-    </tr></thead>
-    <tbody></tbody>
-  </table>
-  <div class="grid-cards" id="cards"></div>
+
+  <!-- Filters -->
+  <div class="controls">
+    <div class="ctrlrow">
+      <input id="q" class="input" placeholder="Filter pairs (e.g. BTC/USDT)">
+      <select id="ex" class="input" title="Exchanges" multiple>
+        <!-- exchanges filled runtime -->
+      </select>
+    </div>
+    <div class="ctrlrow">
+      <input id="minEdge" class="input" type="number" step="0.01" min="0" placeholder="Min Edge %">
+      <input id="maxEdge" class="input" type="number" step="0.01" min="0" placeholder="Max Edge %">
+      <input id="minVol" class="input" type="number" step="1" min="0" placeholder="Min 24h Vol (USD)">
+      <input id="minLiq" class="input" type="number" step="1" min="0" placeholder="Min Liquidity Score">
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="list" class="list"></div>
 </div>
 
-<footer><div class="kv"><div>⏱️ Auto-refresh: every 10s</div><div>⚠️ Examples only; fees, latency and slippage apply.</div></div></footer>
+<!-- draggable chat FAB -->
+<button id="chatFab" class="btn" title="Open chat" aria-label="Open chat" style="position:fixed;right:14px;bottom:18px;border-radius:999px;width:56px;height:56px">💬</button>
 
 <script>
-try{
-  const _t = localStorage.getItem('arbexa_token');
-  if(!_t){ location.replace('/'); }
-}catch(_){ location.replace('/'); }
-
 const SOUND_KEY='arbexa_sound';
-function soundEnabled(){ try{ return localStorage.getItem(SOUND_KEY)!=='0'; }catch(_){ return true; } }
-let _actx=null;
-function _ctx(){ if(!_actx){ _actx=new (window.AudioContext||window.webkitAudioContext)(); } return _actx; }
-function _beep(freq=440, dur=120, type='sine', vol=0.08, delayMs=0){
-  if(!soundEnabled()) return;
+function token(){ try{return localStorage.getItem('arbexa_token')||'';}catch(_){return ''} }
+function logout(){ try{localStorage.removeItem('arbexa_token');}catch(_){}; location.href='/login'; }
+function fmtPct(x){ if(x==null) return '—'; return (x>=0?'+':'')+Number(x).toFixed(2)+'%'; }
+function fmtUsd(x){ if(!x && x!==0) return '—'; let v=Number(x); if(!isFinite(v)) return '—';
+  if(v>=1) return '$'+v.toLocaleString(undefined,{maximumFractionDigits:2}); return '$'+v.toExponential(2);
+}
+function fmtNum(x){ if(x==null) return '—'; return String(x); }
+function sfx(){try{ if(localStorage.getItem(SOUND_KEY)!=='0') new AudioContext().resume(); }catch(_){}}
+
+/* fill exchange multiselect + logos map */
+let EX_LOGOS = {};
+async function loadLogos(){
   try{
-    const ctx=_ctx(); const t=ctx.currentTime + (delayMs||0)/1000;
-    const o=ctx.createOscillator(); const g=ctx.createGain();
-    o.type=type; o.frequency.setValueAtTime(freq, t);
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.0001 + vol, t+0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur/1000);
-    o.connect(g).connect(ctx.destination);
-    o.start(t); o.stop(t + dur/1000 + 0.05);
-  }catch(_){}
-}
-function playSfx(kind){ if(kind==='tap'){ _beep(300,70,'square',0.05,0); } }
-
-function qs(s){return document.querySelector(s)} function qsa(s){return Array.from(document.querySelectorAll(s))}
-function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
-
-const EXT_DOC_URL="https://www.dropbox.com/scl/fi/paqtorxp2q2couih5z5vs/Guide-All-You-Need-To-Know-From-ArbexaProfitFinder.pdf?dl=0";
-const EXT_DOC_LABEL="Guide,All You Need To Know From ArbexaProfitFinder";
-function initExtDoc(){const el=qs('#extDoc'); if(!el) return; let url=EXT_DOC_URL?EXT_DOC_URL.trim():""; if(url){el.href=url; el.textContent=`🔗 ${EXT_DOC_LABEL}`; el.style.display='inline-flex';}}
-
-window._uiState={open:{},scrollY:0};
-function rememberUI(){_uiState.scrollY=window.scrollY; _uiState.open={}; document.querySelectorAll('tr[data-sym]').forEach(tr=>{const k=tr.dataset.sym,ds=tr.querySelectorAll('.cell-ob details'); _uiState.open[k]=[!!(ds[0]?.open),!!(ds[1]?.open)];});}
-function restoreUI(){
-  let applied=false;
-  document.querySelectorAll('tr[data-sym]').forEach(tr=>{
-    const st=_uiState.open[tr.dataset.sym]; if(!st) return;
-    const ds=tr.querySelectorAll('.cell-ob details');
-    if(st[0]&&ds[0]) ds[0].open=true;
-    if(st[1]&&ds[1]) ds[1].open=true;
-    applied = applied || !!(st[0]||st[1]);
-  });
-  requestAnimationFrame(()=>window.scrollTo({top:_uiState.scrollY,left:0,behavior:'instant'}));
-  return applied;
-}
-
-function numFull(x){if(x===null||x===undefined||isNaN(x)) return '-'; return Number(x).toLocaleString(undefined,{useGrouping:false,maximumFractionDigits:12});}
-function usdFull(x){if(x===null||x===undefined||isNaN(x)) return '$0'; return '$'+Number(x).toLocaleString(undefined,{useGrouping:false,maximumFractionDigits:12});}
-
-function disclaimerHTML(){return `<div class="disc"><div><strong>Disclaimer‼</strong></div><ul>
-<li>Make your re-search on the exchanges you choose to use before investing.</li>
-<li>Verify deposit/withdrawal working (not temporarily suspended).</li>
-<li><strong>Volume &amp; Depth</strong>: 24h volume &gt; $500k for the pairs you trade; tighter spreads; deeper books.</li>
-<li>Speed: TRON/BSC networks for cheap/fast transfers; beware ERC-20 delays &amp; fees.</li>
-<li>Reliability: Exchanges with predictable deposit credit times and clear status pages.</li>
-<li>Look out for liquidity, usually 24 hours Volume (USDT) should be 1000X your trade size, for comfortable and smooth trade.</li>
-<li>Same ticker does not guarantee same asset — always verify full name &amp; contract.</li>
-<li>Confirm network type (TRC20/BEP20/ERC20/Solana/etc.) matches both ways.</li>
-<li>Note min withdraw, max per transaction, and expected confirmation count.</li>
-<li>Mis-matching networks causes lost funds or long recovery tickets.</li>
-<li>Always confirm contact addresses for the network you’ll be using for deposit and withdrawal in both exchanges.</li>
-<li>Some coins exist on multiple chains with different contract addresses.</li>
-<li>Deposits may need memos (e.g., XRP, XLM); forgetting them delays credit.</li>
-<li>Check estimated arrival on the withdrawing exchange, along with fees and network.</li>
-<li>Trading fee at the buy exchange. (Spot — usually 0.1–0.4%)</li>
-<li>Withdrawal/Network Fee from buy exchange. (Confirm at exchange)</li>
-<li>Trading fee at the sell exchange. (Spot — usually 0.1–0.4%)</li>
-</ul><div style="margin-top:6px;"><em>We do not provide guaranteed profit, we only help you spot opportunities, and how to utilize them.</em></div></div>`;}
-const FORCE_TRADE_TEXT=disclaimerHTML();
-function renderTradeDetails(){const box=qs('#tradeContent'); if(box) box.innerHTML=FORCE_TRADE_TEXT;}
-
-/* ====== SERVER CLOCK: AFRICA/LAGOS (no seconds) ====== */
-let baseServerMs=null, baseClientMs=null, clockTicker=null;
-function ensureLastBox(){let b=qs('#lastBox'), t=qs('#lastUTCtime'); if(!b){const br=qs('.brandrow'); if(!br) return; b=document.createElement('div'); b.className='lastbox'; b.id='lastBox'; b.innerHTML=`<span class="lastlabel">Last updated</span><span id="lastUTCtime" class="lasttime">--:-- AM</span><span id="oppCount" class="oppcount">· -- possible opportunities</span>`; br.appendChild(b); t=qs('#lastUTCtime');} return t||qs('#lastUTCtime');}
-function fmtLagos(d){
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone:'Africa/Lagos',
-    year:'numeric', month:'2-digit', day:'2-digit',
-    hour:'2-digit', minute:'2-digit', hour12:true
-  }).formatToParts(d);
-  const map = Object.fromEntries(parts.map(p => [p.type, p.value]));
-  return `${map.year}-${map.month}-${map.day} ${map.hour}:${map.minute} ${String(map.dayPeriod||'').toUpperCase()}`;
-}
-function setLastUpdatedUTCFromISO(iso){
-  const el=ensureLastBox(); if(!el) return;
-  const d=new Date(iso); baseServerMs=d.getTime(); baseClientMs=Date.now();
-  el.textContent=fmtLagos(d);
-  if(clockTicker) clearInterval(clockTicker);
-  clockTicker=setInterval(()=>{
-    if(baseServerMs==null||baseClientMs==null) return;
-    const now=new Date(baseServerMs + (Date.now()-baseClientMs));
-    el.textContent=fmtLagos(now);
-  },1000);
-}
-function setOppCount(n){const el=qs('#oppCount'); if(!el) return; const num = (typeof n==='number' && isFinite(n)) ? n : 0; el.textContent = `· ${num} possible opportunities`; }
-async function seedServerTime(){try{const r=await fetch('/time',{cache:'no-store'}); const j=await r.json(); if(j&&j.serverTimeUTC) setLastUpdatedUTCFromISO(j.serverTimeUTC);}catch(_){}}
-
-function exLogoSrc(ex){
-  const u = (window._logoUrl && window._logoUrl[ex]) || null;
-  if(u) return u;
-  const dom = window._logoDom && window._logoDom[ex];
-  return dom ? `https://logo.clearbit.com/${dom}` : '';
-}
-
-let _progRAF=null;
-const PROG_CAP=0.97;
-function setBar(p){const f=qs('#loadBarFill'); if(!f) return; const clamped=Math.max(0, Math.min(1, p)); f.style.transform=`scaleX(${clamped})`;}
-function startProgress(){cancelProgress(); setBar(0); const start=performance.now(); const speed=480; function tick(now){const t=now - start; const p = 1 - Math.exp(-t / speed); setBar(Math.min(PROG_CAP, p)); _progRAF = requestAnimationFrame(tick);} _progRAF = requestAnimationFrame(tick);}
-function completeProgressThen(cb){cancelProgress(); setBar(1); setTimeout(()=>{ if(typeof cb==='function') cb(); setBar(0); }, 140);}
-function cancelProgress(){if(_progRAF){ cancelAnimationFrame(_progRAF); _progRAF=null; }}
-function showOverlay(){const o=qs('#loadOverlay'); if(!o) return; o.classList.remove('hidden'); startProgress();}
-function hideOverlay(){const o=qs('#loadOverlay'); if(!o) return; completeProgressThen(()=>{ o.classList.add('hidden'); });}
-
-const FILTERS_KEY='arbexa_filters_v1';
-function collectFilters(){
-  const get = id => qs('#'+id)?.value ?? '';
-  const exSel = qsa('input[name="ex"]').filter(cb=>cb.checked).map(cb=>cb.value);
-  return { minEdge:get('minEdge'), maxEdge:get('maxEdge'), q:get('q'), minVol:get('minVol'),
-           minLiq:get('minLiq'), tsMin:get('tsMin'), tsMax:get('tsMax'), ex: exSel };
-}
-function saveFilters(){ try{ localStorage.setItem(FILTERS_KEY, JSON.stringify(collectFilters())); }catch(e){} }
-function applyFiltersToUI(f){
-  if(!f) return;
-  const set = (id,val)=>{ const el=qs('#'+id); if(el!=null && val!=null && val!=='') el.value=val; };
-  set('minEdge',f.minEdge); set('maxEdge',f.maxEdge); set('q',f.q);
-  set('minVol',f.minVol); set('minLiq',f.minLiq); set('tsMin',f.tsMin); set('tsMax',f.tsMax);
-  if(Array.isArray(f.ex) && f.ex.length>0){ qsa('input[name="ex"]').forEach(cb=>cb.checked = f.ex.includes(cb.value)); }
-}
-function wireFilterAutosave(){
-  ['minEdge','maxEdge','q','minVol','minLiq','tsMin','tsMax'].forEach(id=>{
-    const el=qs('#'+id); if(el){ el.addEventListener('change', saveFilters); }
-  });
-  qsa('input[name="ex"]').forEach(cb=>cb.addEventListener('change', saveFilters));
-}
-window.addEventListener('beforeunload', ()=>{ try{ saveFilters(); sessionStorage.setItem('arbexa_manual_reload','1'); }catch(e){} });
-(function(){
-  let manual=false;
-  try{ manual = sessionStorage.getItem('arbexa_manual_reload')==='1'; sessionStorage.removeItem('arbexa_manual_reload'); }catch(e){}
-  window._wasManualReload = manual;
-  if(manual){ showOverlay(); }
-})();
-
-/* Persist per-row expanders */
-const EXPAND_KEY='arbexa_expand_v1';
-function readExpandStore(){ try{ return JSON.parse(localStorage.getItem(EXPAND_KEY)||'{}'); }catch(e){ return {}; } }
-function writeExpandStore(s){ try{ localStorage.setItem(EXPAND_KEY, JSON.stringify(s)); }catch(e){} }
-function applySavedExpandState(){
-  const store=readExpandStore(); let applied=false;
-  document.querySelectorAll('tr[data-sym]').forEach(tr=>{
-    const sym=tr.dataset.sym; const st=store[sym]; if(!st) return;
-    const ds=tr.querySelectorAll('.cell-ob details');
-    if(ds[0]) ds[0].open = !!st[0];
-    if(ds[1]) ds[1].open = !!st[1];
-    applied = applied || !!st[0] || !!st[1];
-  });
-  document.querySelectorAll('.card[data-sym]').forEach(card=>{
-    const sym=card.dataset.sym; const st=store[sym]; if(!st) return;
-    const ds=card.querySelectorAll('details');
-    if(ds[0]) ds[0].open = !!st[0];
-    if(ds[1]) ds[1].open = !!st[1];
-    applied = applied || !!st[0] || !!st[1];
-  });
-  return applied;
-}
-function wireExpandPersistence(){
-  const store=readExpandStore();
-  const attach=(rootSel, detailsSel)=>{
-    document.querySelectorAll(rootSel).forEach(root=>{
-      const sym=root.getAttribute('data-sym'); if(!sym) return;
-      const ds=root.querySelectorAll(detailsSel);
-      ds.forEach((d,i)=>{
-        d.addEventListener('toggle', ()=>{
-          const cur = store[sym] || [false,false];
-          cur[i] = d.open;
-          store[sym] = cur;
-          writeExpandStore(store);
-        });
-      });
+    const r = await fetch('/logos'); const j = await r.json();
+    const sel = document.getElementById('ex');
+    (j.exchanges||[]).forEach(id=>{
+      const o=document.createElement('option'); o.value=id; o.textContent=id; sel.appendChild(o);
     });
-  };
-  attach('tr[data-sym]', '.cell-ob details');
-  attach('.card[data-sym]', 'details');
-}
-
-/* Persist top bar dropdown open/close */
-const DD_KEY='arbexa_dd_v1';
-function applySavedDD(){
-  try{
-    const s = JSON.parse(localStorage.getItem(DD_KEY)||'{}')||{};
-    ['menuDD','settingsDD','socialsDD','tncDD','profileDD','tradeDD','msgDD'].forEach(id=>{
-      const el=document.getElementById(id); if(el && typeof s[id]==='boolean') el.open = s[id];
-    });
-  }catch(_){}
-}
-function wireDDSave(){
-  try{
-    const s = JSON.parse(localStorage.getItem(DD_KEY)||'{}')||{};
-    ['menuDD','settingsDD','socialsDD','tncDD','profileDD','tradeDD','msgDD'].forEach(id=>{
-      const el=document.getElementById(id); if(!el) return;
-      el.addEventListener('toggle', ()=>{ s[id]=el.open; try{ localStorage.setItem(DD_KEY, JSON.stringify(s)); }catch(_){} });
-    });
+    EX_LOGOS = j.logo_urls || {};
   }catch(_){}
 }
 
-function obTable(title, rows, isAsks){
-  if(!rows||rows.length===0){return `<div style="margin-top:8px"><div class="badge">${title}</div><div class="mononu" style="margin-top:6px">No levels</div></div>`;}
-  const lines=rows.map(([p,a])=>{const usd=(p&&a)?(p*a):0; return `<tr><td>${numFull(p)}</td><td>${numFull(a)}</td><td class="mononu">${usdFull(usd)}</td></tr>`;}).join('');
-  const cls=isAsks?'obtbl ob-ask':'obtbl ob-bid'; const subtitle=isAsks?'Asks (buy levels)':'Bids (sell levels)';
-  return `<div style="margin-top:8px"><div class="badge">${title} — ${subtitle}</div><table class="${cls}"><thead><tr><th>Price $</th><th>Qty</th><th>≈ USD</th></tr></thead><tbody>${lines}</tbody></table></div>`;
-}
-function obHTML(r){return obTable('🛒 '+cap(r.buy_ex)+' '+r.symbol,r.ob_buy_asks,true)+obTable('💸 '+cap(r.sell_ex)+' '+r.symbol,r.ob_sell_bids,false);}
+/* fetch opportunities */
+async function fetchData(){
+  const params = new URLSearchParams();
+  const add = (k, v)=>{ if(v!=='' && v!=null) params.append(k, v); };
+  add('q', document.getElementById('q').value.trim());
+  add('minEdge', document.getElementById('minEdge').value);
+  add('maxEdge', document.getElementById('maxEdge').value);
+  add('minVol', document.getElementById('minVol').value);
+  add('minLiq', document.getElementById('minLiq').value);
+  const sel = Array.from(document.getElementById('ex').selectedOptions).map(o=>o.value).join(',');
+  add('ex', sel);
 
-function render(rows){
-  rows.sort((a,b)=>b.edge-a.edge);
-  const tb=qs('#opptable tbody'), cards=qs('#cards');
-  if(!rows||rows.length===0){
-    const msg=`<div class="emptymsg"><em><strong>Filter too strict, try default settings for opportunities.</strong></em></div>`;
-    tb.innerHTML=`<tr><td colspan="12">${msg}</td></tr>`; cards.innerHTML=`<div class="card">${msg}</div>`;
-    setOppCount(0);
-    return;
-  }
-  setOppCount(rows.length);
-  tb.innerHTML=rows.map(r=>{
-    const edgeClass=(r.edge>=10?'good':(r.edge>=5?'warn':''));
-    const sugg=(r.sugg_hi>0)?`${usdFull(r.sugg_lo)} – ${usdFull(r.sugg_hi)}`:'n/a';
-    const lb = exLogoSrc(r.buy_ex)  ? `<img class="exlogo" src="${exLogoSrc(r.buy_ex)}" onerror="this.style.display='none'">` : '';
-    const ls = exLogoSrc(r.sell_ex) ? `<img class="exlogo" src="${exLogoSrc(r.sell_ex)}" onerror="this.style.display='none'">` : '';
-    const drops=`<div class="stack"><details><summary>📚 Orderbooks (15)</summary>${obHTML(r)}</details><details><summary>📊 Volume &amp; Disclaimer</summary>${disclaimerHTML()}</details></div>`;
-    return `<tr data-sym="${r.symbol}">
-      <td class="mononu"><span class="badge">🔁 ${r.symbol}</span></td>
-      <td class="mononu edge ${edgeClass}">${r.edge.toFixed(2)}%</td>
-      <td><span class="badge">🛒 ${lb} ${cap(r.buy_ex)}</span><div class="mononu">${usdFull(r.buy_ask)}</div></td>
-      <td><span class="badge">💸 ${ls} ${cap(r.sell_ex)}</span><div class="mononu">${usdFull(r.sell_bid)}</div></td>
-      <td class="mononu">$${Number(r.qv_buy||0).toLocaleString()} / $${Number(r.qv_sell||0).toLocaleString()}</td>
-      <td class="mononu"><span title="Higher score reflects stronger 24h volume and tighter depth near the top price.">${r.liquidity}</span></td>
-      <td class="mononu">${sugg}<div><small class="muted">Example guidance only</small></div></td>
-      <td class="mononu">${usdFull(r.example_profit_1000)} <small class="muted">(on $1000)</small></td>
-      <td class="mononu">${usdFull(r.price)}</td>
-      <td class="mononu">${usdFull(r.buy_ask)}</td>
-      <td class="mononu">${usdFull(r.sell_bid)}</td>
-      <td class="cell-ob">${drops}</td></tr>`;
-  }).join('');
-
-  cards.innerHTML=rows.map(r=>{
-    const sugg=(r.sugg_hi>0)?`${usdFull(r.sugg_lo)} – ${usdFull(r.sugg_hi)}`:'n/a';
-    const lb = exLogoSrc(r.buy_ex)  ? `<img class="exlogo" src="${exLogoSrc(r.buy_ex)}" onerror="this.style.display='none'">` : '';
-    const ls = exLogoSrc(r.sell_ex) ? `<img class="exlogo" src="${exLogoSrc(r.sell_ex)}" onerror="this.style.display='none'">` : '';
-    return `<div class="card" data-sym="${r.symbol}">
-      <h3>🔁 ${r.symbol} · <span class="edge">${r.edge.toFixed(2)}%</span></h3>
-      <div class="kv">
-        <div>🛒 Buy: ${lb} ${cap(r.buy_ex)} @ ${usdFull(r.buy_ask)}</div>
-        <div>💸 Sell: ${ls} ${cap(r.sell_ex)} @ ${usdFull(r.sell_bid)}</div>
-        <div>💧 Vol: $${Number(r.qv_buy||0).toLocaleString()} / $${Number(r.qv_sell||0).toLocaleString()}</div>
-        <div><span title="Higher score reflects stronger 24h volume and tighter depth near the top price.">🧪 Liq score:</span> ${r.liquidity}</div>
-        <div>💡 Suggest: ${sugg}</div>
-        <div>🤑 ${usdFull(r.example_profit_1000)} on $1000</div>
-        <div>💵 Price: ${usdFull(r.price)}</div>
-      </div>
-      <details class="details"><summary>📚 Orderbooks (15)</summary>${obHTML(r)}</details>
-      <details class="details" style="margin-top:6px"><summary>📊 Volume &amp; Disclaimer</summary>${disclaimerHTML()}</details>
-    </div>`;
-  }).join('');
-
-  wireExpandPersistence();
-}
-
-async function buildExTables(){
-  const res=await fetch('/logos',{cache:'no-store'}); const data=await res.json();
-  window._logoDom = data.logos || {};
-  window._logoUrl = data.logo_urls || {};
-  const all = (data.exchanges||[]).slice(0);
-  const half = Math.ceil(all.length/2);
-  const col1 = all.slice(0,half);
-  const col2 = all.slice(half);
-
-  function rows(of){
-    return of.map(ex=>{
-      return `<tr><td><label><input type="checkbox" name="ex" value="${ex}" checked>
-        <img class="exlogo" src="${exLogoSrc(ex)}" onerror="this.style.display='none'">
-        ${ex.charAt(0).toUpperCase()+ex.slice(1)}</label></td></tr>`;
-    }).join('');
-  }
-
-  const t1=qs('#extable1'), t2=qs('#extable2');
-  if(t1) t1.innerHTML = rows(col1);
-  if(t2) t2.innerHTML = rows(col2);
-
-  ['minEdge','maxEdge','q','minVol','minLiq','tsMin','tsMax'].forEach(id=>{
-    const el=qs('#'+id); if(el){ el.addEventListener('change', saveFilters); }
+  const r = await fetch('/data?'+params.toString(), {
+    headers:{'Authorization':'Bearer '+token()}
   });
-  qsa('input[name="ex"]').forEach(cb=>cb.addEventListener('change', saveFilters));
+  if(r.status===401){ location.href='/login'; return; }
+  const j = await r.json();
+  return j;
+}
 
-  qs('#exAll').onclick=()=>{qsa('input[name="ex"]').forEach(cb=>cb.checked=true); saveFilters();};
-  qs('#exNone').onclick=()=>{qsa('input[name="ex"]').forEach(cb=>cb.checked=false); saveFilters();};
+/* render cards */
+function exIcon(id){
+  const url = EX_LOGOS[id] || ('https://logo.clearbit.com/'+(id==='gateio'?'gate.io':(id+'.com')));
+  const img = document.createElement('img'); img.alt = id; img.loading='lazy'; img.src=url; return img;
+}
+function render(data){
+  const list = document.getElementById('list'); list.innerHTML='';
+  const rows = data && data.rows || [];
+  document.getElementById('count').textContent = rows.length + ' opportunities';
+  document.getElementById('ts').textContent = (data && data.ts) ? data.ts : new Date().toISOString().slice(0,19).replace('T',' ');
+  rows.forEach(r=>{
+    const c = document.createElement('div'); c.className='card';
 
-  qs('#exApply').onclick=async()=>{
-    playSfx('tap');
-    saveFilters();
-    showOverlay();
-    await load(false);
-    hideOverlay();
-    const dd=qs('#settingsDD'); if(dd) dd.open=false;
-  };
+    const top = document.createElement('div'); top.className='top';
+      const pair = document.createElement('div'); pair.className='pair';
+        const sym = document.createElement('div'); sym.className='sym'; sym.textContent = r.symbol || r.pair || '—';
+        const chip = document.createElement('div'); chip.className='chip'; chip.textContent = (r.quote || 'USDT');
+        pair.appendChild(sym); pair.appendChild(chip);
+      const edge = document.createElement('div'); edge.className='edge '+((r.edge||0)>=0?'good':'bad'); edge.textContent = fmtPct(r.edge||0);
+      top.appendChild(pair); top.appendChild(edge);
+    c.appendChild(top);
 
-  const defBtn = qs('#exDefault');
-  if(defBtn){
-    defBtn.onclick = async ()=>{
-      playSfx('tap');
-      qsa('input[name="ex"]').forEach(cb=>cb.checked=true);
-      ['q','minVol','minLiq','tsMin','tsMax'].forEach(id=>{ const el=qs('#'+id); if(el) el.value=''; });
-      const minE = qs('#minEdge'), maxE = qs('#maxEdge');
-      if(minE) minE.value = '1';
-      if(maxE) maxE.value = '26';
-      saveFilters();
-      showOverlay();
-      await load(false);
-      hideOverlay();
-      const dd=qs('#settingsDD'); if(dd) dd.open=false;
+    const prices = document.createElement('div'); prices.className='prices';
+
+      const buy = document.createElement('div'); buy.className='pricebox';
+        const exb = document.createElement('div'); exb.className='ex'; exb.appendChild(exIcon(r.buy_ex)); exb.appendChild(document.createTextNode(' Buy @ '+(r.buy_ex||'')));
+        const pvb = document.createElement('div'); pvb.className='v'; pvb.textContent = fmtNum(r.buy_ask);
+      buy.appendChild(exb); buy.appendChild(pvb);
+
+      const sell = document.createElement('div'); sell.className='pricebox';
+        const exs = document.createElement('div'); exs.className='ex'; exs.appendChild(exIcon(r.sell_ex)); exs.appendChild(document.createTextNode(' Sell @ '+(r.sell_ex||'')));
+        const pvs = document.createElement('div'); pvs.className='v'; pvs.textContent = fmtNum(r.sell_bid);
+      sell.appendChild(exs); sell.appendChild(pvs);
+
+    prices.appendChild(buy); prices.appendChild(sell);
+    c.appendChild(prices);
+
+    const row1 = document.createElement('div'); row1.className='row';
+      row1.appendChild(kv('24h Vol (Buy/Sell)', fmtUsd(r.qv_buy)+' / '+fmtUsd(r.qv_sell)));
+      row1.appendChild(kv('Liquidity score', (r.liquidity!=null? r.liquidity : '—')));
+    c.appendChild(row1);
+
+    const row2 = document.createElement('div'); row2.className='row';
+      const lo = (r.sugg_lo||0), hi=(r.sugg_hi||0);
+      row2.appendChild(kv('Suggest Size', (lo>0 && hi>0)? ('$'+lo+' – $'+hi):'—'));
+      row2.appendChild(kv('Example Profit (on $1000)', fmtUsd(r.example_profit_1000||0)));
+    c.appendChild(row2);
+
+    const foot = document.createElement('div'); foot.className='foot';
+      const meta2 = document.createElement('div'); meta2.className='meta2';
+        meta2.appendChild(tag('Price', r.price!=null? String(r.price):'—'));
+      const act = document.createElement('div'); act.className='inline';
+        const b1 = document.createElement('a'); b1.className='btn'; b1.textContent='Trade details'; b1.href='#'; b1.onclick=(e)=>{e.preventDefault(); alert('Coming soon');};
+        act.appendChild(b1);
+      foot.appendChild(meta2); foot.appendChild(act);
+    c.appendChild(foot);
+
+    list.appendChild(c);
+  });
+}
+function kv(k,v){
+  const box=document.createElement('div'); box.className='kv';
+  const kk=document.createElement('div'); kk.className='k'; kk.textContent=k;
+  const vv=document.createElement('div'); vv.className='v'; vv.textContent=v;
+  box.appendChild(kk); box.appendChild(vv); return box;
+}
+function tag(k,v){
+  const x=document.createElement('div'); x.className='badge'; x.textContent=k+': '+v; return x;
+}
+
+/* autosave of filters (so mobile keep state) */
+function saveFilters(){
+  try{
+    const st = {
+      q:document.getElementById('q').value,
+      ex:Array.from(document.getElementById('ex').selectedOptions).map(o=>o.value),
+      minEdge:document.getElementById('minEdge').value,
+      maxEdge:document.getElementById('maxEdge').value,
+      minVol:document.getElementById('minVol').value,
+      minLiq:document.getElementById('minLiq').value
     };
-  }
-
-  // ✨ NEW: wire Change Password button
-  const cpBtn = qs('#exChangePassword');
-  if(cpBtn){
-    cpBtn.onclick = ()=>{
-      playSfx('tap');
-      const m = qs('#cpModal');
-      if(m) m.classList.remove('hidden');
-    };
-  }
-
-  const soundBtn = qs('#soundToggle');
-  if(soundBtn){
-    function paint(){ const on=soundEnabled(); soundBtn.textContent = on ? '🔊 Sound: ON' : '🔈 Sound: OFF'; soundBtn.setAttribute('aria-pressed', on?'true':'false'); }
-    soundBtn.addEventListener('click', ()=>{ const on=soundEnabled(); try{ localStorage.setItem(SOUND_KEY, on?'0':'1'); }catch(_){ } paint(); playSfx('tap'); });
-    paint();
-  }
-
-  try{ const saved = JSON.parse(localStorage.getItem(FILTERS_KEY)||'null'); if(saved) applyFiltersToUI(saved); }catch(_){}
+    localStorage.setItem('arbexa_filters', JSON.stringify(st));
+  }catch(_){}
 }
-
-/* AUTH helpers on /opps */
-function getToken(){ try{ return localStorage.getItem('arbexa_token')||''; }catch(_) { return ''; } }
-function setToken(t){ try{ if(t) localStorage.setItem('arbexa_token', t); else localStorage.removeItem('arbexa_token'); }catch(_){ } }
-async function apiLogin(email, password){
-  const form = new URLSearchParams({ username: email, password: password });
-  const r = await fetch('/auth/login', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: form });
-  const j = await r.json().catch(()=>({}));
-  if(!r.ok || !j.access_token){ throw new Error(j.detail||('Login failed ('+r.status+')')); }
-  return j.access_token;
-}
-function updateAuthUI(){
-  const has = !!getToken();
-  const bS = qs('#btnSignup'), bL = qs('#btnLogin'), bO = qs('#btnLogout');
-  if(bS) bS.style.display = has ? 'none' : 'inline-flex';
-  if(bL) bL.style.display = has ? 'none' : 'inline-flex';
-  if(bO) bO.style.display = has ? 'inline-flex' : 'none';
-}
-function wireAuthButtons(){
-  const bS = qs('#btnSignup'), bL = qs('#btnLogin'), bO = qs('#btnLogout');
-  if(bS){
-    bS.addEventListener('click', async ()=>{
-      const email = prompt('Enter Gmail to sign up:'); if(!email) return;
-      const pw = prompt('Enter a password (min 6 chars):'); if(!pw) return;
-      const un = prompt('Choose a username (lowercase letters and digits, 3–32 chars):'); if(!un) return;
-      const rec = prompt('Enter a recovery sentence (>=20 chars; lowercase/digits/spaces only):'); if(!rec) return;
-      try{
-        playSfx('tap');
-        showOverlay();
-        const r = await fetch('/auth/signup', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ email: email.toLowerCase(), password: pw, username: (un||'').toLowerCase(), recovery: (rec||'').toLowerCase() })
-        });
-        const j = await r.json().catch(()=>({}));
-        if(!r.ok || !j.access_token) throw new Error(j.detail||('Signup failed ('+r.status+')'));
-        setToken(j.access_token); updateAuthUI();
-        alert('Signed up & logged in!');
-        await load(true);
-      }catch(e){ alert(e.message||String(e)); }
-      hideOverlay();
-    });
-  }
-  if(bL){
-    bL.addEventListener('click', async ()=>{
-      const email = prompt('Enter your Gmail:'); if(!email) return;
-      const pw = prompt('Enter your password:'); if(!pw) return;
-      try{
-        playSfx('tap');
-        showOverlay();
-        const tok = await apiLogin(email.toLowerCase(), pw);
-        setToken(tok); updateAuthUI();
-        alert('Logged in!');
-        await load(true);
-      }catch(e){ alert(e.message||String(e)); }
-      hideOverlay();
-    });
-  }
-  if(bO){
-    bO.addEventListener('click', ()=>{
-      setToken(''); updateAuthUI();
-      alert('Logged out.');
-      location.replace('/');
-    });
-  }
-}
-function authFetch(url, opts={}){
-  const t = getToken();
-  const hdrs = Object.assign({}, opts.headers||{});
-  if(t) hdrs['Authorization'] = 'Bearer ' + t;
-  return fetch(url, {...opts, headers: hdrs});
-}
-
-/* ✨ NEW: Change Password modal wiring */
-(function(){
-  const modal = qs('#cpModal');
-  if(!modal) return;
-  const cancel = qs('#cpCancel');
-  const submit = qs('#cpSubmit');
-
-  function close(){ modal.classList.add('hidden'); }
-  if(cancel) cancel.onclick = close;
-
-  async function doChange(){
-    const cur = (qs('#cpCur')?.value||'').trim();
-    const nw  = (qs('#cpNew')?.value||'').trim();
-    const nw2 = (qs('#cpNew2')?.value||'').trim();
-    if(!cur || !nw || !nw2){ alert('Complete all fields.'); return; }
-    if(nw.length < 6){ alert('New password too short (min 6).'); return; }
-    if(nw !== nw2){ alert('New passwords do not match.'); return; }
-    try{
-      showOverlay();
-      const r = await authFetch('/auth/change-password', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ current_password: cur, new_password: nw, confirm_new_password: nw2 })
-      });
-      const j = await r.json().catch(()=>({}));
-      if(!r.ok || !j.ok){ throw new Error(j.detail||('Change failed ('+r.status+')')); }
-      alert('Password changed successfully.');
-      close();
-    }catch(e){
-      alert(e.message||String(e));
-    }finally{
-      hideOverlay();
-    }
-  }
-  if(submit) submit.onclick = doChange;
-})();
-
-/* Profile card */
-function fmtDateNice(iso){
+function loadFilters(){
   try{
-    const d = new Date(iso);
-    return d.toLocaleString(undefined, {year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit'});
-  }catch(_){ return iso||'-'; }
-}
-function profileCardHTML(p){
-  const rows = [
-    ['Gmail', p.email || '-'],
-    ['Username', p.username || '-'],
-    ['Date joined', p.date_joined ? fmtDateNice(p.date_joined) : '-'],
-    ['Status', (p.status||'free').toUpperCase()],
-    ['User ID', (p.user_id!=null ? String(p.user_id) : '-')],
-  ];
-  const items = rows.map(([k,v])=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid #182241;border-radius:10px;background:#0f1a33">
-    <div style="color:#9fb2d9;font-weight:700">${k}</div>
-    <div class="mononu" style="font-weight:800">${v}</div>
-  </div>`).join('');
-  return `<div style="display:grid;gap:8px"><div style="display:flex;align-items:center;gap:8px">
-      <span class="badge">👤 Profile</span><span style="color:#b8c8e8">Card preview (read-only)</span></div>${items}</div>`;
-}
-async function loadProfileIntoCard(){
-  const card = document.getElementById('profileCard');
-  if(!card) return;
-  try{
-    const res = await authFetch('/me', {cache:'no-store'});
-    if(res.status === 401){ card.innerHTML = `<div style="color:#ffcf5a">Please log in to view your profile.</div>`; return; }
-    const p = await res.json();
-    card.innerHTML = profileCardHTML(p);
-    try{ localStorage.setItem('arbexa_profile', JSON.stringify(p)); }catch(_){}
-  }catch(e){
-    try{
-      const cached = JSON.parse(localStorage.getItem('arbexa_profile')||'null');
-      card.innerHTML = cached ? profileCardHTML(cached) : `<div style="color:#ff6b6b">Failed to load profile.</div>`;
-    }catch(_){
-      card.innerHTML = `<div style="color:#ff6b6b">Failed to load profile.</div>`;
-    }
-  }
+    const st = JSON.parse(localStorage.getItem('arbexa_filters')||'{}');
+    const set=(id,val)=>{ if(val!=null){ let el=document.getElementById(id); if(el){ el.value=val; } } };
+    set('q',st.q); set('minEdge',st.minEdge); set('maxEdge',st.maxEdge); set('minVol',st.minVol); set('minLiq',st.minLiq);
+    if(st.ex && Array.isArray(st.ex)){ const sel=document.getElementById('ex'); (st.ex||[]).forEach(v=>{
+      const o=Array.from(sel.options).find(x=>x.value===v); if(o) o.selected=true;
+    });}
+  }catch(_){}
 }
 
-/* Manual data load */
-async function load(auto=true){
-  const p={minEdge:parseFloat(qs('#minEdge').value||'1'),maxEdge:parseFloat(qs('#maxEdge').value||'25'),
-           q:(qs('#q').value||'').trim(),minVol:parseFloat(qs('#minVol').value||'0'),minLiq:parseFloat(qs('#minLiq').value||'0'),
-           tsMin:parseFloat(qs('#tsMin').value||'0'),tsMax:parseFloat(qs('#tsMax').value||'0'),
-           ex:Array.from(document.querySelectorAll('input[name="ex"]:checked')).map(x=>x.value).join(',')};
-  const qsParams=new URLSearchParams(p); qsParams.set('_ts',String(Date.now()));
-  rememberUI();
-  try{
-    const res=await authFetch('/data?'+qsParams.toString(),{cache:'no-store'});
-    if(res.status===401){ location.replace('/'); return; }
-    const data=await res.json();
-    render(data.rows||[]);
-    const usedEphemeral = restoreUI();
-    if(!usedEphemeral){ applySavedExpandState(); }
-    if(data.serverTimeUTC) setLastUpdatedUTCFromISO(data.serverTimeUTC);
-  }catch(e){
-    setTimeout(hideOverlay, 1200);
-  }
-}
-
-/* Reminder modal */
-function maybeShowReminder(){
-  const now=Date.now(); const until=parseInt(localStorage.getItem('tradeDetailsReminderUntil')||'0',10);
-  if(until && now<until) return;
-  const modal=qs('#remindModal'); if(!modal) return;
-  const ok=qs('#remindOk'), skip=qs('#remindSkip');
-  modal.classList.remove('hidden');
-  ok.onclick=()=>{localStorage.setItem('tradeDetailsReminderUntil',String(Date.now()+3600000)); modal.classList.add('hidden');};
-  skip.onclick=()=>{localStorage.setItem('tradeDetailsReminderUntil',String(Date.now()+24*3600000)); modal.classList.add('hidden');};
-}
-
-/* T&C button */
-function initTnC(){
-  const btn = qs('#agreeBtn'); if(!btn) return;
-  const KEY='tncAgreed';
-  function paint(){ btn.textContent = (localStorage.getItem(KEY)==='1') ? 'Agreed ✓' : 'Agreed?'; }
-  btn.addEventListener('click', ()=>{ localStorage.setItem(KEY, localStorage.getItem(KEY)==='1' ? '0' : '1'); paint(); });
-  paint();
-}
-
-/* Message dropdown label toggle */
-(function(){
-  const dd = document.getElementById('msgDD');
-  const sum = document.getElementById('msgSummary');
-  if(dd && sum){ dd.addEventListener('toggle', ()=>{ sum.textContent = dd.open ? '📨Opened' : '📩Message'; }); }
-})();
-
-/* Visibility refresh */
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden){ load(true); }});
-
-/* Wire buttons + profile toggle */
-document.addEventListener('DOMContentLoaded', ()=>{
-  const btn = qs('#refreshNow');
-  if(btn){ btn.addEventListener('click', async ()=>{ playSfx('tap'); showOverlay(); await load(false); hideOverlay(); }); }
-  wireAuthButtons(); updateAuthUI();
-
-  const prof = document.getElementById('profileDD');
-  if(prof){
-    prof.addEventListener('toggle', ()=>{
-      if(prof.open){ loadProfileIntoCard(); }
-    });
-  }
-
-  applySavedDD(); wireDDSave();
-});
-
-/* Boot */
-buildExTables().then(async ()=>{
-  renderTradeDetails(); initExtDoc(); initTnC(); maybeShowReminder(); seedServerTime();
-  wireFilterAutosave();
-  await load(true);
-  hideOverlay();
-});
-setInterval(()=>load(true),10000);
-</script>
-
-<button id="chatFab" class="chatfab" title="Open chat" aria-label="Open chat"><span class="dot">💬</span></button>
-<script>
-(function(){
-  const fab=document.getElementById('chatFab'); if(!fab) return;
-  let dragging=false,sx=0,sy=0,left=0,top=0;
-  function setPos(x,y){ fab.style.right='auto'; fab.style.bottom='auto'; fab.style.left=x+'px'; fab.style.top=y+'px'; }
-  function down(e){ dragging=true; const r=fab.getBoundingClientRect(); left=r.left; top=r.top;
-    sx=(e.touches?e.touches[0].clientX:e.clientX); sy=(e.touches?e.touches[0].clientY:e.clientY); e.preventDefault(); }
-  function move(e){ if(!dragging) return; const x=(e.touches?e.touches[0].clientX:e.clientX), y=(e.touches?e.touches[0].clientY:e.clientY); setPos(left+(x-sx), top+(y-sy)); }
-  function up(){ dragging=false; }
-  fab.addEventListener('mousedown', down); fab.addEventListener('touchstart', down, {passive:false});
-  window.addEventListener('mousemove', move); window.addEventListener('touchmove', move, {passive:false});
-  window.addEventListener('mouseup', up); window.addEventListener('touchend', up);
-  fab.addEventListener('click', function(){ if(dragging){ dragging=false; return; }
-    try{ const t=localStorage.getItem('arbexa_token'); if(!t){ location.href='/login'; return; } }catch(_){}
-    location.href='/chat'; });
-})();
-</script>
-
-<script>
+/* show/hide free banner if user is Pro (reads cached profile like your build) */
 (function(){
   try{
     var prof=null; try{prof=JSON.parse(localStorage.getItem('arbexa_profile')||'null');}catch(_){}
@@ -2590,9 +2019,48 @@ setInterval(()=>load(true),10000);
     var el = document.getElementById('freeBanner'); if(el){ if(isPro) el.classList.add('hide'); else el.classList.remove('hide'); }
   }catch(e){}
 })();
+
+/* draggable chat button */
+(function(){
+  const fab=document.getElementById('chatFab'); if(!fab) return;
+  let dragging=false,sx=0,sy=0,left=0,top=0;
+  const setPos=(x,y)=>{ fab.style.right='auto'; fab.style.bottom='auto'; fab.style.left=x+'px'; fab.style.top=y+'px'; }
+  const down=(e)=>{ dragging=true; const r=fab.getBoundingClientRect(); left=r.left; top=r.top;
+    sx=(e.touches?e.touches[0].clientX:e.clientX); sy=(e.touches?e.touches[0].clientY:e.clientY); e.preventDefault(); }
+  const move=(e)=>{ if(!dragging) return; const x=(e.touches?e.touches[0].clientX:e.clientX), y=(e.touches?e.touches[0].clientY:e.clientY); setPos(left+(x-sx), top+(y-sy)); }
+  const up=()=>{ dragging=false; }
+  fab.addEventListener('mousedown', down); fab.addEventListener('touchstart', down, {passive:false});
+  window.addEventListener('mousemove', move); window.addEventListener('touchmove', move, {passive:false});
+  window.addEventListener('mouseup', up); window.addEventListener('touchend', up);
+  fab.addEventListener('click', function(){ if(dragging){ dragging=false; return; }
+    try{ const t=localStorage.getItem('arbexa_token'); if(!t){ location.href='/login'; return; } }catch(_){}
+    location.href='/chat'; });
+})();
+
+/* boot */
+let _timer=null;
+async function loadOnce(){
+  try{
+    const j = await fetchData();
+    render(j);
+  }catch(e){ console.error(e); }
+}
+document.addEventListener('DOMContentLoaded', async ()=>{
+  await loadLogos();
+  loadFilters();
+  ['q','minEdge','maxEdge','minVol','minLiq','ex'].forEach(id=>{
+    const el=document.getElementById(id);
+    el && el.addEventListener('change', ()=>{ saveFilters(); loadOnce(); });
+    el && el.addEventListener('input', ()=>{ saveFilters(); if(_timer) clearTimeout(_timer); _timer=setTimeout(loadOnce, 300); });
+  });
+  document.getElementById('btnRefresh').addEventListener('click', loadOnce);
+  sfx();
+  await loadOnce();
+  setInterval(loadOnce, 10000);
+});
 </script>
-</body></html>
-"""
+</body>
+</html>"""
 @app.get("/opps", response_class=HTMLResponse)
 def opps_page():
     return HTMLResponse(_OPPS_HTML)
