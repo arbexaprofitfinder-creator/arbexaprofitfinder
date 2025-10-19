@@ -226,7 +226,8 @@ from sqlalchemy.orm import sessionmaker, declarative_base, Session
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./arbexa_users.db")  # local file db (no setup needed)
 JWT_SECRET   = os.getenv("JWT_SECRET", "change_me_super_secret")         # change later
 JWT_EXPIRE_MINUTES = 24 * 60
-pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_ctx = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
+
 
 # ---------- AUTH DB ----------
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
@@ -2022,6 +2023,47 @@ img.exlogo{width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-
   .brandurl{ max-width:52vw; overflow:hidden; text-overflow:ellipsis; }
   .lastbox .lasttime{ font-size:16px; }
 }
+
+/* === Arbexa Mobile Layout (sketch-accurate) === */
+@media (max-width: 520px){
+  /* Brand row becomes a 2x2 grid: Row1: logo | time ; Row2: brandurl | actions (logout+refresh) */
+  .brandrow{ display:grid; grid-template-columns: 1fr auto; grid-auto-rows:min-content; gap:6px 8px; align-items:center; }
+  .brandlogo{ grid-column:1; grid-row:1; }
+  .lastbox{ grid-column:2; grid-row:1; justify-self:end; }
+  .brandurl{ grid-column:1; grid-row:2; font-size:12px; }
+  .menu-anchor{ position:static; grid-column:2; grid-row:2; justify-self:end; display:flex; gap:6px; align-items:center; }
+  /* Show only Logout + Refresh here; hide bulky things */
+  .menu-anchor details, .menu-anchor #profileDD, .auth-anchor{ display:none !important; }
+  #btnLogout{ display:inline-flex !important; }
+  #refreshNow{ display:inline-flex !important; }
+
+  /* Guide bar full-width */
+  .filters{ margin-top:8px; }
+  .filters .block{ padding:0; }
+  #extDoc.btnpdf{ display:inline-flex !important; width:100%; justify-content:center; font-weight:800; }
+
+  /* Three buttons row: Trade Details | Message | Go Pro */
+  .filters{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; align-items:stretch; }
+  .filters .block{ display:block; }
+  #tradeDD > summary.btnpdf{ width:100%; text-align:center; }
+  #msgDD > summary.btnpdf{ width:100%; text-align:center; }
+  .btn-pro{ width:100%; text-align:center; }
+
+  /* Text lines full-width */
+  .free-banner{ margin:10px 12px 0 12px; }
+  .dash-tip{ margin:8px 12px; }
+
+  /* Reserve large middle area for opportunities (table/cards) */
+  #tblwrap{ padding-bottom:90px; } /* leave space above bottom nav */
+
+  /* Bottom nav bar */
+  .bottom-nav{ position:fixed; left:0; right:0; bottom:0; height:58px; background:#0d152a; border-top:1px solid #1a2547; display:flex; align-items:center; justify-content:space-around; z-index:80; }
+  .bottom-nav .navbtn{ width:34px; height:34px; border-radius:10px; border:1px solid #23345f; background:#0e1a35; color:#e7eefc; display:inline-flex; align-items:center; justify-content:center; font-size:18px; }
+  .bottom-nav .navbtn:active{ transform:scale(.98) }
+
+  /* Hide floating chat fab (we use centered bottom icon instead) */
+  #chatFab{ display:none !important; }
+}
 </style>
 <style>
 /* === Injected Mobile Overrides (non-destructive) === */
@@ -2062,7 +2104,25 @@ img.exlogo{width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-
 img, canvas, video, svg { max-width: 100%; height: auto; }
 * { box-sizing: border-box; }
 </style>
-</head><body>
+
+<style id="mobile-v2">
+[data-mobile="v2"] { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+@media (max-width: 768px){
+  [data-mobile="v2"] .brandrow{gap:10px}
+  [data-mobile="v2"] .brandurl{display:block;width:100%;text-align:center;background:#0bb66f;color:#fff;border-radius:10px;padding:8px 10px;font-weight:800;letter-spacing:.3px}
+  [data-mobile="v2"] .lastbox{width:100%;justify-content:center}
+  [data-mobile="v2"] .filters{margin-top:8px}
+  [data-mobile="v2"] .filters .block{padding:0}
+  [data-mobile="v2"] #extDoc.btnpdf{display:inline-flex !important;width:100%;justify-content:center;font-weight:800}
+  [data-mobile="v2"] .filters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:stretch}
+  [data-mobile="v2"] .btnpdf, [data-mobile="v2"] .auth-btn, [data-mobile="v2"] .refresh-btn{min-height:44px;border-radius:12px}
+  [data-mobile="v2"] #freeBanner{width:100%;padding:10px 12px;background:#e9f9f0;color:#0a8a54;border:1px solid #b9eccf;border-radius:10px;font-size:.95rem}
+  [data-mobile="v2"] .dash-tip{color:#0a8a54;font-weight:800}
+  /* Chat left-bottom */
+  [data-mobile="v2"] #chatFab{display:inline-flex !important;left:12px;right:auto}
+}
+</style>
+</head><body data-mobile="v2">
 <header>
   <div class="brandrow">
     <img src="/brandlogo" alt="Arbexa Profit Finder" class="brandlogo">
@@ -2134,7 +2194,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
           <polyline points="21 3 21 9 15 9"/>
         </svg>
       </button>
-      <button id="drawerOpen" class="drawer-btn" title="Menu" aria-label="Open menu">☰</button>
+      <button id="drawerOpen" class="drawer-btn" title="Menu" aria-label="Open menu"><span class="emoji" aria-hidden="true">🍔</span></button>
 
       <!-- Profile dropdown -->
       <details id="profileDD">
@@ -2869,6 +2929,47 @@ document.addEventListener('click', function(e) {
     drawer.classList.remove('open');
   }
 });
+</script>
+
+
+  <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Bottom Navigation">
+    <button id="bnProfile" class="navbtn" title="Profile" aria-label="Profile">👤</button>
+    <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">💬</button>
+    <button id="bnMenu" class="navbtn" title="Menu" aria-label="Menu">☰</button>
+  </div>
+
+
+<script>
+(function(){
+  try{
+    const byId = (x)=>document.getElementById(x);
+    const el = {
+      profileDD: document.getElementById('profileDD'),
+      drawerOpen: document.getElementById('drawerOpen'),
+      chatFab: document.getElementById('chatFab'),
+      bnProfile: document.getElementById('bnProfile'),
+      bnChat: document.getElementById('bnChat'),
+      bnMenu: document.getElementById('bnMenu')
+    };
+    if(el.bnProfile && el.profileDD){
+      el.bnProfile.addEventListener('click', ()=>{
+        try{ el.profileDD.open = !el.profileDD.open; }catch(_){}
+        // Scroll to header to reveal dropdown
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+    if(el.bnChat && el.chatFab){
+      el.bnChat.addEventListener('click', ()=>{
+        el.chatFab.click();
+      });
+    }
+    if(el.bnMenu && el.drawerOpen){
+      el.bnMenu.addEventListener('click', ()=>{
+        el.drawerOpen.click();
+      });
+    }
+  }catch(e){ console.warn('bottom-nav init failed', e); }
+})();
 </script>
 
 </body></html>
