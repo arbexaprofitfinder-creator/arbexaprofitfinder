@@ -922,7 +922,7 @@ def _startup():
 # LOGIN PAGE (front door) — starts in LOGIN mode; toggle to SIGNUP or RESET
 
 PRO_HTML = """<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Arbexa — Go Pro</title>
 <style>
 :root{--bg:#0b1220;--card:#101a33;--txt:#e7eefc;--muted:#9bb0d6;--acc:#2bd576;--line:#23345f}
@@ -989,12 +989,58 @@ a{color:var(--acc);text-decoration:none}
 img, canvas, video, svg { max-width: 100%; height: auto; }
 * { box-sizing: border-box; }
 </style>
+<style>
+/* === Arbexa Mobile Spec v3 (mobile-only) === */
+@media (max-width: 768px){
+  #settings-button, #refresh-btn {
+    width: 52px; height: 52px; border: none; border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #1f2630; font-size: 22px;
+  }
+  #refresh-btn { font-size: 24px; }
+  #menu-button, .burger, .app-burger { display: none !important; }
+  #chat-fab, .fab-message, .floating-message { display: none !important; }
+  .drawer .item.message, .drawer a[href*="/message"], .drawer a[data-item="message"] { display: none !important; }
+
+  #info-dropdown { width: 100%; margin: 10px 0; }
+  #info-dropdown > summary {
+    list-style: none; cursor: pointer; user-select: none;
+    width: 100%; padding: 14px 16px; border-radius: 12px;
+    background: #0e1520; border: 1px solid #2a3443; font-weight: 800;
+  }
+  #info-dropdown[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  #info-panel {
+    border: 1px solid #2a3443; border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
+    background: #0b1019; padding: 12px;
+  }
+  #info-panel .info-link {
+    display: block; width: 100%; text-align: left;
+    padding: 12px 12px; border-radius: 10px; margin-bottom: 8px;
+    background: #121a26; border: 1px solid #2a3443; font-weight: 700;
+  }
+
+  .op-card, .opp-card, .opportunity-card {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 0 10px 0 !important;
+  }
+  .op-row, .opp-row, .opportunity-row, .opportunity-list > li, .opps > li, .opps-row {
+    display: block; padding: 14px 10px; border-bottom: 1px solid #2a3443;
+  }
+  .op-row:last-child, .opp-row:last-child, .opportunity-list > li:last-child, .opps > li:last-child, .opps-row:last-child {
+    border-bottom: none;
+  }
+}
+</style>
 </head><body>
 <div class="wrap">
   <div class="header">
     <div class="brand">
       <img src="/brandlogo" alt="Arbexa">
       <div style="font-weight:900;letter-spacing:.6px">Go Pro</div>
+<div class="tools-row"><button id="refresh-btn" aria-label="Refresh">⟳</button><button id="settings-button" aria-label="Settings">⚙️</button></div>
     </div>
     <a class="back" href="/opps" aria-label="Back to opportunities">Back →</a>
   </div>
@@ -1095,10 +1141,46 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
+<details id="info-dropdown">
+  <summary>Info</summary>
+  <div id="info-panel">
+    <a class="info-link" href="/guide" rel="noopener">Guide – All You Need To Know</a>
+    <a class="info-link" href="/trade-details" rel="noopener">Trade Details</a>
+    <a class="info-link" href="/message" rel="noopener">Message</a>
+  </div>
+</details>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const drawer = document.querySelector('.drawer');
+  const settingsBtn = document.getElementById('settings-button');
+  const legacyBurger = document.querySelector('.burger, .app-burger, [data-toggle="drawer"]');
+
+  function toggleDrawer() {
+    if (!drawer) return;
+    drawer.classList.toggle('open');
+    document.body.style.overflow = drawer.classList.contains('open') ? 'hidden' : '';
+  }
+
+  if (settingsBtn && drawer) settingsBtn.addEventListener('click', toggleDrawer);
+  if (legacyBurger && drawer) legacyBurger.addEventListener('click', toggleDrawer);
+
+  if (drawer) {
+    drawer.addEventListener('click', (e) => {
+      const a = e.target.closest('a');
+      if (a) {
+        drawer.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  }
+});
+</script>
+
 </body></html>"""
 
 LOGIN_HTML = """<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Arbexa Profit Finder — Login</title>
 <style>
 :root{--bg:#0b1220;--card:#111a2e;--muted:#7a8aa0;--txt:#e7eefc;--acc:#2bd576;--warn:#ffcf5a}
@@ -1170,6 +1252,51 @@ LOGIN_HTML = """<!doctype html><html lang="en"><head>
 img, canvas, video, svg { max-width: 100%; height: auto; }
 * { box-sizing: border-box; }
 </style>
+<style>
+/* === Arbexa Mobile Spec v3 (mobile-only) === */
+@media (max-width: 768px){
+  #settings-button, #refresh-btn {
+    width: 52px; height: 52px; border: none; border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #1f2630; font-size: 22px;
+  }
+  #refresh-btn { font-size: 24px; }
+  #menu-button, .burger, .app-burger { display: none !important; }
+  #chat-fab, .fab-message, .floating-message { display: none !important; }
+  .drawer .item.message, .drawer a[href*="/message"], .drawer a[data-item="message"] { display: none !important; }
+
+  #info-dropdown { width: 100%; margin: 10px 0; }
+  #info-dropdown > summary {
+    list-style: none; cursor: pointer; user-select: none;
+    width: 100%; padding: 14px 16px; border-radius: 12px;
+    background: #0e1520; border: 1px solid #2a3443; font-weight: 800;
+  }
+  #info-dropdown[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  #info-panel {
+    border: 1px solid #2a3443; border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
+    background: #0b1019; padding: 12px;
+  }
+  #info-panel .info-link {
+    display: block; width: 100%; text-align: left;
+    padding: 12px 12px; border-radius: 10px; margin-bottom: 8px;
+    background: #121a26; border: 1px solid #2a3443; font-weight: 700;
+  }
+
+  .op-card, .opp-card, .opportunity-card {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 0 10px 0 !important;
+  }
+  .op-row, .opp-row, .opportunity-row, .opportunity-list > li, .opps > li, .opps-row {
+    display: block; padding: 14px 10px; border-bottom: 1px solid #2a3443;
+  }
+  .op-row:last-child, .opp-row:last-child, .opportunity-list > li:last-child, .opps > li:last-child, .opps-row:last-child {
+    border-bottom: none;
+  }
+}
+</style>
 </head><body>
 <div class="wrap">
   <div class="box">
@@ -1177,6 +1304,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
       <img src="/brandlogo" alt="Arbexa">
       <h1>ARBEXA PROFIT FINDER</h1>
     </div>
+<div class="tools-row"><button id="refresh-btn" aria-label="Refresh">⟳</button><button id="settings-button" aria-label="Settings">⚙️</button></div>
     <div id="title" class="msg">LOGIN TO CONTINUE</div>
 
     <!-- LOGIN VIEW -->
@@ -1408,12 +1536,48 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
+<details id="info-dropdown">
+  <summary>Info</summary>
+  <div id="info-panel">
+    <a class="info-link" href="/guide" rel="noopener">Guide – All You Need To Know</a>
+    <a class="info-link" href="/trade-details" rel="noopener">Trade Details</a>
+    <a class="info-link" href="/message" rel="noopener">Message</a>
+  </div>
+</details>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const drawer = document.querySelector('.drawer');
+  const settingsBtn = document.getElementById('settings-button');
+  const legacyBurger = document.querySelector('.burger, .app-burger, [data-toggle="drawer"]');
+
+  function toggleDrawer() {
+    if (!drawer) return;
+    drawer.classList.toggle('open');
+    document.body.style.overflow = drawer.classList.contains('open') ? 'hidden' : '';
+  }
+
+  if (settingsBtn && drawer) settingsBtn.addEventListener('click', toggleDrawer);
+  if (legacyBurger && drawer) legacyBurger.addEventListener('click', toggleDrawer);
+
+  if (drawer) {
+    drawer.addEventListener('click', (e) => {
+      const a = e.target.closest('a');
+      if (a) {
+        drawer.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  }
+});
+</script>
+
 </body></html>
 """
 
 # --- ADD: LANDING_HTML (right below LOGIN_HTML) ---
 LANDING_HTML = """<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Arbexa Profit Finder — Spot Arbitrage, Simplified</title>
 <style>
 :root{--bg:#0b1220;--card:#101a33;--txt:#e7eefc;--muted:#91a5cc;--acc:#2bd576;--line:#1a2547;--chip:#0e1a35}
@@ -1653,6 +1817,14 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
+<details id="info-dropdown">
+  <summary>Info</summary>
+  <div id="info-panel">
+    <a class="info-link" href="/guide" rel="noopener">Guide – All You Need To Know</a>
+    <a class="info-link" href="/trade-details" rel="noopener">Trade Details</a>
+    <a class="info-link" href="/message" rel="noopener">Message</a>
+  </div>
+</details>
 </body></html>"""
 
 @app.get("/", response_class=HTMLResponse)
@@ -1907,7 +2079,7 @@ def time_now():
     return JSONResponse({"serverTimeUTC": dt.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")})
 # ------------- PAGE (HTML) -------------
 _OPPS_HTML = """<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Arbexa Profit Finder — /opps</title>
 <style>
 :root{--bg:#0b1220;--card:#111a2e;--muted:#7a8aa0;--txt:#e7eefc;--acc:#2bd576;--warn:#ffcf5a;--bad:#ff6b6b;--chip:#1a2440;}
@@ -2122,6 +2294,51 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   [data-mobile="v2"] #chatFab{display:inline-flex !important;left:12px;right:auto}
 }
 </style>
+<style>
+/* === Arbexa Mobile Spec v3 (mobile-only) === */
+@media (max-width: 768px){
+  #settings-button, #refresh-btn {
+    width: 52px; height: 52px; border: none; border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #1f2630; font-size: 22px;
+  }
+  #refresh-btn { font-size: 24px; }
+  #menu-button, .burger, .app-burger { display: none !important; }
+  #chat-fab, .fab-message, .floating-message { display: none !important; }
+  .drawer .item.message, .drawer a[href*="/message"], .drawer a[data-item="message"] { display: none !important; }
+
+  #info-dropdown { width: 100%; margin: 10px 0; }
+  #info-dropdown > summary {
+    list-style: none; cursor: pointer; user-select: none;
+    width: 100%; padding: 14px 16px; border-radius: 12px;
+    background: #0e1520; border: 1px solid #2a3443; font-weight: 800;
+  }
+  #info-dropdown[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  #info-panel {
+    border: 1px solid #2a3443; border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
+    background: #0b1019; padding: 12px;
+  }
+  #info-panel .info-link {
+    display: block; width: 100%; text-align: left;
+    padding: 12px 12px; border-radius: 10px; margin-bottom: 8px;
+    background: #121a26; border: 1px solid #2a3443; font-weight: 700;
+  }
+
+  .op-card, .opp-card, .opportunity-card {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 0 10px 0 !important;
+  }
+  .op-row, .opp-row, .opportunity-row, .opportunity-list > li, .opps > li, .opps-row {
+    display: block; padding: 14px 10px; border-bottom: 1px solid #2a3443;
+  }
+  .op-row:last-child, .opp-row:last-child, .opportunity-list > li:last-child, .opps > li:last-child, .opps-row:last-child {
+    border-bottom: none;
+  }
+}
+</style>
 </head><body data-mobile="v2">
 <header>
   <div class="brandrow">
@@ -2151,7 +2368,15 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
               <div class="set-ex">
                 <h4>🏦 Exchanges</h4>
                 <div class="exgrid">
-                  <table class="extable" id="extable1"></table>
+                  <details id="info-dropdown">
+  <summary>Info</summary>
+  <div id="info-panel">
+    <a class="info-link" href="/guide" rel="noopener">Guide – All You Need To Know</a>
+    <a class="info-link" href="/trade-details" rel="noopener">Trade Details</a>
+    <a class="info-link" href="/message" rel="noopener">Message</a>
+  </div>
+</details>
+<table class="extable" id="extable1"></table>
                   <table class="extable" id="extable2"></table>
                 </div>
                 <div class="ex-toolbar">
@@ -2972,6 +3197,34 @@ document.addEventListener('click', function(e) {
 })();
 </script>
 
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const drawer = document.querySelector('.drawer');
+  const settingsBtn = document.getElementById('settings-button');
+  const legacyBurger = document.querySelector('.burger, .app-burger, [data-toggle="drawer"]');
+
+  function toggleDrawer() {
+    if (!drawer) return;
+    drawer.classList.toggle('open');
+    document.body.style.overflow = drawer.classList.contains('open') ? 'hidden' : '';
+  }
+
+  if (settingsBtn && drawer) settingsBtn.addEventListener('click', toggleDrawer);
+  if (legacyBurger && drawer) legacyBurger.addEventListener('click', toggleDrawer);
+
+  if (drawer) {
+    drawer.addEventListener('click', (e) => {
+      const a = e.target.closest('a');
+      if (a) {
+        drawer.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+  }
+});
+</script>
+
 </body></html>
 """
 @app.get("/opps", response_class=HTMLResponse)
@@ -3139,7 +3392,7 @@ def post_chat_message(data: ChatIn, request: Request, background: BackgroundTask
     })
 
 CHAT_HTML = """<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Arbexa — Chat</title>
 <style>
 :root{--bg:#0b1220;--card:#101a33;--txt:#e7eefc;--muted:#91a5cc;--acc:#2bd576;--line:#1a2547;--chip:#0e1a35;--danger:#ff6b6b}
@@ -3208,6 +3461,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   <div class="header">
     <a class="back" href="/opps" aria-label="Back to opportunities">← Back</a>
     <div class="brand"><img src="/brandlogo" alt="Arbexa"><span style="font-weight:900;letter-spacing:.6px">Chat</span></div>
+<div class="tools-row"><button id="refresh-btn" aria-label="Refresh">⟳</button><button id="settings-button" aria-label="Settings">⚙️</button></div>
   </div>
   <div class="rules">
     <strong>Rules:</strong> Be respectful • No spam, scams, or financial advice claims • Keep messages on-topic • Admin may remove content and suspend access for abuse.
