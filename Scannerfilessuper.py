@@ -990,51 +990,53 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 * { box-sizing: border-box; }
 </style>
 <style>
-/* === Arbexa Mobile Spec v3 (mobile-only) === */
+/* === Arbexa Mobile Everywhere v1 === */
 @media (max-width: 768px){
-  #settings-button, #refresh-btn {
-    width: 52px; height: 52px; border: none; border-radius: 12px;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: #1f2630; font-size: 22px;
+  #settings-button, #refresh-btn{
+    width:52px;height:52px;border:none;border-radius:12px;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:#1f2630;font-size:22px;
   }
-  #refresh-btn { font-size: 24px; }
-  #menu-button, .burger, .app-burger { display: none !important; }
-  #chat-fab, .fab-message, .floating-message { display: none !important; }
-  .drawer .item.message, .drawer a[href*="/message"], .drawer a[data-item="message"] { display: none !important; }
-
-  #info-dropdown { width: 100%; margin: 10px 0; }
-  #info-dropdown > summary {
-    list-style: none; cursor: pointer; user-select: none;
-    width: 100%; padding: 14px 16px; border-radius: 12px;
-    background: #0e1520; border: 1px solid #2a3443; font-weight: 800;
+  #refresh-btn{font-size:24px;}
+  #menu-button,.burger,.app-burger{display:none!important;}
+  #chat-fab,.fab-message,.floating-message{display:none!important;}
+  .drawer .item.message, .drawer a[href*="/message"], .drawer a[data-item="message"]{display:none!important;}
+  #info-dropdown{width:100%;margin:10px 0;}
+  #info-dropdown>summary{
+    list-style:none;cursor:pointer;user-select:none;width:100%;
+    padding:14px 16px;border-radius:12px;background:#0e1520;
+    border:1px solid #2a3443;font-weight:800;
   }
-  #info-dropdown[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
-  #info-panel {
-    border: 1px solid #2a3443; border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
-    background: #0b1019; padding: 12px;
+  #info-dropdown[open]>summary{border-bottom-left-radius:0;border-bottom-right-radius:0;}
+  #info-panel{
+    border:1px solid #2a3443;border-top:none;border-bottom-left-radius:12px;border-bottom-right-radius:12px;
+    background:#0b1019;padding:12px;
   }
-  #info-panel .info-link {
-    display: block; width: 100%; text-align: left;
-    padding: 12px 12px; border-radius: 10px; margin-bottom: 8px;
-    background: #121a26; border: 1px solid #2a3443; font-weight: 700;
+  #info-panel .info-link{
+    display:block;width:100%;text-align:left;padding:12px 12px;border-radius:10px;margin-bottom:8px;
+    background:#121a26;border:1px solid #2a3443;font-weight:700;
   }
-
-  .op-card, .opp-card, .opportunity-card {
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 0 10px 0 !important;
+  .op-card,.opp-card,.opportunity-card{
+    background:transparent!important;box-shadow:none!important;border:none!important;
+    padding:0!important;margin:0 0 10px 0!important;
   }
-  .op-row, .opp-row, .opportunity-row, .opportunity-list > li, .opps > li, .opps-row {
-    display: block; padding: 14px 10px; border-bottom: 1px solid #2a3443;
+  .op-row,.opp-row,.opportunity-row,.opportunity-list>li,.opps>li,.opps-row{
+    display:block;padding:14px 10px;border-bottom:1px solid #2a3443;
   }
-  .op-row:last-child, .opp-row:last-child, .opportunity-list > li:last-child, .opps > li:last-child, .opps-row:last-child {
-    border-bottom: none;
+  .op-row:last-child,.opp-row:last-child,.opportunity-list>li:last-child,.opps>li:last-child,.opps-row:last-child{
+    border-bottom:none;
   }
 }
 </style>
 </head><body>
+<details id="info-dropdown">
+  <summary>Info</summary>
+  <div id="info-panel">
+    <a class="info-link" href="/guide" rel="noopener">Guide – All You Need To Know</a>
+    <a class="info-link" href="/trade-details" rel="noopener">Trade Details</a>
+    <a class="info-link" href="/message" rel="noopener">Message</a>
+  </div>
+</details>
 <div class="wrap">
   <div class="header">
     <div class="brand">
@@ -1141,37 +1143,23 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
-<details id="info-dropdown">
-  <summary>Info</summary>
-  <div id="info-panel">
-    <a class="info-link" href="/guide" rel="noopener">Guide – All You Need To Know</a>
-    <a class="info-link" href="/trade-details" rel="noopener">Trade Details</a>
-    <a class="info-link" href="/message" rel="noopener">Message</a>
-  </div>
-</details>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const drawer = document.querySelector('.drawer');
   const settingsBtn = document.getElementById('settings-button');
   const legacyBurger = document.querySelector('.burger, .app-burger, [data-toggle="drawer"]');
-
-  function toggleDrawer() {
-    if (!drawer) return;
+  function toggleDrawer(){
+    if(!drawer) return;
     drawer.classList.toggle('open');
     document.body.style.overflow = drawer.classList.contains('open') ? 'hidden' : '';
   }
-
-  if (settingsBtn && drawer) settingsBtn.addEventListener('click', toggleDrawer);
-  if (legacyBurger && drawer) legacyBurger.addEventListener('click', toggleDrawer);
-
-  if (drawer) {
-    drawer.addEventListener('click', (e) => {
+  if(settingsBtn && drawer){ settingsBtn.addEventListener('click', toggleDrawer); }
+  if(legacyBurger && drawer){ legacyBurger.addEventListener('click', toggleDrawer); }
+  if(drawer){
+    drawer.addEventListener('click', (e)=>{
       const a = e.target.closest('a');
-      if (a) {
-        drawer.classList.remove('open');
-        document.body.style.overflow = '';
-      }
+      if(a){ drawer.classList.remove('open'); document.body.style.overflow=''; }
     });
   }
 });
@@ -1253,51 +1241,53 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 * { box-sizing: border-box; }
 </style>
 <style>
-/* === Arbexa Mobile Spec v3 (mobile-only) === */
+/* === Arbexa Mobile Everywhere v1 === */
 @media (max-width: 768px){
-  #settings-button, #refresh-btn {
-    width: 52px; height: 52px; border: none; border-radius: 12px;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: #1f2630; font-size: 22px;
+  #settings-button, #refresh-btn{
+    width:52px;height:52px;border:none;border-radius:12px;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:#1f2630;font-size:22px;
   }
-  #refresh-btn { font-size: 24px; }
-  #menu-button, .burger, .app-burger { display: none !important; }
-  #chat-fab, .fab-message, .floating-message { display: none !important; }
-  .drawer .item.message, .drawer a[href*="/message"], .drawer a[data-item="message"] { display: none !important; }
-
-  #info-dropdown { width: 100%; margin: 10px 0; }
-  #info-dropdown > summary {
-    list-style: none; cursor: pointer; user-select: none;
-    width: 100%; padding: 14px 16px; border-radius: 12px;
-    background: #0e1520; border: 1px solid #2a3443; font-weight: 800;
+  #refresh-btn{font-size:24px;}
+  #menu-button,.burger,.app-burger{display:none!important;}
+  #chat-fab,.fab-message,.floating-message{display:none!important;}
+  .drawer .item.message, .drawer a[href*="/message"], .drawer a[data-item="message"]{display:none!important;}
+  #info-dropdown{width:100%;margin:10px 0;}
+  #info-dropdown>summary{
+    list-style:none;cursor:pointer;user-select:none;width:100%;
+    padding:14px 16px;border-radius:12px;background:#0e1520;
+    border:1px solid #2a3443;font-weight:800;
   }
-  #info-dropdown[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
-  #info-panel {
-    border: 1px solid #2a3443; border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
-    background: #0b1019; padding: 12px;
+  #info-dropdown[open]>summary{border-bottom-left-radius:0;border-bottom-right-radius:0;}
+  #info-panel{
+    border:1px solid #2a3443;border-top:none;border-bottom-left-radius:12px;border-bottom-right-radius:12px;
+    background:#0b1019;padding:12px;
   }
-  #info-panel .info-link {
-    display: block; width: 100%; text-align: left;
-    padding: 12px 12px; border-radius: 10px; margin-bottom: 8px;
-    background: #121a26; border: 1px solid #2a3443; font-weight: 700;
+  #info-panel .info-link{
+    display:block;width:100%;text-align:left;padding:12px 12px;border-radius:10px;margin-bottom:8px;
+    background:#121a26;border:1px solid #2a3443;font-weight:700;
   }
-
-  .op-card, .opp-card, .opportunity-card {
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 0 10px 0 !important;
+  .op-card,.opp-card,.opportunity-card{
+    background:transparent!important;box-shadow:none!important;border:none!important;
+    padding:0!important;margin:0 0 10px 0!important;
   }
-  .op-row, .opp-row, .opportunity-row, .opportunity-list > li, .opps > li, .opps-row {
-    display: block; padding: 14px 10px; border-bottom: 1px solid #2a3443;
+  .op-row,.opp-row,.opportunity-row,.opportunity-list>li,.opps>li,.opps-row{
+    display:block;padding:14px 10px;border-bottom:1px solid #2a3443;
   }
-  .op-row:last-child, .opp-row:last-child, .opportunity-list > li:last-child, .opps > li:last-child, .opps-row:last-child {
-    border-bottom: none;
+  .op-row:last-child,.opp-row:last-child,.opportunity-list>li:last-child,.opps>li:last-child,.opps-row:last-child{
+    border-bottom:none;
   }
 }
 </style>
 </head><body>
+<details id="info-dropdown">
+  <summary>Info</summary>
+  <div id="info-panel">
+    <a class="info-link" href="/guide" rel="noopener">Guide – All You Need To Know</a>
+    <a class="info-link" href="/trade-details" rel="noopener">Trade Details</a>
+    <a class="info-link" href="/message" rel="noopener">Message</a>
+  </div>
+</details>
 <div class="wrap">
   <div class="box">
     <div class="brand">
@@ -1536,37 +1526,23 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
-<details id="info-dropdown">
-  <summary>Info</summary>
-  <div id="info-panel">
-    <a class="info-link" href="/guide" rel="noopener">Guide – All You Need To Know</a>
-    <a class="info-link" href="/trade-details" rel="noopener">Trade Details</a>
-    <a class="info-link" href="/message" rel="noopener">Message</a>
-  </div>
-</details>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const drawer = document.querySelector('.drawer');
   const settingsBtn = document.getElementById('settings-button');
   const legacyBurger = document.querySelector('.burger, .app-burger, [data-toggle="drawer"]');
-
-  function toggleDrawer() {
-    if (!drawer) return;
+  function toggleDrawer(){
+    if(!drawer) return;
     drawer.classList.toggle('open');
     document.body.style.overflow = drawer.classList.contains('open') ? 'hidden' : '';
   }
-
-  if (settingsBtn && drawer) settingsBtn.addEventListener('click', toggleDrawer);
-  if (legacyBurger && drawer) legacyBurger.addEventListener('click', toggleDrawer);
-
-  if (drawer) {
-    drawer.addEventListener('click', (e) => {
+  if(settingsBtn && drawer){ settingsBtn.addEventListener('click', toggleDrawer); }
+  if(legacyBurger && drawer){ legacyBurger.addEventListener('click', toggleDrawer); }
+  if(drawer){
+    drawer.addEventListener('click', (e)=>{
       const a = e.target.closest('a');
-      if (a) {
-        drawer.classList.remove('open');
-        document.body.style.overflow = '';
-      }
+      if(a){ drawer.classList.remove('open'); document.body.style.overflow=''; }
     });
   }
 });
@@ -1817,14 +1793,6 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
-<details id="info-dropdown">
-  <summary>Info</summary>
-  <div id="info-panel">
-    <a class="info-link" href="/guide" rel="noopener">Guide – All You Need To Know</a>
-    <a class="info-link" href="/trade-details" rel="noopener">Trade Details</a>
-    <a class="info-link" href="/message" rel="noopener">Message</a>
-  </div>
-</details>
 </body></html>"""
 
 @app.get("/", response_class=HTMLResponse)
@@ -2295,47 +2263,41 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 }
 </style>
 <style>
-/* === Arbexa Mobile Spec v3 (mobile-only) === */
+/* === Arbexa Mobile Everywhere v1 === */
 @media (max-width: 768px){
-  #settings-button, #refresh-btn {
-    width: 52px; height: 52px; border: none; border-radius: 12px;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: #1f2630; font-size: 22px;
+  #settings-button, #refresh-btn{
+    width:52px;height:52px;border:none;border-radius:12px;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:#1f2630;font-size:22px;
   }
-  #refresh-btn { font-size: 24px; }
-  #menu-button, .burger, .app-burger { display: none !important; }
-  #chat-fab, .fab-message, .floating-message { display: none !important; }
-  .drawer .item.message, .drawer a[href*="/message"], .drawer a[data-item="message"] { display: none !important; }
-
-  #info-dropdown { width: 100%; margin: 10px 0; }
-  #info-dropdown > summary {
-    list-style: none; cursor: pointer; user-select: none;
-    width: 100%; padding: 14px 16px; border-radius: 12px;
-    background: #0e1520; border: 1px solid #2a3443; font-weight: 800;
+  #refresh-btn{font-size:24px;}
+  #menu-button,.burger,.app-burger{display:none!important;}
+  #chat-fab,.fab-message,.floating-message{display:none!important;}
+  .drawer .item.message, .drawer a[href*="/message"], .drawer a[data-item="message"]{display:none!important;}
+  #info-dropdown{width:100%;margin:10px 0;}
+  #info-dropdown>summary{
+    list-style:none;cursor:pointer;user-select:none;width:100%;
+    padding:14px 16px;border-radius:12px;background:#0e1520;
+    border:1px solid #2a3443;font-weight:800;
   }
-  #info-dropdown[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
-  #info-panel {
-    border: 1px solid #2a3443; border-top: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
-    background: #0b1019; padding: 12px;
+  #info-dropdown[open]>summary{border-bottom-left-radius:0;border-bottom-right-radius:0;}
+  #info-panel{
+    border:1px solid #2a3443;border-top:none;border-bottom-left-radius:12px;border-bottom-right-radius:12px;
+    background:#0b1019;padding:12px;
   }
-  #info-panel .info-link {
-    display: block; width: 100%; text-align: left;
-    padding: 12px 12px; border-radius: 10px; margin-bottom: 8px;
-    background: #121a26; border: 1px solid #2a3443; font-weight: 700;
+  #info-panel .info-link{
+    display:block;width:100%;text-align:left;padding:12px 12px;border-radius:10px;margin-bottom:8px;
+    background:#121a26;border:1px solid #2a3443;font-weight:700;
   }
-
-  .op-card, .opp-card, .opportunity-card {
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 0 10px 0 !important;
+  .op-card,.opp-card,.opportunity-card{
+    background:transparent!important;box-shadow:none!important;border:none!important;
+    padding:0!important;margin:0 0 10px 0!important;
   }
-  .op-row, .opp-row, .opportunity-row, .opportunity-list > li, .opps > li, .opps-row {
-    display: block; padding: 14px 10px; border-bottom: 1px solid #2a3443;
+  .op-row,.opp-row,.opportunity-row,.opportunity-list>li,.opps>li,.opps-row{
+    display:block;padding:14px 10px;border-bottom:1px solid #2a3443;
   }
-  .op-row:last-child, .opp-row:last-child, .opportunity-list > li:last-child, .opps > li:last-child, .opps-row:last-child {
-    border-bottom: none;
+  .op-row:last-child,.opp-row:last-child,.opportunity-list>li:last-child,.opps>li:last-child,.opps-row:last-child{
+    border-bottom:none;
   }
 }
 </style>
@@ -2349,6 +2311,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
       <span id="lastUTCtime" class="lasttime">--:-- AM</span>
       <span id="oppCount" class="oppcount">· -- possible opportunities</span>
     </div>
+<div class="tools-row"><button id="refresh-btn" aria-label="Refresh">⟳</button><button id="settings-button" aria-label="Settings">⚙️</button></div>
 
     <div class="menu-anchor">
       <details id="menuDD">
@@ -3203,23 +3166,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const drawer = document.querySelector('.drawer');
   const settingsBtn = document.getElementById('settings-button');
   const legacyBurger = document.querySelector('.burger, .app-burger, [data-toggle="drawer"]');
-
-  function toggleDrawer() {
-    if (!drawer) return;
+  function toggleDrawer(){
+    if(!drawer) return;
     drawer.classList.toggle('open');
     document.body.style.overflow = drawer.classList.contains('open') ? 'hidden' : '';
   }
-
-  if (settingsBtn && drawer) settingsBtn.addEventListener('click', toggleDrawer);
-  if (legacyBurger && drawer) legacyBurger.addEventListener('click', toggleDrawer);
-
-  if (drawer) {
-    drawer.addEventListener('click', (e) => {
+  if(settingsBtn && drawer){ settingsBtn.addEventListener('click', toggleDrawer); }
+  if(legacyBurger && drawer){ legacyBurger.addEventListener('click', toggleDrawer); }
+  if(drawer){
+    drawer.addEventListener('click', (e)=>{
       const a = e.target.closest('a');
-      if (a) {
-        drawer.classList.remove('open');
-        document.body.style.overflow = '';
-      }
+      if(a){ drawer.classList.remove('open'); document.body.style.overflow=''; }
     });
   }
 });
@@ -3461,7 +3418,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   <div class="header">
     <a class="back" href="/opps" aria-label="Back to opportunities">← Back</a>
     <div class="brand"><img src="/brandlogo" alt="Arbexa"><span style="font-weight:900;letter-spacing:.6px">Chat</span></div>
-<div class="tools-row"><button id="refresh-btn" aria-label="Refresh">⟳</button><button id="settings-button" aria-label="Settings">⚙️</button></div>
   </div>
   <div class="rules">
     <strong>Rules:</strong> Be respectful • No spam, scams, or financial advice claims • Keep messages on-topic • Admin may remove content and suspend access for abuse.
