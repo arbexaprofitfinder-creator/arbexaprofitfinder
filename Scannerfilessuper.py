@@ -994,9 +994,9 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 @media (max-width: 768px){
   #menu-button, .burger, .app-burger { display: none !important; }
   #refresh-btn {
-    width: 78px; height: 78px; border-radius: 12px;
+    width: 52px; height: 52px; border-radius: 12px;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 36px;
+    font-size: 24px;
   }
   #chat-fab, .fab-message, .floating-message { display: none !important; }
 }
@@ -1201,9 +1201,9 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 @media (max-width: 768px){
   #menu-button, .burger, .app-burger { display: none !important; }
   #refresh-btn {
-    width: 78px; height: 78px; border-radius: 12px;
+    width: 52px; height: 52px; border-radius: 12px;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 36px;
+    font-size: 24px;
   }
   #chat-fab, .fab-message, .floating-message { display: none !important; }
 }
@@ -2179,9 +2179,9 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 @media (max-width: 768px){
   #menu-button, .burger, .app-burger { display: none !important; }
   #refresh-btn {
-    width: 78px; height: 78px; border-radius: 12px;
+    width: 52px; height: 52px; border-radius: 12px;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 36px;
+    font-size: 24px;
   }
   #chat-fab, .fab-message, .floating-message { display: none !important; }
 }
@@ -2287,23 +2287,24 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   </div>
 
   
-    <details id="msgDD">
-      <summary id="msgSummary" class="btnpdf">Message ▾</summary>
-      <div class="tradecontent">Make sure to apply the Trade Cautions before each trade!</div>
-    </details>
+    
   </div>
 </details>
-    
-    
+    <div class="block"></div>
+    <div class="block">
+      
+    </div>
   </div>
 
-  <a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
+  
 </header>
 <div id="freeBanner" class="free-banner hide">You’re currently on the free plan with limited features, subscribe to unlock full potentials.</div>
 <div class="dash-tip">Most Profitable and executable Opportunities last no more than 10-15 Minutes so act fast,but carefully!</div>
 
 
-<!-- Loadinlass="logoWrap"><img class="logoPulse" src="/brandlogo" alt="Loading…" /></div>
+<!-- Loading overlay -->
+<div id="loadOverlay" class="hidden" aria-hidden="true">
+  <div class="logoWrap"><img class="logoPulse" src="/brandlogo" alt="Loading…" /></div>
   <div class="loadCaption">Loading latest opportunities…</div>
   <div class="loadBar" aria-hidden="true"><div id="loadBarFill" class="loadBarFill"></div></div>
 </div>
@@ -3311,12 +3312,15 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #opps-header{ padding-left:0 !important; }
 }
 
-/* Mobile: remove hamburger/menu, enlarge refresh 1.5x, hide bottom-left floating msg */
+/* Mobile tweaks (strictly per user request) */
 @media (max-width: 768px){
+  /* 1) Remove hamburger/menu icons */
   #menu-button, .burger, .app-burger, .hamburger { display: none !important; }
-  /* Refresh 1.5x */
+
+  /* 4) Enlarge refresh to 1.5x */
   #refresh-btn { width: 78px; height: 78px; font-size: 36px; }
-  /* Bottom-left floating message icon only */
+
+  /* 7) Remove only bottom-left floating/movable message icon */
   #chatFab, .chat-fab-left, .floating-msg-left { display: none !important; }
 }
 </style>
