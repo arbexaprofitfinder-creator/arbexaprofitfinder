@@ -2276,15 +2276,20 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     </div>
   </div>
 
-  <div class="filters">
-    <div class="block"><a id="extDoc" class="btnpdf" href="#" target="_blank" rel="noopener" style="display:none"></a></div>
-    <div class="block"><details id="tradeDD"><summary class="btnpdf">TRADE DETAILS‼️</summary><div class="tradecontent" id="tradeContent"></div></details></div>
-    <div class="block">
-      <details id="msgDD"><summary id="msgSummary" class="btnpdf">📩Message</summary>
-        <div class="tradecontent">Make sure to apply the ⚠️Trade Cautions before each trade!</div>
-      </details>
-    </div>
+  <details id="infoDD" class="info-dropdown">
+  <summary class="btnpdf" title="Info">ℹ️ Info ▾</summary>
+  <div class="info-panel">
+    <a id="extDoc" class="btnpdf" href="#" target="_blank" rel="noopener" style="display:none"></a>
+    <details id="tradeDD">
+      <summary class="btnpdf">⚠️ Trade Details ▾</summary>
+      <div class="tradecontent" id="tradeContent"></div>
+    </details>
+    <details id="msgDD">
+      <summary id="msgSummary" class="btnpdf">📩 Message ▾</summary>
+      <div class="tradecontent">Make sure to apply the ⚠️Trade Cautions before each trade!</div>
+    </details>
   </div>
+</details>
 
   <a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
 </header>
@@ -3588,3 +3593,29 @@ if __name__ == "__main__":
             print("[fake] no sr_invoice_id on inserted row; cannot mark paid")
 # ============================ /DEV: FAKE PAYMENT TEST ============================
 
+
+
+/* Injected by ChatGPT per user goals (Info dropdown, remove 'A', compact spacing) */
+/* === Arbexa Mobile Tweaks (Oct 24, 2025) — Info dropdown + spacing + remove 'A' chip === */
+@media (max-width: 768px){
+  /* Info dropdown styles */
+  .info-dropdown{ border:1px solid rgba(255,255,255,0.08); border-radius:12px; background:#0e2230; overflow:hidden; margin:8px 0 10px; }
+  .info-dropdown > summary{ list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:12px 14px; font-weight:800; font-size:14px; }
+  .info-panel{ display:grid; gap:8px; padding:10px 12px 12px; }
+  .info-panel > a.btnpdf{ display:block; width:100%; text-align:center; font-weight:800; }
+  #tradeDD > summary.btnpdf, #msgDD > summary.btnpdf{ width:100%; text-align:center; }
+
+  /* Compress blue/free notices and table spacing */
+  .free-banner, .banner-blue, .free-plan-note, .notice{ margin:8px 0 10px !important; padding:10px 12px !important; }
+  .page, .container{ padding:8px 10px 72px !important; }
+  #tblwrap{ padding-bottom:84px !important; }
+  .opps-table{ width:100%; table-layout:fixed; }
+  .opps-table th, .opps-table td{ padding:8px 10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* Remove potential green initial 'A' badge near header (safely scoped) */
+  #opps-header .user-initial,
+  #opps-header .avatar,
+  #opps-header .avatar-badge,
+  header .user-initial{ display:none !important; }
+  #opps-header{ padding-left:0 !important; }
+}
