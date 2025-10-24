@@ -994,9 +994,9 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 @media (max-width: 768px){
   #menu-button, .burger, .app-burger { display: none !important; }
   #refresh-btn {
-    width: 52px; height: 52px; border-radius: 12px;
+    width: 78px; height: 78px; border-radius: 12px;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 24px;
+    font-size: 36px;
   }
   #chat-fab, .fab-message, .floating-message { display: none !important; }
 }
@@ -1201,9 +1201,9 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 @media (max-width: 768px){
   #menu-button, .burger, .app-burger { display: none !important; }
   #refresh-btn {
-    width: 52px; height: 52px; border-radius: 12px;
+    width: 78px; height: 78px; border-radius: 12px;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 24px;
+    font-size: 36px;
   }
   #chat-fab, .fab-message, .floating-message { display: none !important; }
 }
@@ -2179,9 +2179,9 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 @media (max-width: 768px){
   #menu-button, .burger, .app-burger { display: none !important; }
   #refresh-btn {
-    width: 52px; height: 52px; border-radius: 12px;
+    width: 78px; height: 78px; border-radius: 12px;
     display: inline-flex; align-items: center; justify-content: center;
-    font-size: 24px;
+    font-size: 36px;
   }
   #chat-fab, .fab-message, .floating-message { display: none !important; }
 }
@@ -2193,6 +2193,16 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     <a class="brandurl" href="https://arbexaprofitfinder.com" target="_blank" rel="noopener">ARBEXAPROFITFINDER.COM</a>
     <div class="lastbox" id="lastBox">
       <span class="lastlabel">Last updated</span>
+<details id="infoDD" class="info-dropdown">
+  <summary class="btnpdf" title="Info">Info ▾</summary>
+  <div class="info-panel">
+    <a id="extDoc" class="btnpdf" href="#" target="_blank" rel="noopener" style="display:none"></a>
+    <details id="tradeDD">
+      <summary class="btnpdf">Trade Details ▾</summary>
+      <div class="tradecontent" id="tradeContent"></div>
+    </details>
+<a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
+
       <span id="lastUTCtime" class="lasttime">--:-- AM</span>
       <span id="oppCount" class="oppcount">· -- possible opportunities</span>
     </div>
@@ -2276,26 +2286,15 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     </div>
   </div>
 
-  <details id="infoDD" class="info-dropdown">
-  <summary class="btnpdf" title="Info">Info ▾</summary>
-  <div class="info-panel">
-    <a id="extDoc" class="btnpdf" href="#" target="_blank" rel="noopener" style="display:none"></a>
-    <details id="tradeDD">
-      <summary class="btnpdf">Trade Details ▾</summary>
-      <div class="tradecontent" id="tradeContent"></div>
-    </details>
+  
     <details id="msgDD">
       <summary id="msgSummary" class="btnpdf">Message ▾</summary>
       <div class="tradecontent">Make sure to apply the Trade Cautions before each trade!</div>
     </details>
   </div>
 </details>
-    <div class="block"><details id="tradeDD"><summary class="btnpdf">TRADE DETAILS‼️</summary><div class="tradecontent" id="tradeContent"></div></details></div>
-    <div class="block">
-      <details id="msgDD"><summary id="msgSummary" class="btnpdf">📩Message</summary>
-        <div class="tradecontent">Make sure to apply the ⚠️Trade Cautions before each trade!</div>
-      </details>
-    </div>
+    
+    
   </div>
 
   <a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
@@ -2304,9 +2303,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 <div class="dash-tip">Most Profitable and executable Opportunities last no more than 10-15 Minutes so act fast,but carefully!</div>
 
 
-<!-- Loading overlay -->
-<div id="loadOverlay" class="hidden" aria-hidden="true">
-  <div class="logoWrap"><img class="logoPulse" src="/brandlogo" alt="Loading…" /></div>
+<!-- Loadinlass="logoWrap"><img class="logoPulse" src="/brandlogo" alt="Loading…" /></div>
   <div class="loadCaption">Loading latest opportunities…</div>
   <div class="loadBar" aria-hidden="true"><div id="loadBarFill" class="loadBarFill"></div></div>
 </div>
@@ -2917,7 +2914,7 @@ buildExTables().then(async ()=>{
 setInterval(()=>load(true),10000);
 </script>
 
-<button id="chatFab" class="chatfab" title="Open chat" aria-label="Open chat"><span class="dot">💬</span></button>
+
 <script>
 (function(){
   const fab=document.getElementById('chatFab'); if(!fab) return;
@@ -3011,7 +3008,7 @@ document.addEventListener('click', function(e) {
   <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Bottom Navigation">
     <button id="bnProfile" class="navbtn" title="Profile" aria-label="Profile">👤</button>
     <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">💬</button>
-    <button id="bnMenu" class="navbtn" title="Menu" aria-label="Menu">☰</button>
+    
   </div>
 
 
@@ -3312,6 +3309,15 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #opps-header .avatar-badge,
   header .user-initial{ display:none !important; }
   #opps-header{ padding-left:0 !important; }
+}
+
+/* Mobile: remove hamburger/menu, enlarge refresh 1.5x, hide bottom-left floating msg */
+@media (max-width: 768px){
+  #menu-button, .burger, .app-burger, .hamburger { display: none !important; }
+  /* Refresh 1.5x */
+  #refresh-btn { width: 78px; height: 78px; font-size: 36px; }
+  /* Bottom-left floating message icon only */
+  #chatFab, .chat-fab-left, .floating-msg-left { display: none !important; }
 }
 </style>
 </head><body>
