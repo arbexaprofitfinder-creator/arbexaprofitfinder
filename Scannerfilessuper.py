@@ -2156,6 +2156,35 @@ img.exlogo{width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-
 img, canvas, video, svg { max-width: 100%; height: auto; }
 * { box-sizing: border-box; }
 </style>
+<style>
+/* === Mobile edits: Oct 25 — per user spec === */
+@media (max-width: 900px){
+  /* 1) Remove hamburger/drawer icon completely */
+  #drawerOpen, .drawer-btn, .menu-anchor details, .menu-anchor #profileDD { display: none !important; }
+
+  /* 3) Hide green initial avatar under timestamp */
+  .user-initial, .avatar, .avatar-badge, header .user-initial, #opps-header .user-initial { display: none !important; }
+
+  /* 4) Increase refresh button size */
+  .refresh-btn { width: 52px !important; height: 52px !important; border-radius: 12px; }
+  .refresh-btn svg { width: 26px !important; height: 26px !important; }
+
+  /* 8) Remove floating/moveable message icon */
+  #chatFab, .chatfab, .floating-message, #chat-fab, .fab-message { display: none !important; }
+
+  /* 2) & 6) & 7) Clean the row under Info: show ONLY Go Pro under Info */
+  /* Hide standalone Trade Details and Message that appear below the Info dropdown */
+  .filters .block > details#tradeDD,
+  .filters .block > details#msgDD,
+  .filters > details#tradeDD,
+  .filters > details#msgDD { display: none !important; }
+
+  /* Make Go Pro full-width and directly follow the Info dropdown */
+  .filters { grid-template-columns: 1fr; }
+  .filters .btn-pro { width: 100% !important; display: inline-flex; justify-content: center; margin-top: 8px; }
+}
+</style>
+
 
 <style id="mobile-v2">
 [data-mobile="v2"] { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
@@ -2171,7 +2200,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   [data-mobile="v2"] #freeBanner{width:100%;padding:10px 12px;background:#e9f9f0;color:#0a8a54;border:1px solid #b9eccf;border-radius:10px;font-size:.95rem}
   [data-mobile="v2"] .dash-tip{color:#0a8a54;font-weight:800}
   /* Chat left-bottom */
-  [data-mobile="v2"] #chatFab{display:inline-flex !important;left:12px;right:auto}
+  [data-mobile="v2"] #chatFab, [data-mobile="v2"] .chatfab { display: none !important; }
 }
 </style>
 <style>
@@ -2193,16 +2222,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     <a class="brandurl" href="https://arbexaprofitfinder.com" target="_blank" rel="noopener">ARBEXAPROFITFINDER.COM</a>
     <div class="lastbox" id="lastBox">
       <span class="lastlabel">Last updated</span>
-<details id="infoDD" class="info-dropdown">
-  <summary class="btnpdf" title="Info">Info ▾</summary>
-  <div class="info-panel">
-    <a id="extDoc" class="btnpdf" href="#" target="_blank" rel="noopener" style="display:none"></a>
-    <details id="tradeDD">
-      <summary class="btnpdf">Trade Details ▾</summary>
-      <div class="tradecontent" id="tradeContent"></div>
-    </details>
-<a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
-
       <span id="lastUTCtime" class="lasttime">--:-- AM</span>
       <span id="oppCount" class="oppcount">· -- possible opportunities</span>
     </div>
@@ -2286,17 +2305,29 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     </div>
   </div>
 
-  
-    
+  <details id="infoDD" class="info-dropdown">
+  <summary class="btnpdf" title="Info">Info ▾</summary>
+  <div class="info-panel">
+    <a id="extDoc" class="btnpdf" href="#" target="_blank" rel="noopener" style="display:none"></a>
+    <details id="tradeDD">
+      <summary class="btnpdf">Trade Details ▾</summary>
+      <div class="tradecontent" id="tradeContent"></div>
+    </details>
+    <details id="msgDD">
+      <summary id="msgSummary" class="btnpdf">Message ▾</summary>
+      <div class="tradecontent">Make sure to apply the Trade Cautions before each trade!</div>
+    </details>
   </div>
 </details>
-    <div class="block"></div>
-    <div class="block">
-      
+    <div class="block hide-on-mobile"><details id="tradeDD"><summary class="btnpdf">TRADE DETAILS‼️</summary><div class="tradecontent" id="tradeContent"></div></details></div>
+    <div class="block hide-on-mobile">
+      <details id="msgDD"><summary id="msgSummary" class="btnpdf">📩Message</summary>
+        <div class="tradecontent">Make sure to apply the ⚠️Trade Cautions before each trade!</div>
+      </details>
     </div>
   </div>
 
-  
+  <a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
 </header>
 <div id="freeBanner" class="free-banner hide">You’re currently on the free plan with limited features, subscribe to unlock full potentials.</div>
 <div class="dash-tip">Most Profitable and executable Opportunities last no more than 10-15 Minutes so act fast,but carefully!</div>
@@ -2915,7 +2946,7 @@ buildExTables().then(async ()=>{
 setInterval(()=>load(true),10000);
 </script>
 
-
+<button id="chatFab" class="chatfab" title="Open chat" aria-label="Open chat"><span class="dot">💬</span></button>
 <script>
 (function(){
   const fab=document.getElementById('chatFab'); if(!fab) return;
@@ -3009,7 +3040,7 @@ document.addEventListener('click', function(e) {
   <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Bottom Navigation">
     <button id="bnProfile" class="navbtn" title="Profile" aria-label="Profile">👤</button>
     <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">💬</button>
-    
+    <button id="bnMenu" class="navbtn" title="Menu" aria-label="Menu">☰</button>
   </div>
 
 
@@ -3310,18 +3341,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #opps-header .avatar-badge,
   header .user-initial{ display:none !important; }
   #opps-header{ padding-left:0 !important; }
-}
-
-/* Mobile tweaks (strictly per user request) */
-@media (max-width: 768px){
-  /* 1) Remove hamburger/menu icons */
-  #menu-button, .burger, .app-burger, .hamburger { display: none !important; }
-
-  /* 4) Enlarge refresh to 1.5x */
-  #refresh-btn { width: 78px; height: 78px; font-size: 36px; }
-
-  /* 7) Remove only bottom-left floating/movable message icon */
-  #chatFab, .chat-fab-left, .floating-msg-left { display: none !important; }
 }
 </style>
 </head><body>
@@ -3630,4 +3649,3 @@ if __name__ == "__main__":
         else:
             print("[fake] no sr_invoice_id on inserted row; cannot mark paid")
 # ============================ /DEV: FAKE PAYMENT TEST ============================
-
