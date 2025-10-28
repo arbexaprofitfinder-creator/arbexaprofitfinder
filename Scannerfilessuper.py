@@ -2939,7 +2939,23 @@ document.addEventListener('DOMContentLoaded', ()=>{
 /* Boot */
 buildExTables().then(async ()=>{
   renderTradeDetails(); initExtDoc(); initTnC(); maybeShowReminder(); seedServerTime();
-  wireFilterAutosave();
+  
+  // Read query params (if any) and apply into filters — supports mobile settings handoff
+  (function(){
+    try{
+      const sp = new URLSearchParams(location.search);
+      const map = {minEdge:'#minEdge', maxEdge:'#maxEdge', q:'#q', minVol:'#minVol', minLiq:'#minLiq', tsMin:'#tsMin', tsMax:'#tsMax'};
+      let touched=false;
+      for(const k in map){ if(sp.has(k)){ const sel=map[k]; const el=document.querySelector(sel); if(el){ el.value = sp.get(k); touched=true; } } }
+      if(sp.has('ex')){
+        const want = new Set((sp.get('ex')||'').split(',').filter(Boolean));
+        document.querySelectorAll('input[name="ex"]').forEach(cb=>{ cb.checked = want.size? want.has(cb.value):cb.checked; });
+        touched=true;
+      }
+      if(touched){ history.replaceState({}, '', '/'); }
+    }catch(e){ console.warn('applyParamsFromURL failed', e); }
+  })();
+wireFilterAutosave();
   await load(true);
   hideOverlay();
 });
@@ -3013,7 +3029,7 @@ setInterval(()=>load(true),10000);
       el && el.scrollIntoView({behavior:'smooth', block:'start'});
     }catch(_){}
   }
-  document.getElementById('drSettings')?.addEventListener('click', ()=>{ openDetails('settingsDD'); closeDrawer(); });
+  document.getElementById('drSettings')?.addEventListener('click', ()=>{ if(window.matchMedia('(max-width:920px)').matches){ location.href='/settings'; } else { openDetails('settingsDD'); closeDrawer(); } });
   document.getElementById('drSocials')?.addEventListener('click', ()=>{ openDetails('socialsDD'); closeDrawer(); });
   document.getElementById('drTnc')?.addEventListener('click', ()=>{ openDetails('tncDD'); closeDrawer(); });
   document.getElementById('drProfile')?.addEventListener('click', ()=>{ openDetails('profileDD'); closeDrawer(); });
@@ -3093,6 +3109,100 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body></html>
 """
+
+@app.get("/settings", response_class=HTMLResponse)
+def settings_mobile():
+    # Mobile-only Settings page
+    ex_html = "\n".join([
+        f'<label class="ex"><input type="checkbox" name="ex" value="{ex}" checked> {ex.capitalize()}</label>'
+        for ex in EXCHANGE_IDS
+    ])
+    html = f"""<!doctype html>
+<html><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings · Mobile</title>
+<style>
+  :root{{--bg:#0b142a;--panel:#0f1a33;--text:#e7eefc;--muted:#9fb1d6;--acc:#2bd576;--line:#182241;}}
+  body{{margin:0;background:var(--bg);color:var(--text);font-family:system-ui, -apple-system, Segoe UI, Roboto, sans-serif}}
+  header{{display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0}}
+  .back{{text-decoration:none;color:var(--text);font-weight:600;padding:6px 10px;border:1px solid var(--line);border-radius:10px}}
+  .title{{font-weight:800;font-size:18px}}
+  .wrap{{padding:14px}}
+  .group{{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}}
+  .row{{display:flex;align-items:center;gap:10px;margin:10px 0}}
+  .row input[type="number"], .row input[type="text"]{{width:100%;max-width:220px;padding:8px;border-radius:10px;border:1px solid var(--line);background:#0a1430;color:var(--text)}}
+  .exgrid{{display:grid;grid-template-columns:1fr 1fr;gap:8px}}
+  .ex label{{display:flex;align-items:center;gap:8px;background:#0a1430;border:1px solid var(--line);padding:8px;border-radius:10px}}
+  .toolbar{{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}}
+  .btn{{background:var(--panel);border:1px solid var(--line);padding:8px 12px;border-radius:10px;color:var(--text)}}
+  .btn.primary{{background:var(--acc);color:#04120a;border-color:#1b9d5b}}
+</style>
+</head>
+<body>
+  <header>
+    <a class=\"back\" href=\"/\">← Back</a>
+    <div class=\"title\">Settings</div>
+  </header>
+  <div class=\"wrap\">
+    <div class=\"group\">
+      <div class=\"row\"><button id=\"soundToggle\" class=\"btn\" type=\"button\" aria-pressed=\"true\">🔊 Sound: ON</button></div>
+      <div class=\"row\"><label>📈 Edge %</label><input id=\"minEdge\" type=\"number\" step=\"0.1\" value=\"1\"> – <input id=\"maxEdge\" type=\"number\" step=\"0.1\" value=\"25\"></div>
+      <div class=\"row\"><label>🔎 Pair</label><input id=\"q\" placeholder=\"e.g. BTC/USDT\"></div>
+      <div class=\"row\"><label>💧 Min $24h Vol</label><input id=\"minVol\" type=\"number\" step=\"1000\" value=\"0\"></div>
+      <div class=\"row\"><label>🧪 Min Liquidity</label><input id=\"minLiq\" type=\"number\" step=\"1\" value=\"0\"></div>
+      <div class=\"row\"><label>💡 Trade Size</label><input id=\"tsMin\" type=\"number\" step=\"1\" value=\"100\"> – <input id=\"tsMax\" type=\"number\" step=\"1\" value=\"6500\"></div>
+    </div>
+    <div class=\"group\">
+      <div style=\"font-weight:700;margin-bottom:6px\">Exchanges</div>
+      <div class=\"exgrid\">{ex_html}</div>
+      <div class=\"toolbar\">
+        <button id=\"exAll\" class=\"btn\">Select All</button>
+        <button id=\"exNone\" class=\"btn\">None</button>
+        <button id=\"exDefault\" class=\"btn\">Default</button>
+        <button id=\"exApply\" class=\"btn primary\">Apply</button>
+      </div>
+    </div>
+  </div>
+<script>
+(function(){
+  function isMobile(){{return window.matchMedia('(max-width:920px)').matches;}}
+  function $(s){{return document.querySelector(s);}}
+  function $all(s){{return Array.from(document.querySelectorAll(s));}}
+  // sound toggle
+  $('#soundToggle')?.addEventListener('click', function(){ 
+      const on = this.getAttribute('aria-pressed') !== 'true';
+      this.setAttribute('aria-pressed', on ? 'true':'false');
+      this.textContent = on ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+  });
+  // exchange helpers
+  $('#exAll')?.addEventListener('click', ()=>{ $all('input[name=ex]').forEach(c=>c.checked=true); });
+  $('#exNone')?.addEventListener('click', ()=>{ $all('input[name=ex]').forEach(c=>c.checked=false); });
+  $('#exDefault')?.addEventListener('click', ()=>{ 
+      $('#minEdge').value='1'; $('#maxEdge').value='26';
+      $('#minVol').value='0'; $('#minLiq').value='0'; $('#q').value='';
+      $('#tsMin').value='100'; $('#tsMax').value='6500';
+      $all('input[name=ex]').forEach(c=>c.checked=true);
+  });
+  $('#exApply')?.addEventListener('click', ()=>{ 
+      const p = {{
+        minEdge: parseFloat($('#minEdge').value||'1'),
+        maxEdge: parseFloat($('#maxEdge').value||'26'),
+        q: ($('#q').value||'').trim(),
+        minVol: parseFloat($('#minVol').value||'0'),
+        minLiq: parseFloat($('#minLiq').value||'0'),
+        tsMin: parseFloat($('#tsMin').value||'0'),
+        tsMax: parseFloat($('#tsMax').value||'0'),
+        ex: $all('input[name=ex]:checked').map(x=>x.value).join(',')
+      }};
+      const qs = new URLSearchParams(p);
+      qs.set('_ts', String(Date.now()));
+      // Navigate back to main page with params; main page will consume them.
+      location.href = '/?'+qs.toString();
+  });
+})();
+</script>
+</body></html>"""
+    return HTMLResponse(html)
 @app.get("/opps", response_class=HTMLResponse)
 def opps_page():
     return HTMLResponse(_OPPS_HTML)
