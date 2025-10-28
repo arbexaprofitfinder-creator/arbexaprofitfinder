@@ -2156,6 +2156,35 @@ img.exlogo{width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-
 img, canvas, video, svg { max-width: 100%; height: auto; }
 * { box-sizing: border-box; }
 </style>
+<style>
+/* === Mobile edits: Oct 25 — per user spec === */
+@media (max-width: 900px){
+  /* 1) Remove hamburger/drawer icon completely */
+  #drawerOpen, .drawer-btn, .menu-anchor details, .menu-anchor #profileDD { display: none !important; }
+
+  /* 3) Hide green initial avatar under timestamp */
+  .user-initial, .avatar, .avatar-badge, header .user-initial, #opps-header .user-initial { display: none !important; }
+
+  /* 4) Increase refresh button size */
+  .refresh-btn { width: 52px !important; height: 52px !important; border-radius: 12px; }
+  .refresh-btn svg { width: 26px !important; height: 26px !important; }
+
+  /* 8) Remove floating/moveable message icon */
+  #chatFab, .chatfab, .floating-message, #chat-fab, .fab-message { display: none !important; }
+
+  /* 2) & 6) & 7) Clean the row under Info: show ONLY Go Pro under Info */
+  /* Hide standalone Trade Details and Message that appear below the Info dropdown */
+  .filters .block > details#tradeDD,
+  .filters .block > details#msgDD,
+  .filters > details#tradeDD,
+  .filters > details#msgDD { display: none !important; }
+
+  /* Make Go Pro full-width and directly follow the Info dropdown */
+  .filters { grid-template-columns: 1fr; }
+  .filters .btn-pro { width: 100% !important; display: inline-flex; justify-content: center; margin-top: 8px; }
+}
+</style>
+
 
 <style id="mobile-v2">
 [data-mobile="v2"] { -webkit-text-size-adjust:100%; text-size-adjust:100%; }
@@ -2171,7 +2200,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   [data-mobile="v2"] #freeBanner{width:100%;padding:10px 12px;background:#e9f9f0;color:#0a8a54;border:1px solid #b9eccf;border-radius:10px;font-size:.95rem}
   [data-mobile="v2"] .dash-tip{color:#0a8a54;font-weight:800}
   /* Chat left-bottom */
-  [data-mobile="v2"] #chatFab{display:inline-flex !important;left:12px;right:auto}
+  [data-mobile="v2"] #chatFab, [data-mobile="v2"] .chatfab { display: none !important; }
 }
 </style>
 <style>
@@ -2290,8 +2319,8 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     </details>
   </div>
 </details>
-    <div class="block"><details id="tradeDD"><summary class="btnpdf">TRADE DETAILS‼️</summary><div class="tradecontent" id="tradeContent"></div></details></div>
-    <div class="block">
+    <div class="block hide-on-mobile"><details id="tradeDD"><summary class="btnpdf">TRADE DETAILS‼️</summary><div class="tradecontent" id="tradeContent"></div></details></div>
+    <div class="block hide-on-mobile">
       <details id="msgDD"><summary id="msgSummary" class="btnpdf">📩Message</summary>
         <div class="tradecontent">Make sure to apply the ⚠️Trade Cautions before each trade!</div>
       </details>
@@ -2980,14 +3009,8 @@ setInterval(()=>load(true),10000);
   function openDetails(id){
     try{
       const menu = document.getElementById('menuDD'); if(menu) menu.setAttribute('open','');
-      const el = document.getElementById(id);
-      if(el){
-        // If the target is inside a 'hide-on-mobile' wrapper, reveal it on mobile so taps from drawer show content
-        const wrap = el.closest('.hide-on-mobile');
-        if(wrap){ wrap.classList.remove('hide-on-mobile'); wrap.dataset._revealed = '1'; }
-        el.setAttribute('open','');
-        el.scrollIntoView({behavior:'smooth', block:'start'});
-      }
+      const el = document.getElementById(id); if(el) el.setAttribute('open','');
+      el && el.scrollIntoView({behavior:'smooth', block:'start'});
     }catch(_){}
   }
   document.getElementById('drSettings')?.addEventListener('click', ()=>{ openDetails('settingsDD'); closeDrawer(); });
@@ -2996,13 +3019,6 @@ setInterval(()=>load(true),10000);
   document.getElementById('drProfile')?.addEventListener('click', ()=>{ openDetails('profileDD'); closeDrawer(); });
   document.getElementById('drMsg')?.addEventListener('click', ()=>{ openDetails('msgDD'); closeDrawer(); });
   document.getElementById('drLogout')?.addEventListener('click', ()=>{ try{ document.getElementById('btnLogout')?.click(); }catch(_){} closeDrawer(); });
-  // Mobile taps (iOS/Android)
-  document.getElementById('drSettings')?.addEventListener('touchstart', ()=>{ openDetails('settingsDD'); closeDrawer(); }, {passive:true});
-  document.getElementById('drSocials')?.addEventListener('touchstart', ()=>{ openDetails('socialsDD'); closeDrawer(); }, {passive:true});
-  document.getElementById('drTnc')?.addEventListener('touchstart', ()=>{ openDetails('tncDD'); closeDrawer(); }, {passive:true});
-  document.getElementById('drProfile')?.addEventListener('touchstart', ()=>{ openDetails('profileDD'); closeDrawer(); }, {passive:true});
-  document.getElementById('drMsg')?.addEventListener('touchstart', ()=>{ openDetails('msgDD'); closeDrawer(); }, {passive:true});
-  document.getElementById('drLogout')?.addEventListener('touchstart', ()=>{ try{ document.getElementById('btnLogout')?.click(); }catch(_){} closeDrawer(); }, {passive:true});
 })();
 </script>
 
