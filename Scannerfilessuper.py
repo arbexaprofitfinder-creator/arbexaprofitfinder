@@ -988,6 +988,32 @@ a{color:var(--acc);text-decoration:none}
 /* Safe resets */
 img, canvas, video, svg { max-width: 100%; height: auto; }
 * { box-sizing: border-box; }
+  /* Mobile-only: remove avatar/initial under timestamp entirely */
+  .brandrow .user-initial,
+  .brandrow .avatar,
+  .brandrow .avatar-badge,
+  #opps-header .user-initial,
+  #opps-header .avatar,
+  #opps-header .avatar-badge,
+  header .user-initial,
+  header .avatar,
+  header .avatar-badge {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Mobile-only: smaller date/time text */
+  #lastUTCtime,
+  .last-updated time,
+  #opps-header .time,
+  #opps-header time {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+  }
+
 </style>
 <style>
 /* === STEP 2 Mobile UI (hamburger->gear, bigger refresh, hide floating msg) === */
