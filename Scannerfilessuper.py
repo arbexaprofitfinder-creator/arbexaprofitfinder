@@ -1743,53 +1743,6 @@ def pro_page(request: Request):
 PRO_PRICE_MAP = {'weekly':10,'monthly':20,'3m':55,'6m':100,'yearly':180,'3y':450}
 
 @app.get("/pro/checkout")
-
-MOBILE_MENU_HTML = """<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Menu — Arbexa</title>
-<style>
-  body{margin:0;background:#0b1220;color:#e7eefc;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu}
-  .top{position:sticky;top:0;display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid #182241;background:#0b1220}
-  .back{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;border:1px solid #23345f;background:#0e1a35;cursor:pointer;text-decoration:none;color:#e7eefc}
-  .brand{font-weight:700}
-  .list{display:grid;gap:10px;padding:16px}
-  .item{display:flex;align-items:center;gap:10px;padding:14px 12px;border:1px solid #182241;background:#0f1a33;border-radius:14px;font-weight:600;cursor:pointer}
-  .logout{background:#2a0f11;border-color:#5a1b21;color:#ffd6d6}
-</style>
-</head><body>
-  <header class="top">
-    <a class="back" href="/opps" aria-label="Back">←</a>
-    <div class="brand">Menu</div>
-  </header>
-  <main class="list">
-    <div class="item" onclick="go('profileDD')">👤 Profile</div>
-    <div class="item" onclick="go('settingsDD')">⚙️ Settings</div>
-    <div class="item" onclick="go('socialsDD')">👥 Socials</div>
-    <div class="item" onclick="go('tncDD')">📄 Terms &amp; Conditions</div>
-    <div class="item" onclick="go('msgDD')">💬 Message</div>
-    <div class="item logout" onclick="logout()">🚪 Log out</div>
-  </main>
-<script>
-function go(id){
-  try{
-    const KEY='arbexa_dd_v1';
-    const s=JSON.parse(localStorage.getItem(KEY)||'{}')||{};
-    s[id]=true;
-    localStorage.setItem(KEY, JSON.stringify(s));
-  }catch(_){}
-  location.replace('/opps');
-}
-function logout(){
-  try{ localStorage.removeItem('arbexa_token'); }catch(_){}
-  location.replace('/login');
-}
-</script>
-</body></html>"""
-@app.get("/m/menu", response_class=HTMLResponse)
-def mobile_menu():
-    return HTMLResponse(MOBILE_MENU_HTML)
-
-
 def pro_checkout(plan: str = 'monthly', username: str | None = None):
     import os, time, requests
     API = os.environ.get("CRYPTOCLOUD_API_KEY")
@@ -3115,13 +3068,9 @@ document.addEventListener('click', function(e) {
         el.chatFab.click();
       });
     }
-    if(el.bnMenu){
+    if(el.bnMenu && el.drawerOpen){
       el.bnMenu.addEventListener('click', ()=>{
-        if (window.matchMedia('(max-width: 768px)').matches) {
-          window.location.href = '/m/menu';
-        } else if (el.drawerOpen) {
-          el.drawerOpen.click();
-        }
+        el.drawerOpen.click();
       });
     }
   }catch(e){ console.warn('bottom-nav init failed', e); }
@@ -3700,3 +3649,47 @@ if __name__ == "__main__":
         else:
             print("[fake] no sr_invoice_id on inserted row; cannot mark paid")
 # ============================ /DEV: FAKE PAYMENT TEST ============================
+
+
+# ---------------------------------------------------------------
+# MOBILE MENU (for mobile only) - Desktop untouched
+# ---------------------------------------------------------------
+from fastapi.responses import HTMLResponse
+
+MOBILE_MENU_HTML = """<!doctype html><html lang="en"><head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menu</title>
+<style>
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial;}
+  header{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #eee;position:sticky;top:0;background:#fff}
+  .back{font-size:20px;text-decoration:none}
+  .list{padding:10px 12px}
+  .item{padding:14px 12px;border-bottom:1px solid #f1f1f1;font-size:16px}
+  .item a{color:inherit;text-decoration:none;display:block}
+</style>
+</head>
+<body>
+<header><a class="back" href="/opps">←</a><strong>Menu</strong></header>
+<div class="list">
+  <div class="item"><a href="/opps?dd=profile">Profile</a></div>
+  <div class="item"><a href="/opps?dd=settings">Settings</a></div>
+  <div class="item"><a href="/opps?dd=socials">Socials</a></div>
+  <div class="item"><a href="/opps?dd=terms">Terms &amp; Conditions</a></div>
+  <div class="item"><a href="/opps?dd=message">Message</a></div>
+  <div class="item"><a href="/login?logout=1">Log out</a></div>
+</div>
+<script>
+  document.querySelectorAll('.item a').forEach(a=>{
+    a.addEventListener('click',()=>{
+      const url=new URL(a.href,location.origin);
+      const dd=url.searchParams.get('dd');
+      if(dd){ try{ localStorage.setItem('arbexa_dd_v1', dd);}catch(_){} }
+    });
+  });
+</script>
+</body>
+</html>"""
+
+@app.get("/m/menu", response_class=HTMLResponse)
+def mobile_menu():
+    return MOBILE_MENU_HTML
