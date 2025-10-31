@@ -3666,3 +3666,77 @@ if __name__ == "__main__":
         else:
             print("[fake] no sr_invoice_id on inserted row; cannot mark paid")
 # ============================ /DEV: FAKE PAYMENT TEST ============================
+
+
+# === Mobile-friendly /profile page (dark Arbexa theme) ===
+from fastapi.responses import HTMLResponse as _HTMLResponse_profile
+
+_ARBEXA_MOBILE_CSS = """
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#0b1220;color:#e7eefc}
+header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:.5rem;
+  padding:12px 14px;border-bottom:1px solid #132042;background:linear-gradient(180deg,#0b1220 85%,rgba(11,18,32,0))}
+header button{appearance:none;border:0;background:none;font-size:18px;color:#e7eefc}
+header .title{font-weight:900;font-size:16px;flex:1;text-align:center;margin-right:28px;letter-spacing:.4px}
+main{padding:14px;max-width:900px;margin:0 auto}
+.card{background:#101a33;border:1px solid #1a2547;border-radius:14px;padding:10px 0;margin:12px 0}
+.row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #1a2547}
+.row:last-child{border-bottom:0}
+.label{opacity:.85}
+.value{font-weight:800}
+.actions{padding:12px 14px;text-align:right}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 14px;border-radius:10px;
+  border:1px solid #26345e;background:#0e1a35;color:#e7eefc;font-weight:800;text-decoration:none}
+.btn-danger{border-color:#7f1d1d;color:#fca5a5}
+.small{font-size:12px;color:#9fb2d9}
+"""
+
+def _mobile_shell(title: str, inner_html: str) -> str:
+    return f"""<!doctype html><html lang="en"><meta name="viewport" content="width=device-width, initial-scale=1">
+<head><title>{title}</title><style>{_ARBEXA_MOBILE_CSS}</style></head>
+<body>
+  <header>
+    <button onclick="history.back()" aria-label="Back">←</button>
+    <div class="title">{title}</div>
+  </header>
+  <main>{inner_html}</main>
+</body></html>"""
+
+@app.get("/profile", response_class=_HTMLResponse_profile)
+def profile_page():
+    body = """
+    <div class="card">
+      <div class="row"><div class="label">Gmail</div><div class="value" id="pf-email"></div></div>
+      <div class="row"><div class="label">Username</div><div class="value" id="pf-username"></div></div>
+      <div class="row"><div class="label">Date joined</div><div class="value" id="pf-joined"></div></div>
+      <div class="row"><div class="label">Status</div><div class="value" id="pf-status"></div></div>
+      <div class="row"><div class="label">User ID</div><div class="value" id="pf-id"></div></div>
+      <div class="actions">
+        <a class="btn btn-danger" href="/auth/logout" onclick="localStorage.removeItem('arbexa_token')">Log out</a>
+      </div>
+    </div>
+    <div class="small">Card preview (read-only)</div>
+    <script>
+    (async ()=>{
+      try{
+        const tok = localStorage.getItem('arbexa_token');
+        const r = await fetch('/me', { headers: tok ? {'Authorization':'Bearer '+tok} : {}, credentials:'omit' });
+        if(!r.ok) return;
+        const me = await r.json();
+        const $ = (id)=>document.getElementById(id);
+        if(me.email)     $('pf-email').textContent    = me.email;
+        if(me.username)  $('pf-username').textContent = me.username;
+        if(me.user_id)   $('pf-id').textContent       = me.user_id;
+        if(me.status||me.plan) $('pf-status').textContent = String(me.status||me.plan).toUpperCase();
+        const iso = me.date_joined || me.created_at;
+        if(iso){
+          try{
+            const d = new Date(iso);
+            $('pf-joined').textContent = d.toLocaleString();
+          }catch(e){ $('pf-joined').textContent = iso; }
+        }
+      }catch(_){}
+    })();
+    </script>
+    """
+    return _HTMLResponse_profile(_mobile_shell("Profile", body))
