@@ -3668,75 +3668,135 @@ if __name__ == "__main__":
 # ============================ /DEV: FAKE PAYMENT TEST ============================
 
 
-# === Mobile-friendly /profile page (dark Arbexa theme) ===
-from fastapi.responses import HTMLResponse as _HTMLResponse_profile
+<!-- ===== Arbexa: Remove legacy hamburger/drawer ===== -->
+<script>
+(function(){
+  try{
+    const sel = ['.drawer','.drawer-panel','.drawer-backdrop','.hamburger','#mobile-drawer','#hamburger','#drawer','#menu'];
+    sel.forEach(s => document.querySelectorAll(s).forEach(el => el.remove()));
+  }catch(_){}
+})();
+</script>
 
-_ARBEXA_MOBILE_CSS = """
-*{box-sizing:border-box}html,body{margin:0}
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#0b1220;color:#e7eefc}
-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:.5rem;
-  padding:12px 14px;border-bottom:1px solid #132042;background:linear-gradient(180deg,#0b1220 85%,rgba(11,18,32,0))}
-header button{appearance:none;border:0;background:none;font-size:18px;color:#e7eefc}
-header .title{font-weight:900;font-size:16px;flex:1;text-align:center;margin-right:28px;letter-spacing:.4px}
-main{padding:14px;max-width:900px;margin:0 auto}
-.card{background:#101a33;border:1px solid #1a2547;border-radius:14px;padding:10px 0;margin:12px 0}
-.row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #1a2547}
-.row:last-child{border-bottom:0}
-.label{opacity:.85}
-.value{font-weight:800}
-.actions{padding:12px 14px;text-align:right}
-.btn{display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 14px;border-radius:10px;
-  border:1px solid #26345e;background:#0e1a35;color:#e7eefc;font-weight:800;text-decoration:none}
-.btn-danger{border-color:#7f1d1d;color:#fca5a5}
-.small{font-size:12px;color:#9fb2d9}
-"""
+<!-- ===== NEW NAV + MOBILE DRAWER (from scratch) ===== -->
+<style>
+:root{
+  --nx-bg:#0b1220; --nx-card:#101a33; --nx-line:#1a2547; --nx-text:#e7eefc; --nx-muted:#9fb2d9; --nx-acc:#2bd576;
+}
+.nx-nav{position:sticky;top:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;border-bottom:1px solid #132042;background:#0b1220;color:var(--nx-text)}
+.nx-brand{display:flex;align-items:center;gap:8px;color:var(--nx-text);text-decoration:none}
+.nx-logo{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#0e1a35;border:1px solid #26345e;font-weight:900}
+.nx-tag{font-weight:800;letter-spacing:.3px}
+.nx-links{display:none;gap:10px;align-items:center}
+.nx-links a{color:var(--nx-text);text-decoration:none;padding:8px 10px;border-radius:8px}
+.nx-cta{border:1px solid #26345e;background:#0e1a35;border-radius:10px}
+.nx-btn{border:1px solid #26345e;background:#0e1a35;color:var(--nx-text);border-radius:10px;padding:8px 12px}
+.nx-btn.danger{border-color:#7f1d1d;color:#fca5a5}
+.nx-burger{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;
+  border:1px solid #26345e;background:#0e1a35;border-radius:10px;color:var(--nx-text)}
+@media(min-width:768px){ .nx-burger{display:none} .nx-links{display:flex} }
 
-def _mobile_shell(title: str, inner_html: str) -> str:
-    return f"""<!doctype html><html lang="en"><meta name="viewport" content="width=device-width, initial-scale=1">
-<head><title>{title}</title><style>{_ARBEXA_MOBILE_CSS}</style></head>
-<body>
-  <header>
-    <button onclick="history.back()" aria-label="Back">←</button>
-    <div class="title">{title}</div>
-  </header>
-  <main>{inner_html}</main>
-</body></html>"""
+.nx-drawer{position:fixed;inset:0;z-index:1200;display:none}
+.nx-drawer[open]{display:block}
+.nx-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.nx-panel{position:absolute;top:0;right:0;height:100%;width:min(86vw,360px);background:var(--nx-bg);
+  border-left:1px solid #132042;transform:translateX(100%);transition:transform .22s ease}
+.nx-drawer[open] .nx-panel{transform:translateX(0)}
+.nx-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #132042;color:var(--nx-text)}
+.nx-title{font-weight:900}
+.nx-close{appearance:none;border:0;background:none;color:var(--nx-text);font-size:22px}
+.nx-menu{display:flex;flex-direction:column;padding:10px}
+.nx-item{display:block;text-decoration:none;color:var(--nx-text);padding:12px 10px;border-radius:10px;border:1px solid transparent}
+.nx-item:hover{border-color:#26345e;background:#0e1a35}
+.nx-item.danger{border-color:#7f1d1d;color:#fca5a5}
+</style>
 
-@app.get("/profile", response_class=_HTMLResponse_profile)
-def profile_page():
-    body = """
-    <div class="card">
-      <div class="row"><div class="label">Gmail</div><div class="value" id="pf-email"></div></div>
-      <div class="row"><div class="label">Username</div><div class="value" id="pf-username"></div></div>
-      <div class="row"><div class="label">Date joined</div><div class="value" id="pf-joined"></div></div>
-      <div class="row"><div class="label">Status</div><div class="value" id="pf-status"></div></div>
-      <div class="row"><div class="label">User ID</div><div class="value" id="pf-id"></div></div>
-      <div class="actions">
-        <a class="btn btn-danger" href="/auth/logout" onclick="localStorage.removeItem('arbexa_token')">Log out</a>
-      </div>
+<header id="nx-nav" class="nx-nav" role="banner">
+  <a class="nx-brand" href="/" aria-label="Arbexa Home">
+    <span class="nx-logo">A</span>
+    <span class="nx-tag">Arbexa</span>
+  </a>
+  <nav class="nx-links" aria-label="Primary">
+    <a href="/profile">Profile</a>
+    <a href="/settings">Settings</a>
+    <a href="/socials">Socials</a>
+    <a href="/terms">Terms</a>
+    <a class="nx-cta" href="/message">Message</a>
+    <button id="nx-logout-desktop" class="nx-btn danger" type="button">Log out</button>
+  </nav>
+  <button id="nx-burger" class="nx-burger" aria-expanded="false" aria-controls="nx-drawer" aria-label="Open menu">☰</button>
+</header>
+
+<aside id="nx-drawer" class="nx-drawer" role="dialog" aria-modal="true" aria-labelledby="nx-drawer-title">
+  <div class="nx-backdrop" data-close></div>
+  <div class="nx-panel" role="document">
+    <div class="nx-head">
+      <div id="nx-drawer-title" class="nx-title">Menu</div>
+      <button class="nx-close" aria-label="Close" data-close>×</button>
     </div>
-    <div class="small">Card preview (read-only)</div>
-    <script>
-    (async ()=>{
-      try{
-        const tok = localStorage.getItem('arbexa_token');
-        const r = await fetch('/me', { headers: tok ? {'Authorization':'Bearer '+tok} : {}, credentials:'omit' });
-        if(!r.ok) return;
-        const me = await r.json();
-        const $ = (id)=>document.getElementById(id);
-        if(me.email)     $('pf-email').textContent    = me.email;
-        if(me.username)  $('pf-username').textContent = me.username;
-        if(me.user_id)   $('pf-id').textContent       = me.user_id;
-        if(me.status||me.plan) $('pf-status').textContent = String(me.status||me.plan).toUpperCase();
-        const iso = me.date_joined || me.created_at;
-        if(iso){
-          try{
-            const d = new Date(iso);
-            $('pf-joined').textContent = d.toLocaleString();
-          }catch(e){ $('pf-joined').textContent = iso; }
-        }
-      }catch(_){}
-    })();
-    </script>
-    """
-    return _HTMLResponse_profile(_mobile_shell("Profile", body))
+    <nav class="nx-menu" aria-label="Mobile">
+      <a class="nx-item" href="/profile">Profile</a>
+      <a class="nx-item" href="/settings">Settings</a>
+      <a class="nx-item" href="/socials">Socials</a>
+      <a class="nx-item" href="/terms">Terms &amp; Conditions</a>
+      <a class="nx-item" href="/message">Message</a>
+      <button class="nx-item danger" id="nx-logout" type="button">Log out</button>
+    </nav>
+  </div>
+</aside>
+
+<script>
+(function(){
+  const drawer   = document.getElementById('nx-drawer');
+  const burger   = document.getElementById('nx-burger');
+  const logout1  = document.getElementById('nx-logout');
+  const logout2  = document.getElementById('nx-logout-desktop');
+  const panel    = drawer.querySelector('.nx-panel');
+
+  function openDrawer(){
+    drawer.setAttribute('open','');
+    burger.setAttribute('aria-expanded','true');
+    document.body.style.overflow='hidden';
+    const firstLink = drawer.querySelector('.nx-item, .nx-close'); firstLink && firstLink.focus();
+    window.addEventListener('keydown', onKeydown, true);
+  }
+  function closeDrawer(){
+    drawer.removeAttribute('open');
+    burger.setAttribute('aria-expanded','false');
+    document.body.style.overflow='';
+    window.removeEventListener('keydown', onKeydown, true);
+  }
+  function onKeydown(e){
+    if(e.key==='Escape'){ closeDrawer(); }
+    if(e.key==='Tab'){
+      const focusables = panel.querySelectorAll('a.nx-item,button.nx-close,button.nx-item');
+      if(!focusables.length) return;
+      const arr = Array.from(focusables);
+      const i = arr.indexOf(document.activeElement);
+      if(e.shiftKey && (i<=0 || document.activeElement===panel)){ e.preventDefault(); arr[arr.length-1].focus(); }
+      else if(!e.shiftKey && (i===arr.length-1)){ e.preventDefault(); arr[0].focus(); }
+    }
+  }
+  burger?.addEventListener('click', openDrawer, {passive:true});
+  drawer.addEventListener('click', (e)=>{ if(e.target.closest('[data-close]')) closeDrawer(); }, {passive:true});
+  drawer.addEventListener('click', (e)=>{
+    const a = e.target.closest('a.nx-item[href]');
+    if(!a) return;
+    setTimeout(closeDrawer, 0);
+  }, {passive:true});
+  document.addEventListener('click', function(e){
+    const a = e.target.closest('.nx-panel a.nx-item[href]');
+    if(!a) return;
+    setTimeout(()=>{ if(location.pathname !== a.getAttribute('href')) location.assign(a.href); }, 0);
+  }, {capture:true, passive:true});
+  async function logoutSafely(){
+    try { await fetch('/auth/logout', {method:'POST'}); }
+    catch(_) {}
+    finally { localStorage.removeItem('arbexa_token'); location.assign('/'); }
+  }
+  logout1?.addEventListener('click', logoutSafely, {passive:true});
+  logout2?.addEventListener('click', logoutSafely, {passive:true});
+})();
+</script>
+
