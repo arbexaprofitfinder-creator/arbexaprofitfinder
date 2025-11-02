@@ -949,6 +949,22 @@ a{color:var(--acc);text-decoration:none}
 .gopro:hover{filter:brightness(1.05)}
 .info{font-size:14px;color:#cfe0ff}
 .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+
+@media (max-width: 820px){
+  .ms-btn{
+    position: fixed; left: max(12px, env(safe-area-inset-left));
+    bottom: calc(8px + env(safe-area-inset-bottom)); z-index: 1001;
+    width: 44px; height: 44px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(26,36,64,0.92); color: var(--txt); font-size: 20px; line-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px);
+  }
+  .ms-btn:active{ transform: translateY(1px); }
+}
+@media (min-width: 821px){
+  .ms-btn{ display:none; }
+}
+
 </style>
 <style>
 /* === Injected Mobile Overrides (non-destructive) === */
@@ -1963,13 +1979,7 @@ _OPPS_HTML = """<!doctype html><html lang="en"><head>
 <title>Arbexa Profit Finder — /opps</title>
 <style>
 @media (max-width: 820px){
-  .ms-btn{
-    position: fixed; right: max(12px, env(safe-area-inset-right));
-    top: calc(56px + env(safe-area-inset-top)); z-index: 1001;
-    width: 44px; height: 44px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(26,36,64,0.92); color: var(--txt); font-size: 20px; line-height: 44px;
-    display: inline-flex; align-items: center; justify-content: center; backdrop-filter: blur(8px);
-  }
+  
   .ms-btn:active{ transform: translateY(1px); }
   .settings-page{ position: fixed; inset:0; z-index: 2000; background: var(--bg); display:none; overflow:auto; }
   .settings-page.show{ display:block; }
@@ -1986,7 +1996,7 @@ _OPPS_HTML = """<!doctype html><html lang="en"><head>
   .settings-body .exgrid{ display:block !important; }
 }
 @media (min-width: 821px){
-  .ms-btn{ display:none; }
+  
 }
 
 :root{--bg:#0b1220;--card:#111a2e;--muted:#7a8aa0;--txt:#e7eefc;--acc:#2bd576;--warn:#ffcf5a;--bad:#ff6b6b;--chip:#1a2440;}
@@ -2356,7 +2366,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 
   <a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
 
-    <button id="btnSettingsMobile" aria-label="Settings" class="ms-btn" title="Settings">⚙️</button>
+    
 </header>
 <div id="freeBanner" class="free-banner hide">You’re currently on the free plan with limited features, subscribe to unlock full potentials.</div>
 <div class="dash-tip">Most Profitable and executable Opportunities last no more than 10-15 Minutes so act fast,but carefully!</div>
@@ -3085,6 +3095,7 @@ document.addEventListener('click', function(e) {
 
   <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Bottom Navigation">
     <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">💬</button>
+    <button id="btnSettingsMobile" aria-label="Settings" class="ms-btn" title="Settings">⚙️</button>
   </div>
 
 
