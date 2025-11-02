@@ -1962,6 +1962,36 @@ _OPPS_HTML = """<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Arbexa Profit Finder — /opps</title>
 <style>
+/* --- Mobile Settings (full-page) --- */
+@media (max-width: 820px){
+  .ms-btn{
+    position: fixed; right: max(12px, env(safe-area-inset-right));
+    top: calc(8px + env(safe-area-inset-top)); z-index: 1001;
+    width: 44px; height: 44px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(26,36,64,0.92); color: var(--txt); font-size: 20px; line-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px);
+  }
+  .ms-btn:active{ transform: translateY(1px); }
+  .settings-page{ position: fixed; inset:0; z-index: 2000; background: var(--bg); display:none; overflow:auto; }
+  .settings-page.show{ display:block; }
+  .settings-header{
+    position: sticky; top: 0; z-index: 1; background: linear-gradient(#0b1220, rgba(11,18,32,0.85));
+    display:flex; align-items:center; gap:8px; padding: calc(8px + env(safe-area-inset-top)) 12px 10px 12px; border-bottom: 1px solid var(--chip);
+  }
+  .settings-header h1{ flex:1; text-align:center; margin:0; font-size:18px; color:var(--txt); letter-spacing:.4px }
+  .back-btn{ width:44px; height:36px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:#121a30; color:var(--txt); }
+  .settings-body{ padding: 12px; }
+  .settings-body details{ border: none; }
+  .settings-body .group > summary{ display:none; } /* always expanded */
+  .settings-body .menu-list{ padding:0; margin:0; }
+  /* Make grid one-column for checklists */
+  .settings-body .exgrid{ display:block !important; }
+}
+@media (min-width: 821px){
+  .ms-btn{ display:none; }
+}
+
 :root{--bg:#0b1220;--card:#111a2e;--muted:#7a8aa0;--txt:#e7eefc;--acc:#2bd576;--warn:#ffcf5a;--bad:#ff6b6b;--chip:#1a2440;}
 *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,'Helvetica Neue',Arial,'Apple Color Emoji','Segoe UI Emoji';background:var(--bg);color:var(--txt)}
 a{color:var(--acc);text-decoration:none}
@@ -2328,7 +2358,9 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   </div>
 
   <a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
-</header>
+
+    <button id="btnSettingsMobile" aria-label="Settings" class="ms-btn" title="Settings">⚙️</button>
+    </header>
 <div id="freeBanner" class="free-banner hide">You’re currently on the free plan with limited features, subscribe to unlock full potentials.</div>
 <div class="dash-tip">Most Profitable and executable Opportunities last no more than 10-15 Minutes so act fast,but carefully!</div>
 
@@ -3105,6 +3137,55 @@ document.addEventListener('DOMContentLoaded', () => {
     settingsBtn.addEventListener('click', toggleDrawer);
   }
 });
+</script>
+
+<div id="mobileSettingsPage" class="settings-page" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+  <div class="settings-header">
+    <button id="btnBackSettings" class="back-btn" aria-label="Back">←</button>
+    <h1 id="settingsTitle">Settings</h1>
+    <div style="width:44px;"></div>
+  </div>
+  <div class="settings-body">
+    <!-- We'll clone the desktop settings group here -->
+    <div id="settingsCloneTarget"></div>
+  </div>
+</div>
+<script>
+(function(){
+  // Mobile-only settings: open page, clone desktop settings group content
+  const openBtn = document.getElementById('btnSettingsMobile');
+  const page = document.getElementById('mobileSettingsPage');
+  const back = document.getElementById('btnBackSettings');
+  function openPage(){
+    if(!page) return;
+    // clone the desktop Settings group contents
+    try{
+      const dd = document.querySelector('#menuDD .group summary.btnpdf:contains("Settings")');
+    }catch(e){}
+    page.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    // if not populated, try to pull the existing settings section:
+    try{
+      const target = document.getElementById('settingsCloneTarget');
+      if(target && target.childElementCount === 0){
+        const group = document.querySelector('#settingsDD') || document.querySelector('summary.btnpdf+div.menu-list')?.closest('.group');
+        if(group){
+          const clone = group.cloneNode(true);
+          // Force expand
+          if(clone.tagName.toLowerCase()==='details'){ clone.open = true; }
+          target.appendChild(clone);
+        }
+      }
+    }catch(e){ console.warn('[mobile settings] clone fail', e); }
+  }
+  function closePage(){
+    if(!page) return;
+    page.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+  if(openBtn){ openBtn.addEventListener('click', openPage); }
+  if(back){ back.addEventListener('click', closePage); }
+})();
 </script>
 </body></html>
 """
