@@ -1962,7 +1962,6 @@ _OPPS_HTML = """<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Arbexa Profit Finder — /opps</title>
 <style>
-/* --- Mobile Settings (full-page) --- */
 @media (max-width: 820px){
   .ms-btn{
     position: fixed; right: max(12px, env(safe-area-inset-right));
@@ -1982,7 +1981,7 @@ _OPPS_HTML = """<!doctype html><html lang="en"><head>
   .back-btn{ width:44px; height:36px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:#121a30; color:var(--txt); }
   .settings-body{ padding: 12px; }
   .settings-body details{ border: none; }
-  .settings-body .group > summary{ display:none; } /* always expanded */
+  .settings-body .group > summary{ display:none; }
   .settings-body .menu-list{ padding:0; margin:0; }
   .settings-body .exgrid{ display:block !important; }
 }
@@ -3196,6 +3195,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (openBtn) openBtn.addEventListener('click', openPage);
   if (back) back.addEventListener('click', closePage);
+})();
+</script>
+<script>
+(function(){
+  // Fallback delegation to guarantee actions even if original listeners didn't bind
+  if (window.innerWidth > 820) return;
+  function ev(el,type){ try{ el&&el.dispatchEvent(new Event(type,{bubbles:true})); }catch(e){} }
+  document.addEventListener('click', function(e){
+    const t = e.target.closest('#exAll, #exNone, #exApply, #exDefault, #exChangePassword, #soundToggle');
+    if(!t) return;
+    try{
+      if (t.id==='soundToggle'){ if('checked'in t) t.checked=!t.checked; ev(t,'input'); ev(t,'change'); if(window.playSfx) try{window.playSfx('tap')}catch(_){} }
+      else if (t.id==='exAll'||t.id==='exNone'){
+        const on = (t.id==='exAll');
+        const scope = document.getElementById('mobileSettingsPage')||document;
+        scope.querySelectorAll('input[type="checkbox"][data-ex], input[type="checkbox"][name^="ex-"], .exchanges input[type="checkbox"]').forEach(cb=>{ cb.checked=on; ev(cb,'input'); ev(cb,'change'); });
+      }
+      else if (t.id==='exDefault'){
+        var minEdge=document.getElementById('minEdge'); if(minEdge){minEdge.value=1; ev(minEdge,'input'); ev(minEdge,'change');}
+        var maxEdge=document.getElementById('maxEdge'); if(maxEdge){maxEdge.value=26; ev(maxEdge,'input'); ev(maxEdge,'change');}
+        var vol=document.getElementById('minVol'); if(vol){vol.value=vol.getAttribute('data-default')||vol.value; ev(vol,'input'); ev(vol,'change');}
+        var liq=document.getElementById('minLiq'); if(liq){liq.value=liq.getAttribute('data-default')||liq.value; ev(liq,'input'); ev(liq,'change');}
+        var ts=document.getElementById('tradeSize'); if(ts){ts.value=ts.getAttribute('data-default')||ts.value; ev(ts,'input'); ev(ts,'change');}
+        const scope=document.getElementById('mobileSettingsPage')||document;
+        scope.querySelectorAll('input[type="checkbox"][data-ex], input[type="checkbox"][name^="ex-"], .exchanges input[type="checkbox"]').forEach(cb=>{ cb.checked=true; ev(cb,'input'); ev(cb,'change'); });
+        var apply=document.getElementById('exApply'); if(apply){apply.click();}
+      }
+      else if (t.id==='exApply'){
+        if(typeof window.applySettings==='function'){ try{window.applySettings(); return;}catch(_){}} 
+        var ref=document.getElementById('refreshNow'); if(ref){ ref.click(); }
+      }
+      else if (t.id==='exChangePassword'){
+        if(typeof window.openChangePassword==='function'){ try{window.openChangePassword(); return;}catch(_){}} 
+        try{ window.location.href='/auth/reset'; }catch(_){}
+      }
+    }catch(_e){ console.warn('[mobile settings fallback] err', _e); }
+  }, true);
 })();
 </script>
 </body></html>
