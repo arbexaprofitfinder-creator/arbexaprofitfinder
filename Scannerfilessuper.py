@@ -3055,9 +3055,7 @@ document.addEventListener('click', function(e) {
 
 
   <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Bottom Navigation">
-    <button id="bnProfile" class="navbtn" title="Profile" aria-label="Profile">👤</button>
     <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">💬</button>
-    <button id="bnMenu" class="navbtn" title="Menu" aria-label="Menu">☰</button>
   </div>
 
 
