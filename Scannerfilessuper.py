@@ -1966,11 +1966,10 @@ _OPPS_HTML = """<!doctype html><html lang="en"><head>
 @media (max-width: 820px){
   .ms-btn{
     position: fixed; right: max(12px, env(safe-area-inset-right));
-    top: calc(8px + env(safe-area-inset-top)); z-index: 1001;
+    top: calc(56px + env(safe-area-inset-top)); z-index: 1001;
     width: 44px; height: 44px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
     background: rgba(26,36,64,0.92); color: var(--txt); font-size: 20px; line-height: 44px;
-    display: inline-flex; align-items: center; justify-content: center;
-    backdrop-filter: blur(8px);
+    display: inline-flex; align-items: center; justify-content: center; backdrop-filter: blur(8px);
   }
   .ms-btn:active{ transform: translateY(1px); }
   .settings-page{ position: fixed; inset:0; z-index: 2000; background: var(--bg); display:none; overflow:auto; }
@@ -1985,7 +1984,6 @@ _OPPS_HTML = """<!doctype html><html lang="en"><head>
   .settings-body details{ border: none; }
   .settings-body .group > summary{ display:none; } /* always expanded */
   .settings-body .menu-list{ padding:0; margin:0; }
-  /* Make grid one-column for checklists */
   .settings-body .exgrid{ display:block !important; }
 }
 @media (min-width: 821px){
@@ -2360,7 +2358,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   <a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
 
     <button id="btnSettingsMobile" aria-label="Settings" class="ms-btn" title="Settings">⚙️</button>
-    </header>
+</header>
 <div id="freeBanner" class="free-banner hide">You’re currently on the free plan with limited features, subscribe to unlock full potentials.</div>
 <div class="dash-tip">Most Profitable and executable Opportunities last no more than 10-15 Minutes so act fast,but carefully!</div>
 
@@ -3146,45 +3144,58 @@ document.addEventListener('DOMContentLoaded', () => {
     <div style="width:44px;"></div>
   </div>
   <div class="settings-body">
-    <!-- We'll clone the desktop settings group here -->
     <div id="settingsCloneTarget"></div>
   </div>
 </div>
 <script>
 (function(){
-  // Mobile-only settings: open page, clone desktop settings group content
   const openBtn = document.getElementById('btnSettingsMobile');
   const page = document.getElementById('mobileSettingsPage');
   const back = document.getElementById('btnBackSettings');
+  const target = document.getElementById('settingsCloneTarget');
+  let anchor = null;
+  let movedNode = null;
+
+  function findSettingsNode(){
+    const explicit = document.getElementById('settingsDD');
+    if (explicit) return explicit;
+    const allSummaries = Array.from(document.querySelectorAll('details.group > summary.btnpdf'));
+    const hit = allSummaries.find(s => /settings/i.test((s.textContent||'')));
+    return hit ? hit.parentElement : null;
+  }
+
   function openPage(){
-    if(!page) return;
-    // clone the desktop Settings group contents
+    if (!page || !target) return;
+    const settings = findSettingsNode();
+    if (!settings) { page.classList.add('show'); document.body.style.overflow='hidden'; return; }
+
+    if (!anchor){
+      anchor = document.createElement('div');
+      anchor.id = '__settings_anchor';
+      settings.parentNode.insertBefore(anchor, settings);
+    }
+    movedNode = settings;
     try{
-      const dd = document.querySelector('#menuDD .group summary.btnpdf:contains("Settings")');
-    }catch(e){}
+      if (movedNode.tagName.toLowerCase()==='details') movedNode.open = true;
+      target.appendChild(movedNode);
+    }catch(e){ console.warn('[mobile settings] move fail', e); }
+
     page.classList.add('show');
-    document.body.style.overflow = 'hidden';
-    // if not populated, try to pull the existing settings section:
-    try{
-      const target = document.getElementById('settingsCloneTarget');
-      if(target && target.childElementCount === 0){
-        const group = document.querySelector('#settingsDD') || document.querySelector('summary.btnpdf+div.menu-list')?.closest('.group');
-        if(group){
-          const clone = group.cloneNode(true);
-          // Force expand
-          if(clone.tagName.toLowerCase()==='details'){ clone.open = true; }
-          target.appendChild(clone);
-        }
-      }
-    }catch(e){ console.warn('[mobile settings] clone fail', e); }
+    document.body.style.overflow='hidden';
   }
+
   function closePage(){
-    if(!page) return;
+    if (!page) return;
+    if (anchor && movedNode){
+      try{ anchor.parentNode.insertBefore(movedNode, anchor.nextSibling); }
+      catch(e){ console.warn('[mobile settings] restore fail', e); }
+    }
     page.classList.remove('show');
-    document.body.style.overflow = '';
+    document.body.style.overflow='';
   }
-  if(openBtn){ openBtn.addEventListener('click', openPage); }
-  if(back){ back.addEventListener('click', closePage); }
+
+  if (openBtn) openBtn.addEventListener('click', openPage);
+  if (back) back.addEventListener('click', closePage);
 })();
 </script>
 </body></html>
