@@ -1979,6 +1979,35 @@ _OPPS_HTML = """<!doctype html><html lang="en"><head>
 <title>Arbexa Profit Finder — /opps</title>
 <style>
 @media (max-width: 820px){
+  .mb-profile-btn{
+    position: absolute; right: calc(12px + env(safe-area-inset-right));
+    top: calc(8px + env(safe-area-inset-top));
+    width: 40px; height: 40px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(26,36,64,0.92);
+    color: var(--txt); font-size: 18px;
+    display: inline-flex; align-items:center; justify-content:center;
+    z-index: 5;
+  }
+  #refreshNow{ margin-right: 54px; }
+  .pf-scrim{ position: fixed; inset: 0; background: rgba(0,0,0,0.5); display:none; z-index: 3000; }
+  .pf-scrim.show{ display:block; }
+  .pf-modal{ position: fixed; left: 50%; top: 10%; transform: translateX(-50%);
+    width: min(92vw, 440px); background: var(--card); color: var(--txt);
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; z-index: 3001; display:none; box-shadow: 0 12px 30px rgba(0,0,0,0.45); }
+  .pf-modal.show{ display:block; }
+  .pf-head{ display:flex; align-items:center; gap:8px; padding: 12px; border-bottom: 1px solid var(--chip); }
+  .pf-title{ flex:1; text-align:center; font-weight:600; letter-spacing:.3px }
+  .pf-close{ width:36px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:#121a30; color:var(--txt); }
+  .pf-body{ padding: 10px 12px 14px; max-height: 70vh; overflow:auto; }
+  .pf-row{ display:grid; grid-template-columns: 1fr 2fr; gap:8px; background:#0f1830; border:1px solid rgba(255,255,255,0.06); border-radius:10px; margin:6px 0; }
+  .pf-key{ opacity:0.8 } .pf-val{ font-weight:600 }
+}
+@media (min-width: 821px){
+  .mb-profile-btn, .pf-scrim, .pf-modal{ display:none !important; }
+}
+
+@media (max-width: 820px){
   
   .ms-btn:active{ transform: translateY(1px); }
   .settings-page{ position: fixed; inset:0; z-index: 2000; background: var(--bg); display:none; overflow:auto; }
@@ -2324,6 +2353,8 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
           <polyline points="21 3 21 9 15 9"/>
         </svg>
       </button>
+<button id="btnProfileMobile" class="mb-profile-btn" aria-label="Profile" title="Profile">👤</button>
+
       <button id="drawerOpen" class="drawer-btn" title="Menu" aria-label="Open menu"><span class="emoji" aria-hidden="true">🍔</span></button>
 
       <!-- Profile dropdown -->
@@ -3243,6 +3274,68 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }catch(_e){ console.warn('[mobile settings fallback] err', _e); }
   }, true);
+})();
+</script>
+
+<div id="pfScrim" class="pf-scrim" role="button" aria-label="Close profile"></div>
+<div id="pfModal" class="pf-modal" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
+  <div class="pf-head">
+    <div style="width:36px;"></div>
+    <div id="pfTitle" class="pf-title">Profile</div>
+    <button id="pfClose" class="pf-close" aria-label="Close">×</button>
+  </div>
+  <div class="pf-body">
+    <div class="pf-row"><div class="pf-key">User ID</div><div class="pf-val" id="pf_userid">—</div></div>
+    <div class="pf-row"><div class="pf-key">Status</div><div class="pf-val" id="pf_status">—</div></div>
+    <div class="pf-row"><div class="pf-key">Date joined</div><div class="pf-val" id="pf_joined">—</div></div>
+    <div class="pf-row"><div class="pf-key">Username</div><div class="pf-val" id="pf_username">—</div></div>
+    <div class="pf-row"><div class="pf-key">Gmail</div><div class="pf-val" id="pf_gmail">—</div></div>
+  </div>
+</div>
+<script>
+(function(){
+  function show(){ scrim.classList.add('show'); modal.classList.add('show'); document.body.style.overflow='hidden'; }
+  function hide(){ scrim.classList.remove('show'); modal.classList.remove('show'); document.body.style.overflow=''; }
+
+  const btn = document.getElementById('btnProfileMobile');
+  const scrim = document.getElementById('pfScrim');
+  const modal = document.getElementById('pfModal');
+  const closeBtn = document.getElementById('pfClose');
+
+  if (btn){
+    btn.addEventListener('click', async function(){
+      try {
+        let prof = null;
+        try{
+          const r = await fetch('/me', {credentials:'include'});
+          if (r.ok){ prof = await r.json(); }
+        }catch(_){}
+        if (!prof){
+          prof = {
+            userid: localStorage.getItem('arbexa_userid') || localStorage.getItem('user_id') || '—',
+            status: localStorage.getItem('arbexa_status') || localStorage.getItem('status') || '—',
+            joined: localStorage.getItem('arbexa_joined') || localStorage.getItem('joined') || '—',
+            username: localStorage.getItem('arbexa_username') || localStorage.getItem('arbexa_user') || '—',
+            gmail: localStorage.getItem('arbexa_email') || localStorage.getItem('gmail') || '—',
+          };
+        }
+        const id = prof.user_id || prof.userid || prof.id || '—';
+        const status = prof.status || (prof.tier ? String(prof.tier).toUpperCase() : '') || '—';
+        const joined = prof.joined || prof.date_joined || prof.created_at || '—';
+        const uname = prof.username || prof.user || '—';
+        const mail = prof.gmail || prof.email || '—';
+
+        (document.getElementById('pf_userid')||{}).textContent = id;
+        (document.getElementById('pf_status')||{}).textContent = status;
+        (document.getElementById('pf_joined')||{}).textContent = joined;
+        (document.getElementById('pf_username')||{}).textContent = uname;
+        (document.getElementById('pf_gmail')||{}).textContent = mail;
+      } catch(e){}
+      show();
+    });
+  }
+  if (scrim){ scrim.addEventListener('click', hide); }
+  if (closeBtn){ closeBtn.addEventListener('click', hide); }
 })();
 </script>
 </body></html>
