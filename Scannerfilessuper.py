@@ -1978,7 +1978,6 @@ _OPPS_HTML = """<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Arbexa Profit Finder — /opps</title>
 <style>
-/* --- Mobile-only Profile button + modal --- */
 @media (max-width: 820px){
   .mb-profile-btn{
     position: absolute;
@@ -1991,17 +1990,13 @@ _OPPS_HTML = """<!doctype html><html lang="en"><head>
     display: inline-flex; align-items:center; justify-content:center;
     z-index: 6;
   }
-  /* Nudge refresh a bit left so they don't overlap */
   #refreshNow{ margin-right: 54px; }
-
   .pf-scrim{ position: fixed; inset:0; background: rgba(0,0,0,0.5); display:none; z-index:3000; }
   .pf-scrim.show{ display:block; }
-  .pf-modal{
-    position: fixed; left:50%; top:10%; transform: translateX(-50%);
+  .pf-modal{ position: fixed; left:50%; top:10%; transform: translateX(-50%);
     width: min(92vw, 440px); background: var(--card); color: var(--txt);
     border: 1px solid rgba(255,255,255,0.08); border-radius:14px; z-index:3001;
-    display:none; box-shadow: 0 12px 30px rgba(0,0,0,0.45);
-  }
+    display:none; box-shadow: 0 12px 30px rgba(0,0,0,0.45); }
   .pf-modal.show{ display:block; }
   .pf-head{ display:flex; align-items:center; gap:8px; padding:12px; border-bottom:1px solid var(--chip); }
   .pf-title{ flex:1; text-align:center; font-weight:600; letter-spacing:.3px }
@@ -3299,6 +3294,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="pf-row"><div class="pf-key">Gmail</div><div class="pf-val" id="pf_gmail">Loading...</div></div>
   </div>
 </div>
+
 <script>
 (function(){
   const scrim = document.getElementById('pfScrim');
@@ -3314,31 +3310,72 @@ document.addEventListener('DOMContentLoaded', () => {
     gmail:    document.getElementById('pf_gmail'),
   };
 
-  function show(){ scrim.classList.add('show'); modal.classList.add('show'); document.body.style.overflow = 'hidden'; }
-  function hide(){ scrim.classList.remove('show'); modal.classList.remove('show'); document.body.style.overflow = ''; }
-
-  function setLoading(){
-    for (const el of Object.values(f)) if (el) el.textContent = 'Loading...';
-  }
+  function show(){ if(scrim) scrim.classList.add('show'); if(modal) modal.classList.add('show'); document.body.style.overflow='hidden'; }
+  function hide(){ if(scrim) scrim.classList.remove('show'); if(modal) modal.classList.remove('show'); document.body.style.overflow=''; }
+  function setLoading(){ Object.values(f).forEach(el => { if (el) el.textContent = 'Loading...'; }); }
 
   function fmtDate(x){
     try{
-      if (!x) return '—';
-      if (/^\d{10,13}$/.test(String(x))){
-        const ms = String(x).length === 13 ? Number(x) : Number(x)*1000;
-        return new Date(ms).toLocaleString();
-      }
-      const d = new Date(x);
-      return isNaN(d.getTime()) ? String(x) : d.toLocaleString();
+      if(!x) return '—';
+      if(/^\d{10,13}$/.test(String(x))){ const ms = String(x).length===13?Number(x):Number(x)*1000; return new Date(ms).toLocaleString(); }
+      const d = new Date(x); return isNaN(d.getTime()) ? String(x) : d.toLocaleString();
     }catch(_){ return String(x||'—'); }
   }
 
-  async function loadProfile(){
+  function fromGlobals(){
+    const g = window;
+    const cands = [g.currentUser, g.USER, g.user, g.profile, g.__ARBEXA?.user, g.__ARBEXA?.profile].filter(Boolean);
+    for (const p of cands){
+      const obj = (typeof p === 'function') ? p() : p;
+      if (obj && (obj.id || obj.user_id || obj.userid || obj.email || obj.username)) {
+        return {
+          id: obj.user_id || obj.userid || obj.id || '—',
+          status: obj.status || (obj.tier ? String(obj.tier).toUpperCase() : '') || '—',
+          joined: fmtDate(obj.joined || obj.date_joined || obj.created_at),
+          username: obj.username || obj.user || obj.name || '—',
+          gmail: obj.email || obj.gmail || '—',
+        };
+      }
+    }
+    try{
+      const meta = (n)=>document.querySelector(`meta[name="${n}"]`)?.content;
+      const body = document.body;
+      const id = meta('arbexa:user_id') || body?.dataset.userId;
+      const email = meta('arbexa:email') || body?.dataset.email;
+      const username = meta('arbexa:username') || body?.dataset.username;
+      const status = meta('arbexa:status') || body?.dataset.status;
+      const joined = meta('arbexa:joined') || body?.dataset.joined;
+      if (id || email || username) {
+        return { id:id||'—', status:status||'—', joined:fmtDate(joined), username:username||'—', gmail:email||'—' };
+      }
+    }catch(_){}
+    return null;
+  }
+
+  async function fromSupabase(){
+    try{
+      if (window.supabase && supabase.auth?.getUser) {
+        const { data:{ user } } = await supabase.auth.getUser();
+        if (user) {
+          return {
+            id: user.id || '—',
+            status: (user.user_metadata?.status || user.app_metadata?.role || '').toString().toUpperCase() || '—',
+            joined: fmtDate(user.created_at),
+            username: user.user_metadata?.username || user.user_metadata?.name || (user.email?user.email.split('@')[0]:'—'),
+            gmail: user.email || '—',
+          };
+        }
+      }
+    }catch(_){}
+    return null;
+  }
+
+  async function fromEndpoints(){
     const endpoints = ['/me','/auth/me','/api/me'];
     for (const url of endpoints){
       try{
         const r = await fetch(url, {credentials:'include'});
-        if (r && r.ok){
+        if (r?.ok){
           const prof = await r.json();
           return {
             id: prof.user_id || prof.userid || prof.id || '—',
@@ -3350,6 +3387,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }catch(_){}
     }
+    return null;
+  }
+
+  function fromLocalStorage(){
     try{
       const ls = (k)=>localStorage.getItem(k);
       return {
@@ -3359,26 +3400,26 @@ document.addEventListener('DOMContentLoaded', () => {
         username: ls('arbexa_username') || ls('arbexa_user') || '—',
         gmail: ls('arbexa_email') || ls('gmail') || '—',
       };
-    }catch(_){}
-    return null;
+    }catch(_){ return null; }
+  }
+
+  async function loadProfileSmart(){
+    return fromGlobals() || await fromSupabase() || await fromEndpoints() || fromLocalStorage();
   }
 
   async function openProfile(){
     setLoading();
     show();
     try{
-      const prof = await loadProfile();
-      if (prof){
-        if (f.id) f.id.textContent = prof.id   || '—';
-        if (f.status) f.status.textContent = prof.status || '—';
-        if (f.joined) f.joined.textContent = prof.joined || '—';
-        if (f.username) f.username.textContent = prof.username || '—';
-        if (f.gmail) f.gmail.textContent = prof.gmail || '—';
-      } else {
-        for (const el of Object.values(f)) if (el) el.textContent = '—';
-      }
+      const prof = await loadProfileSmart();
+      const out = prof || {id:'—', status:'—', joined:'—', username:'—', gmail:'—'};
+      if (f.id) f.id.textContent = out.id;
+      if (f.status) f.status.textContent = out.status;
+      if (f.joined) f.joined.textContent = out.joined;
+      if (f.username) f.username.textContent = out.username;
+      if (f.gmail) f.gmail.textContent = out.gmail;
     }catch(_){
-      for (const el of Object.values(f)) if (el) el.textContent = '—';
+      Object.values(f).forEach(el => { if (el) el.textContent = '—'; });
     }
   }
 
