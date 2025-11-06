@@ -3294,9 +3294,10 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="pf-row"><div class="pf-key">Gmail</div><div class="pf-val" id="pf_gmail">Loading...</div></div>
   </div>
 </div>
-
 <script>
 (function(){
+  if (window.matchMedia && !window.matchMedia('(max-width: 820px)').matches) return;
+
   const scrim = document.getElementById('pfScrim');
   const modal = document.getElementById('pfModal');
   const btn   = document.getElementById('btnProfileMobile');
@@ -3312,29 +3313,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function show(){ if(scrim) scrim.classList.add('show'); if(modal) modal.classList.add('show'); document.body.style.overflow='hidden'; }
   function hide(){ if(scrim) scrim.classList.remove('show'); if(modal) modal.classList.remove('show'); document.body.style.overflow=''; }
-  function setLoading(){ Object.values(f).forEach(el => { if (el) el.textContent = 'Loading...'; }); }
+  function setLoading(){ Object.values(f).forEach(el => el && (el.textContent = 'Loading...')); }
+  function setOut(o){ if (f.id) f.id.textContent = o.id; if (f.status) f.status.textContent = o.status; if (f.joined) f.joined.textContent = o.joined; if (f.username) f.username.textContent = o.username; if (f.gmail) f.gmail.textContent = o.gmail; }
 
   function fmtDate(x){
     try{
       if(!x) return '—';
-      if(/^\d{10,13}$/.test(String(x))){ const ms = String(x).length===13?Number(x):Number(x)*1000; return new Date(ms).toLocaleString(); }
+      // Respect already-formatted like "Oct 28, 2025, 04:14 AM"
+      if (/[A-Za-z]{3,}\s+\d{1,2},\s+\d{4}/.test(String(x))) return String(x);
+      if (/^\d{10,13}$/.test(String(x))){ const ms = String(x).length===13?Number(x):Number(x)*1000; return new Date(ms).toLocaleString(); }
       const d = new Date(x); return isNaN(d.getTime()) ? String(x) : d.toLocaleString();
     }catch(_){ return String(x||'—'); }
   }
 
+  // 0) PRIMARY: window.ARBEXA_USER (obj or fn) with keys: gmail, username, date_joined, status, user_id
+  function fromArbexaUser(){
+    try{
+      let u = window.ARBEXA_USER;
+      if (!u) return null;
+      if (typeof u === 'function') u = u();
+      if (!u || typeof u !== 'object') return null;
+      return {
+        id: (u.user_id!=null ? String(u.user_id) : '—'),
+        status: (u.status || '').toString().toUpperCase() || '—',
+        joined: fmtDate(u.date_joined || u.joined || u.created_at),
+        username: u.username || '—',
+        gmail: u.gmail || u.email || '—',
+      };
+    }catch(_){ return null; }
+  }
+
+  // 1) Other globals/meta
   function fromGlobals(){
     const g = window;
-    const cands = [g.currentUser, g.USER, g.user, g.profile, g.__ARBEXA?.user, g.__ARBEXA?.profile].filter(Boolean);
-    for (const p of cands){
-      const obj = (typeof p === 'function') ? p() : p;
-      if (obj && (obj.id || obj.user_id || obj.userid || obj.email || obj.username)) {
-        return {
-          id: obj.user_id || obj.userid || obj.id || '—',
-          status: obj.status || (obj.tier ? String(obj.tier).toUpperCase() : '') || '—',
-          joined: fmtDate(obj.joined || obj.date_joined || obj.created_at),
-          username: obj.username || obj.user || obj.name || '—',
-          gmail: obj.email || obj.gmail || '—',
-        };
+    const tries = [
+      g.currentUser, g.USER, g.user, g.profile, g.ARBEXA_PROFILE,
+      g.__ARBEXA && (g.__ARBEXA.user || g.__ARBEXA.profile),
+      g.__INITIAL_STATE__ || g.__INITIAL_STATE || g.__STATE__,
+      g.APP_BOOTSTRAP || g.BOOTSTRAP || g.__BOOTSTRAP__
+    ];
+    for (const t of tries){
+      if (!t) continue;
+      const obj = (typeof t === 'function') ? t() : t;
+      if (!obj) continue;
+      const candList = [
+        obj,
+        obj.user, obj.profile, obj.currentUser,
+        obj.auth && (obj.auth.user || obj.auth.profile),
+        obj.session && (obj.session.user || obj.session.profile),
+      ].filter(Boolean);
+      for (const cand of candList){
+        if (!cand) continue;
+        const id = cand.user_id || cand.userid || cand.id;
+        const email = cand.email || cand.gmail;
+        const username = cand.username || cand.user || cand.name;
+        if (id || email || username){
+          return {
+            id: id ? String(id) : '—',
+            status: (cand.status || cand.tier || cand.role || '').toString().toUpperCase() || '—',
+            joined: fmtDate(cand.date_joined || cand.joined || cand.created_at),
+            username: username || '—',
+            gmail: email || '—',
+          };
+        }
       }
     }
     try{
@@ -3346,19 +3387,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const status = meta('arbexa:status') || body?.dataset.status;
       const joined = meta('arbexa:joined') || body?.dataset.joined;
       if (id || email || username) {
-        return { id:id||'—', status:status||'—', joined:fmtDate(joined), username:username||'—', gmail:email||'—' };
+        return { id:id||'—', status:(status||'').toString().toUpperCase()||'—', joined:fmtDate(joined), username:username||'—', gmail:email||'—' };
       }
     }catch(_){}
     return null;
   }
 
+  // 2) Supabase
   async function fromSupabase(){
     try{
-      if (window.supabase && supabase.auth?.getUser) {
+      if (window.supabase && supabase.auth?.getUser){
         const { data:{ user } } = await supabase.auth.getUser();
-        if (user) {
+        if (user){
           return {
-            id: user.id || '—',
+            id: user.id ? String(user.id) : '—',
             status: (user.user_metadata?.status || user.app_metadata?.role || '').toString().toUpperCase() || '—',
             joined: fmtDate(user.created_at),
             username: user.user_metadata?.username || user.user_metadata?.name || (user.email?user.email.split('@')[0]:'—'),
@@ -3370,19 +3412,20 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
+  // 3) Endpoints
   async function fromEndpoints(){
     const endpoints = ['/me','/auth/me','/api/me'];
     for (const url of endpoints){
       try{
         const r = await fetch(url, {credentials:'include'});
         if (r?.ok){
-          const prof = await r.json();
+          const p = await r.json();
           return {
-            id: prof.user_id || prof.userid || prof.id || '—',
-            status: prof.status || (prof.tier ? String(prof.tier).toUpperCase() : '') || '—',
-            joined: fmtDate(prof.joined || prof.date_joined || prof.created_at),
-            username: prof.username || prof.user || '—',
-            gmail: prof.gmail || prof.email || '—',
+            id: (p.user_id || p.userid || p.id) ? String(p.user_id || p.userid || p.id) : '—',
+            status: (p.status || p.tier || '').toString().toUpperCase() || '—',
+            joined: fmtDate(p.date_joined || p.joined || p.created_at),
+            username: p.username || p.user || '—',
+            gmail: p.gmail || p.email || '—',
           };
         }
       }catch(_){}
@@ -3390,12 +3433,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
-  function fromLocalStorage(){
+  // 4) localStorage
+  function fromLocal(){
     try{
       const ls = (k)=>localStorage.getItem(k);
       return {
         id: ls('arbexa_userid') || ls('user_id') || '—',
-        status: ls('arbexa_status') || ls('status') || '—',
+        status: (ls('arbexa_status') || ls('status') || '').toString().toUpperCase() || '—',
         joined: fmtDate(ls('arbexa_joined') || ls('joined')),
         username: ls('arbexa_username') || ls('arbexa_user') || '—',
         gmail: ls('arbexa_email') || ls('gmail') || '—',
@@ -3403,23 +3447,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }catch(_){ return null; }
   }
 
-  async function loadProfileSmart(){
-    return fromGlobals() || await fromSupabase() || await fromEndpoints() || fromLocalStorage();
+  async function loadSmart(){
+    return fromArbexaUser() || fromGlobals() || await fromSupabase() || await fromEndpoints() || fromLocal();
   }
 
   async function openProfile(){
     setLoading();
     show();
     try{
-      const prof = await loadProfileSmart();
-      const out = prof || {id:'—', status:'—', joined:'—', username:'—', gmail:'—'};
-      if (f.id) f.id.textContent = out.id;
-      if (f.status) f.status.textContent = out.status;
-      if (f.joined) f.joined.textContent = out.joined;
-      if (f.username) f.username.textContent = out.username;
-      if (f.gmail) f.gmail.textContent = out.gmail;
-    }catch(_){
-      Object.values(f).forEach(el => { if (el) el.textContent = '—'; });
+      const prof = await loadSmart();
+      setOut(prof || {id:'—', status:'—', joined:'—', username:'—', gmail:'—'});
+    }catch(e){
+      setOut({id:'—', status:'—', joined:'—', username:'—', gmail:'—'});
     }
   }
 
@@ -3428,6 +3467,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (closeBtn) closeBtn.addEventListener('click', hide);
 })();
 </script>
+
 </body></html>
 """
 @app.get("/opps", response_class=HTMLResponse)
