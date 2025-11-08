@@ -3294,24 +3294,6 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="pf-row"><div class="pf-key">Gmail</div><div class="pf-val" id="pf_gmail">Loading...</div></div>
   </div>
 </div>
-
-<!-- MOBILE-ONLY ARBEXA_USER seeder -->
-<script>
-if (window.matchMedia && window.matchMedia('(max-width: 820px)').matches) {
-  (function(){
-    if (typeof window.ARBEXA_USER === 'undefined' || !window.ARBEXA_USER) {
-      var meta = function(n){ var el = document.querySelector('meta[name="'+n+'"]'); return el ? el.content : null; };
-      var u = {};
-      u.gmail       = meta('arbexa:email')    || localStorage.getItem('arbexa_email')    || '—';
-      u.username    = meta('arbexa:username') || localStorage.getItem('arbexa_username') || '—';
-      u.date_joined = meta('arbexa:joined')   || localStorage.getItem('arbexa_joined')   || new Date().toISOString();
-      u.status      = (meta('arbexa:status')  || localStorage.getItem('arbexa_status')   || 'FREE').toUpperCase();
-      u.user_id     = meta('arbexa:user_id')  || localStorage.getItem('arbexa_userid')   || '10000';
-      window.ARBEXA_USER = u;
-    }
-  })();
-}
-</script>
 <script>
 (function(){
   if (window.matchMedia && !window.matchMedia('(max-width: 820px)').matches) return;
