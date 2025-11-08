@@ -3468,6 +3468,21 @@ document.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 
+
+<style>
+@media (max-width: 820px){
+  #btnProfileMobile,
+  .mb-profile-btn{
+    position: absolute !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    top: calc(8px + env(safe-area-inset-top)) !important;
+    z-index: 7 !important;
+  }
+  #btnProfileMobile, .mb-profile-btn { margin: 0 8px !important; }
+}
+</style>
 </body></html>
 """
 @app.get("/opps", response_class=HTMLResponse)
