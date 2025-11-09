@@ -3483,6 +3483,44 @@ document.addEventListener('DOMContentLoaded', () => {
   #btnProfileMobile, .mb-profile-btn { margin: 0 8px !important; }
 }
 </style>
+
+<script>
+(function(){
+  if (!(window.matchMedia && window.matchMedia('(max-width: 820px)').matches)) return;
+  const profile = document.getElementById('btnProfileMobile') || document.querySelector('.mb-profile-btn');
+  const message = document.getElementById('btnMessageMobile') 
+               || document.querySelector('#btnMessage, .btn-msg, [aria-label="Messages"], [title="Messages"]');
+  const settings = document.getElementById('btnSettingsMobile') 
+                || document.querySelector('#btnSettings, .btn-settings, [aria-label="Settings"], [title="Settings"]');
+  if (!profile || !message || !settings) return;
+
+  profile.style.position = 'fixed';
+  profile.style.zIndex = '1000';
+  const MIN_GAP = 12;
+
+  function placeProfile(){
+    const mr = message.getBoundingClientRect();
+    const sr = settings.getBoundingClientRect();
+    const pr = profile.getBoundingClientRect();
+
+    const top = Math.round(Math.min(mr.top, sr.top));
+    const leftEdge = Math.max(mr.right + MIN_GAP, mr.left + (mr.width*0.6));
+    const rightEdge = Math.min(sr.left - MIN_GAP, sr.right - (sr.width*0.6));
+    const midX = Math.round((leftEdge + rightEdge) / 2);
+
+    const pageLeft = window.scrollX + midX - (pr.width / 2);
+    const pageTop  = window.scrollY + top;
+
+    profile.style.left = pageLeft + 'px';
+    profile.style.top  = pageTop + 'px';
+  }
+
+  const ready = () => { placeProfile(); setTimeout(placeProfile, 0); setTimeout(placeProfile, 150); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
+  window.addEventListener('resize', placeProfile);
+})();
+</script>
+
 </body></html>
 """
 @app.get("/opps", response_class=HTMLResponse)
