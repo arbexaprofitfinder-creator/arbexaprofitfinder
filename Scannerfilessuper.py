@@ -3417,7 +3417,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const endpoints = ['/me','/auth/me','/api/me'];
     for (const url of endpoints){
       try{
-        const r = await fetch(url, {credentials:'include'});
+        const _tok=(localStorage.getItem('arbexa_token')||'');const r = await fetch(url, {credentials:'omit',headers: _tok ? { 'Accept':'application/json','Authorization':'Bearer '+_tok } : { 'Accept':'application/json' }});
         if (r?.ok){
           const p = await r.json();
           return {
@@ -3465,59 +3465,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btn) btn.addEventListener('click', openProfile);
   if (scrim) scrim.addEventListener('click', hide);
   if (closeBtn) closeBtn.addEventListener('click', hide);
-})();
-</script>
-
-
-<style>
-@media (max-width: 820px){
-  #btnProfileMobile,
-  .mb-profile-btn{
-    position: absolute !important;
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%) !important;
-    top: calc(8px + env(safe-area-inset-top)) !important;
-    z-index: 7 !important;
-  }
-  #btnProfileMobile, .mb-profile-btn { margin: 0 8px !important; }
-}
-</style>
-
-<script>
-(function(){
-  if (!(window.matchMedia && window.matchMedia('(max-width: 820px)').matches)) return;
-  const profile = document.getElementById('btnProfileMobile') || document.querySelector('.mb-profile-btn');
-  const message = document.getElementById('btnMessageMobile') 
-               || document.querySelector('#btnMessage, .btn-msg, [aria-label="Messages"], [title="Messages"]');
-  const settings = document.getElementById('btnSettingsMobile') 
-                || document.querySelector('#btnSettings, .btn-settings, [aria-label="Settings"], [title="Settings"]');
-  if (!profile || !message || !settings) return;
-
-  profile.style.position = 'fixed';
-  profile.style.zIndex = '1000';
-  const MIN_GAP = 12;
-
-  function placeProfile(){
-    const mr = message.getBoundingClientRect();
-    const sr = settings.getBoundingClientRect();
-    const pr = profile.getBoundingClientRect();
-
-    const top = Math.round(Math.min(mr.top, sr.top));
-    const leftEdge = Math.max(mr.right + MIN_GAP, mr.left + (mr.width*0.6));
-    const rightEdge = Math.min(sr.left - MIN_GAP, sr.right - (sr.width*0.6));
-    const midX = Math.round((leftEdge + rightEdge) / 2);
-
-    const pageLeft = window.scrollX + midX - (pr.width / 2);
-    const pageTop  = window.scrollY + top;
-
-    profile.style.left = pageLeft + 'px';
-    profile.style.top  = pageTop + 'px';
-  }
-
-  const ready = () => { placeProfile(); setTimeout(placeProfile, 0); setTimeout(placeProfile, 150); };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
-  window.addEventListener('resize', placeProfile);
 })();
 </script>
 
