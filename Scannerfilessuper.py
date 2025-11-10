@@ -969,6 +969,13 @@ a{color:var(--acc);text-decoration:none}
 <style>
 /* === Injected Mobile Overrides (non-destructive) === */
 @media (max-width: 900px) {
+  /* --- Mobile bottom profile dock --- */
+  .mobile-dock{position:fixed;left:0;right:0;bottom:12px;display:flex;justify-content:center;z-index:1200;pointer-events:none;}
+  .mobile-dock .dock-btn{pointer-events:auto;display:inline-flex;align-items:center;justify-content:center;
+    width:52px;height:52px;border-radius:14px;border:1px solid #1b2a4a;background:#0e1a35;box-shadow:0 10px 30px rgba(0,0,0,.35);}
+  .mobile-dock .dock-btn:active{transform:scale(.98);}
+  .mobile-dock .dock-btn svg{width:22px;height:22px;opacity:.95;fill:#e7eefc}
+
   html,body { height:100%; }
   body { margin:0; -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
   /* Generic header stickiness */
@@ -2435,6 +2442,15 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   </div>
 </div>
 <div id="tblwrap">
+<!-- Mobile only: centered Profile button dock -->
+<div class="mobile-dock" aria-hidden="false" role="group" style="@media(max-width:900px){}">
+  <button class="dock-btn" data-open-profile title="Profile" aria-label="Open Profile">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v1h20v-1c0-3.33-6.67-5-10-5z"/>
+    </svg>
+  </button>
+</div>
+
   <table id="opptable">
     <thead><tr>
       <th>Pair 🔁</th><th>Edge% 📈</th><th>Buy @ 🛒</th><th>Sell @ 💸</th>
@@ -3300,7 +3316,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const scrim = document.getElementById('pfScrim');
   const modal = document.getElementById('pfModal');
-  const btn   = document.getElementById('btnProfileMobile');
+  const btns  = Array.from(document.querySelectorAll('#btnProfileMobile,[data-open-profile]'));
   const closeBtn = document.getElementById('pfClose');
 
   const f = {
@@ -3417,7 +3433,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const endpoints = ['/me','/auth/me','/api/me'];
     for (const url of endpoints){
       try{
-        const _tok=(localStorage.getItem('arbexa_token')||'');const r = await fetch(url, {credentials:'omit',headers: _tok ? { 'Accept':'application/json','Authorization':'Bearer '+_tok } : { 'Accept':'application/json' }});
+        const r = await fetch(url, {credentials:'include'});
         if (r?.ok){
           const p = await r.json();
           return {
@@ -3462,7 +3478,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  if (btn) btn.addEventListener('click', openProfile);
+  if (btns && btns.length) btns.forEach(b => b && b.addEventListener('click', openProfile));
   if (scrim) scrim.addEventListener('click', hide);
   if (closeBtn) closeBtn.addEventListener('click', hide);
 })();
