@@ -1016,6 +1016,38 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   }
   #chat-fab, .fab-message, .floating-message { display: none !important; }
 }
+
+
+/* Mobile bottom-nav: ensure three-button center layout and spacing */
+@media (max-width: 820px) {
+  .bottom-nav {
+    position: fixed;
+    left: env(safe-area-inset-left, 12px);
+    right: env(safe-area-inset-right, 12px);
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    z-index: 1200;
+    padding: 6px 12px;
+    background: rgba(6,10,18,0.6);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+  }
+  .bottom-nav .navbtn, .bottom-nav .ms-btn, .bottom-nav .profile-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    background: rgba(15,20,36,0.9);
+  }
+  .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
+}
 </style>
 </head><body>
 <div class="wrap">
@@ -1135,41 +1167,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (settingsBtn && drawer) {
     settingsBtn.addEventListener('click', toggleDrawer);
   }
-});
-</script>
-
-
-<!-- Assistant: profile button delegation (bnProfile -> original profile trigger) -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  try {
-    const mobileBtn = document.getElementById('bnProfile');
-    if (!mobileBtn) return;
-    mobileBtn.addEventListener('click', function(ev) {
-      const candidates = [
-        document.getElementById('btnProfileMobile'),
-        document.getElementById('btnProfile'),
-        document.getElementById('profileBtn'),
-        document.querySelector('[data-role="profile-button"]'),
-        document.querySelector('[data-profile]'),
-        document.querySelector('[aria-label="Profile"]'),
-        document.querySelector('[title="Profile"]'),
-        document.querySelector('.pf-open'),
-        document.querySelector('.profile-trigger')
-      ];
-      const orig = candidates.find(x => x && typeof x.click === 'function');
-      if (orig) {
-        try { orig.click(); return; } catch(e) { }
-      }
-      try { if (typeof show === 'function') { show(); return; } } catch(e){}
-      try {
-        const pfScrim = document.getElementById('pfScrim');
-        const pfModal = document.getElementById('pfModal');
-        if (pfScrim) pfScrim.classList.add('show');
-        if (pfModal) { pfModal.classList.add('show'); document.body.style.overflow='hidden'; }
-      } catch(e){}
-    });
-  } catch(e){ console.error('bnProfile delegation error', e); }
 });
 </script>
 </body></html>"""
@@ -3163,6 +3160,8 @@ document.addEventListener('click', function(e) {
 
   <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Bottom Navigation">
     <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">💬</button>
+    <!-- Mobile-only Profile button (centered between Chat and Settings) -->
+    <button id="bnProfile" class="navbtn profile-btn" title="Profile" aria-label="Profile">👤</button>
     <button id="btnSettingsMobile" aria-label="Settings" class="ms-btn" title="Settings">⚙️</button>
   </div>
 
@@ -3335,7 +3334,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const scrim = document.getElementById('pfScrim');
   const modal = document.getElementById('pfModal');
-  const btn   = document.getElementById('btnProfileMobile');
+  const btn   = document.getElementById('btnProfileMobile') || document.getElementById('bnProfile');
   const closeBtn = document.getElementById('pfClose');
 
   const f = {
