@@ -3161,11 +3161,40 @@ document.addEventListener('click', function(e) {
   <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Bottom Navigation">
     <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">💬</button>
     <!-- Mobile-only Profile button (centered between Chat and Settings) -->
-    <button id="bnProfile" class="navbtn profile-btn" title="Profile" aria-label="Profile">👤</button>
+    <span id="__profile_insert_here"></span>
     <button id="btnSettingsMobile" aria-label="Settings" class="ms-btn" title="Settings">⚙️</button>
   </div>
 
 
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    // Move existing working profile button (btnProfileMobile) into bottom nav center placeholder
+    var existing = document.getElementById('btnProfileMobile');
+    var placeholder = document.getElementById('__profile_insert_here');
+    if(existing && placeholder){
+      // Ensure navbtn styling
+      existing.classList.add('navbtn');
+      // Replace placeholder with the existing node
+      placeholder.parentNode.replaceChild(existing, placeholder);
+      // Set id to bnProfile so other scripts can reference it
+      existing.id = 'bnProfile';
+      // Ensure accessible title
+      existing.setAttribute('title','Profile');
+      existing.setAttribute('aria-label','Profile');
+    } else {
+      // fallback: if placeholder missing, try inserting before settings button in bottom nav
+      var bn = document.getElementById('btnSettingsMobile');
+      if(existing && bn && bn.parentNode){
+        existing.classList.add('navbtn');
+        bn.parentNode.insertBefore(existing, bn);
+        existing.id = 'bnProfile';
+      }
+    }
+  }catch(e){ console.warn('profile move fail', e); }
+});
+</script>
 <script>
 (function(){
   try{
