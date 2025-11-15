@@ -1049,55 +1049,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
-
-<!-- Assistant override: equal-spaced bottom nav + larger touch targets -->
-<style>
-@media (max-width: 820px) {
-  /* make the bottom nav use even spacing */
-  .bottom-nav, [aria-label="Bottom Navigation"], #bottom-nav {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-around !important; /* equal spacing */
-    gap: 8px !important;
-    padding: 8px 12px !important;
-    height: 72px !important; /* slightly taller for larger buttons */
-    box-sizing: border-box !important;
-    position: fixed !important;
-    left: env(safe-area-inset-left, 8px) !important;
-    right: env(safe-area-inset-right, 8px) !important;
-    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
-  }
-
-  /* larger button size and touch targets */
-  .bottom-nav .navbtn, [aria-label="Bottom Navigation"] .navbtn, #bottom-nav .navbtn {
-    min-width: 64px !important;
-    height: 56px !important;
-    padding: 8px 10px !important;
-    border-radius: 12px !important;
-    font-size: 20px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  /* ensure profile button is inline (not floating) */
-  .centered-profile {
-    position: static !important;
-    left: auto !important;
-    transform: none !important;
-    top: auto !important;
-    width: 56px !important;
-    height: 56px !important;
-    margin: 0 !important;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.35) !important;
-  }
-
-  /* keep proxy hidden */
-  .proxy-profile-stub { display:none !important; }
-}
-</style>
-<!-- End assistant override -->
-
 </head><body>
 <div class="wrap">
   <div class="header">
@@ -1218,6 +1169,150 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+
+<!-- Assistant injected: large centered transparent menu button (not a hamburger) -->
+<style>
+/* Center big translucent menu button */
+#centerMenuBtn {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06); /* transparent */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(6px);
+  border: 2px solid rgba(255,255,255,0.06);
+  box-shadow: 0 8px 30px rgba(2,6,12,0.6);
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+#centerMenuBtn:active { transform: translateX(-50%) scale(.98); }
+#centerMenuBtn .menu-mark {
+  font-size: 32px;
+  letter-spacing: 6px;
+  opacity: 0.9;
+  color: #ffffff;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+  user-select: none;
+}
+
+/* The popup menu container */
+#centerMenuPopup {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(128px + env(safe-area-inset-bottom));
+  z-index: 1999;
+  display: none;
+  min-width: 220px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(10,14,22,0.98), rgba(4,6,10,0.98));
+  box-shadow: 0 10px 30px rgba(2,6,12,0.6);
+  padding: 6px;
+  backdrop-filter: blur(6px);
+}
+#centerMenuPopup .menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  color: #DCEFFF;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .12s ease, transform .08s ease;
+}
+#centerMenuPopup .menu-item:active { transform: translateY(1px); }
+#centerMenuPopup .menu-item:hover { background: rgba(255,255,255,0.02); }
+
+/* make it mobile-only and hide when wider screens */
+@media (min-width: 821px) {
+  #centerMenuBtn, #centerMenuPopup { display: none !important; }
+}
+
+/* Small accessibility focus outline */
+#centerMenuBtn:focus, #centerMenuPopup .menu-item:focus { outline: 3px solid rgba(100,150,255,0.18); outline-offset: 2px; }
+</style>
+
+<div id="centerMenuBtn" role="button" aria-label="Open menu" tabindex="0">
+  <div class="menu-mark">⋯</div> <!-- not a hamburger -->
+</div>
+
+<div id="centerMenuPopup" role="menu" aria-hidden="true" aria-label="Quick navigation">
+  <div class="menu-item" data-target="bnChat" role="menuitem" tabindex="0">💬  Chat</div>
+  <div class="menu-item" data-target="btnProfileMobile" role="menuitem" tabindex="0">👤  Profile</div>
+  <div class="menu-item" data-target="btnSettingsMobile" role="menuitem" tabindex="0">⚙️  Settings</div>
+</div>
+
+<script>
+(function(){
+  function qs(id){ return document.getElementById(id); }
+  document.addEventListener('DOMContentLoaded', function(){
+    var btn = qs('centerMenuBtn');
+    var popup = qs('centerMenuPopup');
+    if(!btn) return;
+    // Toggle popup visibility
+    function openPopup(){
+      popup.style.display = 'block';
+      popup.setAttribute('aria-hidden','false');
+      // small entrance animation
+      popup.style.opacity = 0;
+      popup.style.transform = 'translateX(-50%) translateY(6px)';
+      setTimeout(function(){ popup.style.transition = 'opacity .14s ease, transform .18s ease'; popup.style.opacity = 1; popup.style.transform = 'translateX(-50%) translateY(0)'; }, 10);
+    }
+    function closePopup(){
+      if(!popup) return;
+      popup.style.transition = 'opacity .12s ease, transform .12s ease';
+      popup.style.opacity = 0;
+      popup.style.transform = 'translateX(-50%) translateY(6px)';
+      setTimeout(function(){ popup.style.display = 'none'; popup.setAttribute('aria-hidden','true'); }, 160);
+    }
+    var open = false;
+    btn.addEventListener('click', function(e){
+      open = !open;
+      if(open) openPopup(); else closePopup();
+    });
+    btn.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); btn.click(); } });
+    // clicking outside closes popup
+    document.addEventListener('click', function(e){
+      if(!popup) return;
+      if(open && !popup.contains(e.target) && !btn.contains(e.target)){
+        open = false; closePopup();
+      }
+    }, true);
+
+    // Forward menu item clicks to existing buttons (if present)
+    var items = popup.querySelectorAll('.menu-item');
+    items.forEach(function(it){
+      it.addEventListener('click', function(){
+        var targetId = it.getAttribute('data-target');
+        var target = document.getElementById(targetId);
+        if(target) {
+          target.click();
+        } else {
+          // if not present, try known fallbacks
+          if(targetId === 'btnProfileMobile'){
+            var f = document.querySelector('.mb-profile-btn') || document.querySelector('.profile-btn');
+            if(f) f.click();
+          }
+        }
+        // close popup after action
+        open = false; closePopup();
+      });
+      it.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); it.click(); } });
+    });
+  });
+})();
+</script>
+<!-- End assistant injected center menu -->
+
 </body></html>"""
 
 LOGIN_HTML = """<!doctype html><html lang="en"><head>
