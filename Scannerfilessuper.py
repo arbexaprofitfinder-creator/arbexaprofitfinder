@@ -1049,6 +1049,55 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
+
+<!-- Assistant override: equal-spaced bottom nav + larger touch targets -->
+<style>
+@media (max-width: 820px) {
+  /* make the bottom nav use even spacing */
+  .bottom-nav, [aria-label="Bottom Navigation"], #bottom-nav {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-around !important; /* equal spacing */
+    gap: 8px !important;
+    padding: 8px 12px !important;
+    height: 72px !important; /* slightly taller for larger buttons */
+    box-sizing: border-box !important;
+    position: fixed !important;
+    left: env(safe-area-inset-left, 8px) !important;
+    right: env(safe-area-inset-right, 8px) !important;
+    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* larger button size and touch targets */
+  .bottom-nav .navbtn, [aria-label="Bottom Navigation"] .navbtn, #bottom-nav .navbtn {
+    min-width: 64px !important;
+    height: 56px !important;
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    font-size: 20px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* ensure profile button is inline (not floating) */
+  .centered-profile {
+    position: static !important;
+    left: auto !important;
+    transform: none !important;
+    top: auto !important;
+    width: 56px !important;
+    height: 56px !important;
+    margin: 0 !important;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.35) !important;
+  }
+
+  /* keep proxy hidden */
+  .proxy-profile-stub { display:none !important; }
+}
+</style>
+<!-- End assistant override -->
+
 </head><body>
 <div class="wrap">
   <div class="header">
@@ -3159,22 +3208,11 @@ document.addEventListener('click', function(e) {
 
 
   <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Bottom Navigation">
-  <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">
-    <span class="nav-icon">💬</span>
-    <span class="icon-label">Chat</span>
-  </button>
-
-  <div style="flex:0 0 12px;"></div>
-
-  <div id="center-profile-slot" style="position:relative; flex:0 0 62px;"></div>
-
-  <div style="flex:1;"></div>
-
-  <button id="btnSettingsMobile" class="navbtn" title="Settings" aria-label="Settings">
-    <span class="nav-icon">⚙️</span>
-    <span class="icon-label">Settings</span>
-  </button>
-</div>
+    <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">💬</button>
+    <!-- Mobile-only Profile button (centered between Chat and Settings) -->
+    <span id="__profile_insert_here"></span>
+    <button id="btnSettingsMobile" aria-label="Settings" class="ms-btn" title="Settings">⚙️</button>
+  </div>
 
 
 
