@@ -3159,11 +3159,22 @@ document.addEventListener('click', function(e) {
 
 
   <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Bottom Navigation">
-    <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">💬</button>
-    <!-- Mobile-only Profile button (centered between Chat and Settings) -->
-    <span id="__profile_insert_here"></span>
-    <button id="btnSettingsMobile" aria-label="Settings" class="ms-btn" title="Settings">⚙️</button>
-  </div>
+  <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">
+    <span class="nav-icon">💬</span>
+    <span class="icon-label">Chat</span>
+  </button>
+
+  <div style="flex:0 0 12px;"></div>
+
+  <div id="center-profile-slot" style="position:relative; flex:0 0 62px;"></div>
+
+  <div style="flex:1;"></div>
+
+  <button id="btnSettingsMobile" class="navbtn" title="Settings" aria-label="Settings">
+    <span class="nav-icon">⚙️</span>
+    <span class="icon-label">Settings</span>
+  </button>
+</div>
 
 
 
