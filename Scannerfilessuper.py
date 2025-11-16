@@ -1025,16 +1025,17 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     left: env(safe-area-inset-left, 12px);
     right: env(safe-area-inset-right, 12px);
     bottom: calc(8px + env(safe-area-inset-bottom));
-    display: grid;
-    grid-template-columns: 1fr auto 1fr; /* left, center (profile), right */
+    display: flex;
     align-items: center;
+    justify-content: center;
+    gap: 14px;
     z-index: 1200;
     padding: 6px 12px;
     background: rgba(6,10,18,0.6);
     border-radius: 12px;
     backdrop-filter: blur(8px);
   }
-  .bottom-nav .navbtn, .bottom-nav .ms-btn {
+  .bottom-nav .navbtn, .bottom-nav .ms-btn, .bottom-nav .profile-btn {
     width: 48px;
     height: 48px;
     border-radius: 10px;
@@ -1045,19 +1046,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     font-size: 20px;
     background: rgba(15,20,36,0.9);
   }
-  .bottom-nav .profile-btn, .bottom-nav #bnProfile, .bottom-nav .mb-profile-btn {
-    min-width: 64px;
-    height: 54px;
-    border-radius: 14px;
-    padding: 6px 12px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    background: rgba(15,20,36,0.95);
-    transform: translateY(-6px);
-    box-shadow: 0 8px 26px rgba(0,0,0,0.35);
-  }
+  .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
 </head><body>
@@ -3176,6 +3165,56 @@ document.addEventListener('click', function(e) {
     <button id="btnSettingsMobile" aria-label="Settings" class="ms-btn" title="Settings">⚙️</button>
   </div>
 
+<script>
+// MOBILE BOTTOM-NAV EQUAL-SPACING FIX (injected)
+(function(){
+  try{
+    function applyFix(){
+      const nav = document.querySelector('.bottom-nav');
+      if(!nav) return;
+      // Use flex spacing so three buttons are exactly equally spaced.
+      nav.style.justifyContent = 'space-between';
+      // Ensure consistent side padding so center aligns visually.
+      nav.style.paddingLeft = '18px';
+      nav.style.paddingRight = '18px';
+      // Force consistent button sizing
+      const btns = nav.querySelectorAll('.navbtn, .ms-btn, .profile-btn, .mb-profile-btn, #bnProfile, #bnChat, #btnSettingsMobile');
+      btns.forEach(b=>{
+        try{
+          b.style.width = '56px';
+          b.style.height = '56px';
+          b.style.flex = '0 0 56px';
+          b.style.display = 'inline-flex';
+          b.style.alignItems = 'center';
+          b.style.justifyContent = 'center';
+        }catch(_){}
+      });
+      // If placeholder span exists, ensure it's replaced with a sized element to keep spacing
+      const placeholder = document.getElementById('__profile_insert_here');
+      if(placeholder && placeholder.parentNode){
+        // create an empty sized spacer if nothing replaced it
+        if(!placeholder.querySelector('.navbtn') && !document.getElementById('bnProfile')){
+          const spacer = document.createElement('div');
+          spacer.style.width = '56px';
+          spacer.style.height = '56px';
+          spacer.style.display = 'inline-block';
+          spacer.setAttribute('aria-hidden','true');
+          placeholder.parentNode.replaceChild(spacer, placeholder);
+        }
+      }
+    }
+    // Run on DOM ready, and again after short delay for SPA-like updates.
+    document.addEventListener('DOMContentLoaded', applyFix);
+    setTimeout(applyFix, 300);
+    setTimeout(applyFix, 1200);
+    // Also observe mutations to apply when nav is added later
+    const obs = new MutationObserver((mut)=>{ applyFix(); });
+    obs.observe(document.documentElement || document.body, { childList:true, subtree:true });
+  }catch(e){ console.warn('bottom-nav-fix', e); }
+})();
+</script>
+
+
 
 
 <script>
@@ -3218,47 +3257,11 @@ document.addEventListener('DOMContentLoaded', function(){
       bnChat: document.getElementById('bnChat'),
       bnMenu: document.getElementById('bnMenu')
     };
-    if(el.bnProfile){
-      el.bnProfile.addEventListener('click', async ()=>{
-        try{
-          // If desktop/tablet, fallback to existing dropdown if present
-          if(window.matchMedia && !window.matchMedia('(max-width:820px)').matches){
-            try{ if(el.profileDD) el.profileDD.open = !el.profileDD.open; }catch(_){}
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-          }
-
-          // Mobile: populate and show the profile modal (pfModal/pfScrim)
-          try{ if(typeof setLoading === 'function') setLoading(); }catch(_){ }
-          let profile = null;
-          try{
-            const res = await authFetch('/me', {cache:'no-store'});
-            if(res.ok){ profile = await res.json(); try{ localStorage.setItem('arbexa_profile', JSON.stringify(profile)); }catch(_){ } }
-          }catch(_){ }
-          if(!profile){
-            try{ profile = JSON.parse(localStorage.getItem('arbexa_profile')||'null'); }catch(_){ profile = null; }
-          }
-          const out = profile ? {
-            id: profile.user_id || '-',
-            status: (profile.status||'free').toUpperCase(),
-            joined: profile.date_joined || '-',
-            username: profile.username || '-',
-            gmail: profile.email || '-'
-          } : { id:'-', status:'-', joined:'-', username:'-', gmail:'-' };
-
-          try{ if(typeof setOut === 'function') setOut(out); }catch(_){
-            // fallback: write directly
-            try{ document.getElementById('pf_userid').textContent = out.id; }catch(_){ }
-            try{ document.getElementById('pf_status').textContent = out.status; }catch(_){ }
-            try{ document.getElementById('pf_joined').textContent = out.joined; }catch(_){ }
-            try{ document.getElementById('pf_username').textContent = out.username; }catch(_){ }
-            try{ document.getElementById('pf_gmail').textContent = out.gmail; }catch(_){ }
-          }
-
-          // show modal
-          try{ if(typeof show === 'function') show(); else { document.getElementById('pfScrim')?.classList.add('show'); document.getElementById('pfModal')?.classList.add('show'); document.body.style.overflow='hidden'; } }catch(_){ }
-
-        }catch(e){ console.warn('bnProfile click err', e); }
+    if(el.bnProfile && el.profileDD){
+      el.bnProfile.addEventListener('click', ()=>{
+        try{ el.profileDD.open = !el.profileDD.open; }catch(_){}
+        // Scroll to header to reveal dropdown
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     }
     if(el.bnChat && el.chatFab){
