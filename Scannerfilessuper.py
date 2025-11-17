@@ -3165,6 +3165,56 @@ document.addEventListener('click', function(e) {
     <button id="btnSettingsMobile" aria-label="Settings" class="ms-btn" title="Settings">⚙️</button>
   </div>
 
+<script>
+// MOBILE BOTTOM-NAV EQUAL-SPACING FIX (injected)
+(function(){
+  try{
+    function applyFix(){
+      const nav = document.querySelector('.bottom-nav');
+      if(!nav) return;
+      // Use flex spacing so three buttons are exactly equally spaced.
+      nav.style.justifyContent = 'space-between';
+      // Ensure consistent side padding so center aligns visually.
+      nav.style.paddingLeft = '18px';
+      nav.style.paddingRight = '18px';
+      // Force consistent button sizing
+      const btns = nav.querySelectorAll('.navbtn, .ms-btn, .profile-btn, .mb-profile-btn, #bnProfile, #bnChat, #btnSettingsMobile');
+      btns.forEach(b=>{
+        try{
+          b.style.width = '56px';
+          b.style.height = '56px';
+          b.style.flex = '0 0 56px';
+          b.style.display = 'inline-flex';
+          b.style.alignItems = 'center';
+          b.style.justifyContent = 'center';
+        }catch(_){}
+      });
+      // If placeholder span exists, ensure it's replaced with a sized element to keep spacing
+      const placeholder = document.getElementById('__profile_insert_here');
+      if(placeholder && placeholder.parentNode){
+        // create an empty sized spacer if nothing replaced it
+        if(!placeholder.querySelector('.navbtn') && !document.getElementById('bnProfile')){
+          const spacer = document.createElement('div');
+          spacer.style.width = '56px';
+          spacer.style.height = '56px';
+          spacer.style.display = 'inline-block';
+          spacer.setAttribute('aria-hidden','true');
+          placeholder.parentNode.replaceChild(spacer, placeholder);
+        }
+      }
+    }
+    // Run on DOM ready, and again after short delay for SPA-like updates.
+    document.addEventListener('DOMContentLoaded', applyFix);
+    setTimeout(applyFix, 300);
+    setTimeout(applyFix, 1200);
+    // Also observe mutations to apply when nav is added later
+    const obs = new MutationObserver((mut)=>{ applyFix(); });
+    obs.observe(document.documentElement || document.body, { childList:true, subtree:true });
+  }catch(e){ console.warn('bottom-nav-fix', e); }
+})();
+</script>
+
+
 
 
 <script>
@@ -4089,110 +4139,3 @@ if __name__ == "__main__":
         else:
             print("[fake] no sr_invoice_id on inserted row; cannot mark paid")
 # ============================ /DEV: FAKE PAYMENT TEST ============================
-
-<script>
-// MOBILE BOTTOM-NAV EQUAL-SPACING FIX (injected)
-// REFINED: prevent wrapping so Settings won't drop under Profile on narrow screens
-(function(){
-  try{
-    function applyRefinedFix(){
-      const nav = document.querySelector('.bottom-nav') || document.getElementById('bottomNav') || document.querySelector('[data-bottom-nav]');
-      if(!nav) return;
-      // Core layout guarantees
-      nav.style.display = 'flex';
-      nav.style.justifyContent = 'space-between';
-      nav.style.alignItems = 'center';
-      nav.style.flexWrap = 'nowrap'; // prevent buttons from wrapping to next line
-      nav.style.boxSizing = 'border-box';
-      nav.style.width = '100%';
-      nav.style.maxWidth = '100%';
-      // Slightly tighter padding to avoid accidental wrap on narrow devices
-      nav.style.paddingLeft = '14px';
-      nav.style.paddingRight = '14px';
-      nav.style.gap = '8px';
-      // Ensure nav sits above other elements
-      nav.style.position = 'fixed';
-      nav.style.left = '0';
-      nav.style.bottom = '0';
-      nav.style.zIndex = '9999';
-      // Target candidate button selectors but only modify visual sizing not scale
-      const btnSelectors = ['.navbtn', '.ms-btn', '.profile-btn', '.mb-profile-btn', '#bnProfile', '#bnChat', '#btnSettingsMobile', '#bnSettings', '.btn-settings', '.chat-btn', '.profile-btn-mobile'];
-      const btns = [];
-      btnSelectors.forEach(sel=>{
-        const found = nav.querySelectorAll(sel);
-        if(found && found.length){
-          found.forEach(n=> btns.push(n));
-        }
-      });
-      // If we couldn't find via selectors, fall back to direct children
-      if(btns.length === 0){
-        nav.childNodes.forEach(c => { if(c.nodeType===1) btns.push(c); });
-      }
-      // Normalize visible buttons: ensure no wrapping and consistent sizing
-      btns.forEach((b,i)=>{
-        try{
-          b.style.boxSizing = 'border-box';
-          b.style.minWidth = '52px';
-          b.style.maxWidth = '56px';
-          b.style.width = '56px';
-          b.style.height = '56px';
-          b.style.flex = '0 0 56px';
-          b.style.display = 'inline-flex';
-          b.style.alignItems = 'center';
-          b.style.justifyContent = 'center';
-          b.style.whiteSpace = 'nowrap';
-          b.style.overflow = 'hidden';
-        }catch(e){}
-      });
-      // Force three-item layout logic: if there are exactly 3 visible buttons, ensure the middle one is centered
-      const visible = btns.filter(b => {
-        const rect = b.getBoundingClientRect();
-        return rect.width > 0 && rect.height > 0;
-      });
-      if(visible.length === 3){
-        // put the middle element into the exact center using absolute positioning for pixel-perfect centering
-        const middle = visible[1];
-        try{
-          // create a containing relative wrapper if not present
-          if(getComputedStyle(nav).position === 'static'){
-            nav.style.position = 'fixed';
-          }
-          middle.style.position = 'absolute';
-          middle.style.left = '50%';
-          middle.style.transform = 'translateX(-50%)';
-          middle.style.zIndex = '10000';
-          // ensure left and right buttons don't overlap center by reducing their flex basis slightly
-          visible[0].style.flex = '0 0 52px';
-          visible[2].style.flex = '0 0 52px';
-        }catch(e){}
-      } else {
-        // fallback: allow normal flow but ensure no wrap
-        nav.style.flexWrap = 'nowrap';
-      }
-      // small visual fix for devices with very narrow widths
-      const totalNeeded = visible.reduce((acc,el)=> acc + (el.getBoundingClientRect().width || 56), 0);
-      if(totalNeeded > window.innerWidth - 28){
-        // shrink side buttons slightly so all fit
-        visible.forEach((el,idx)=>{
-          try{
-            if(idx===1){
-              // keep center visually prominent but allow slight shrink
-              el.style.width = '54px';
-              el.style.flex = '0 0 54px';
-            } else {
-              el.style.width = '48px';
-              el.style.flex = '0 0 48px';
-            }
-          }catch(e){}
-        });
-      }
-    }
-    document.addEventListener('DOMContentLoaded', applyRefinedFix);
-    window.addEventListener('resize', applyRefinedFix);
-    setTimeout(applyRefinedFix, 200);
-    setTimeout(applyRefinedFix, 800);
-    const obs = new MutationObserver(()=>{ applyRefinedFix(); });
-    obs.observe(document.documentElement || document.body, { childList:true, subtree:true });
-  }catch(e){ console.warn('bottom-nav-refined-fix', e); }
-})();
-</script>
