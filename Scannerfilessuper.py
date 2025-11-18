@@ -4073,6 +4073,119 @@ document.addEventListener('click', function(e) {
 })();
 </script>
 <!-- END: Move nested Settings out from inside Profile into right slot -->
+
+<!-- START: Minimal force-move profile to center (injected) -->
+<script id="move-profile-to-center">
+(function(){
+  function ready(fn){ if(document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  ready(function(){
+    try{
+      // Ensure mobile nav and center slot exist
+      var nav = document.getElementById('mobile-bottom-nav');
+      if(!nav){
+        nav = document.createElement('nav');
+        nav.id = 'mobile-bottom-nav';
+        nav.setAttribute('aria-label','Mobile navigation');
+        document.body.appendChild(nav);
+      }
+      var center = null;
+      var grid = nav.querySelector('.nav-grid');
+      if(!grid){
+        grid = document.createElement('div');
+        grid.className = 'nav-grid';
+        grid.innerHTML = '<div class="slot slot-left" id="slot-left"></div><div class="slot slot-center" id="slot-center"></div><div class="slot slot-right" id="slot-right"></div>';
+        nav.appendChild(grid);
+      }
+      center = document.getElementById('slot-center');
+
+      // Candidate selectors for the real profile button/avatar
+      var selectors = [
+        '#btnProfileMobile',
+        '#bnProfile',
+        '[data-role="profile"]',
+        '[aria-label="Profile"]',
+        '.profile-btn',
+        '#profile-btn',
+        '[id*="profile"]',
+        '[class*="profile"]',
+        '[id*="avatar"]',
+        '[class*="avatar"]',
+        'button[title*="Profile"]',
+        'a[title*="Profile"]'
+      ];
+
+      // Also try to find an element near bottom-right as final fallback
+      function findByProximity(){
+        var els = Array.from(document.querySelectorAll('body *'));
+        var candidates = els.filter(function(n){
+          try{
+            var r = n.getBoundingClientRect();
+            return r.width>20 && r.height>20 && r.bottom > (window.innerHeight - 140) && r.left > (window.innerWidth - 140);
+          }catch(e){return false;}
+        });
+        return candidates.length ? candidates[candidates.length-1] : null;
+      }
+
+      var found = null;
+      for(var i=0;i<selectors.length;i++){
+        try{
+          var e = document.querySelector(selectors[i]);
+          if(e){
+            found = e;
+            // If the found element is inside header or elsewhere, it's fine: we'll move it
+            break;
+          }
+        }catch(e){}
+      }
+      if(!found){
+        found = findByProximity();
+      }
+
+      if(!found){
+        console.warn('move-profile-to-center: could not find profile element to move.');
+        return;
+      }
+
+      // If center already contains the element, nothing to do
+      if(center.contains(found) || found.closest('#mobile-bottom-nav')){
+        console.log('move-profile-to-center: profile already in mobile nav.');
+        return;
+      }
+
+      // Wrap the found element to ensure adequate touch size
+      var wrapper = document.createElement('div');
+      wrapper.className = 'moved-profile';
+      wrapper.style.display = 'inline-flex';
+      wrapper.style.alignItems = 'center';
+      wrapper.style.justifyContent = 'center';
+      wrapper.style.minWidth = '68px';
+      wrapper.style.minHeight = '68px';
+      wrapper.style.height = '68px';
+      wrapper.style.width = '68px';
+      wrapper.style.borderRadius = '12px';
+      wrapper.style.boxShadow = '0 6px 18px rgba(0,0,0,0.08)';
+      wrapper.style.background = 'rgba(255,255,255,0.6)';
+      wrapper.setAttribute('data-profile-moved','true');
+
+      // Move the real element into wrapper (preserves event listeners)
+      try{
+        wrapper.appendChild(found);
+        center.appendChild(wrapper);
+        // Hide any header duplicate on mobile by adding class (CSS elsewhere may hide it)
+        found.classList.add('header-profile--mobile-hidden');
+        console.log('move-profile-to-center: moved profile element into center slot.');
+      }catch(err){
+        // fallback: directly append found to center
+        center.appendChild(found);
+        console.log('move-profile-to-center: moved profile element (no wrapper) into center slot due to error:', err);
+      }
+    }catch(e){
+      console.error('move-profile-to-center error', e);
+    }
+  });
+})();
+</script>
+<!-- END: Minimal force-move profile to center -->
 </body></html>"""
 
 @app.get("/chat", response_class=HTMLResponse)
