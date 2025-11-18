@@ -4092,6 +4092,97 @@ document.addEventListener('click', function(e) {
 })();
 </script>
 <!-- END: Mobile bottom-nav equal-spacing fix -->
+
+<!-- START: FORCE mobile spacing fix (injected by assistant) -->
+<style id="force-mobile-spacing-fix-style">
+@media (max-width:820px){
+  #mobile-bottom-nav{position:fixed !important; left:0 !important; right:0 !important; bottom:0 !important; height:72px !important; z-index:99999 !important; display:block !important; padding:6px 12px !important; background:rgba(255,255,255,0.98) !important; border-top:1px solid rgba(0,0,0,0.06) !important;}
+  #mobile-bottom-nav .nav-grid{display:grid !important; grid-template-columns:1fr auto 1fr !important; align-items:center !important; gap:8px !important; height:100% !important; width:100% !important;}
+  #mobile-bottom-nav .slot{display:flex !important; align-items:center !important; justify-content:center !important;}
+  #mobile-bottom-nav .moved-profile{min-width:84px !important; min-height:84px !important; width:84px !important; height:84px !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; border-radius:14px !important; box-shadow:0 8px 20px rgba(0,0,0,0.12) !important; background: rgba(255,255,255,0.6) !important; pointer-events:auto !important;}
+  .header-profile--mobile-hidden{display:none !important;}
+}
+</style>
+
+<script id="force-mobile-spacing-fix-script">
+(function(){
+  try{
+    // ensure DOM ready
+    function ready(fn){ if(document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+    ready(function(){
+      // create nav/grid if missing
+      var nav = document.getElementById('mobile-bottom-nav');
+      if(!nav){
+        nav = document.createElement('nav');
+        nav.id = 'mobile-bottom-nav';
+        nav.setAttribute('aria-label','Mobile navigation');
+        document.body.appendChild(nav);
+      }
+      nav.setAttribute('data-equalized','true');
+      var grid = nav.querySelector('.nav-grid');
+      if(!grid){
+        grid = document.createElement('div');
+        grid.className = 'nav-grid';
+        grid.innerHTML = '<div class="slot slot-left" id="slot-left"></div><div class="slot slot-center" id="slot-center"></div><div class="slot slot-right" id="slot-right"></div>';
+        nav.appendChild(grid);
+      }
+      // helper functions
+      function findFirst(selectors){
+        for(var i=0;i<selectors.length;i++){
+          try{ var el = document.querySelector(selectors[i]); if(el) return {el:el, selector:selectors[i]}; }catch(e){}
+        }
+        return null;
+      }
+      function moveIntoSlot(foundObj, slotEl, wrapAsMoved){
+        if(!foundObj) return null;
+        var el = foundObj.el;
+        if(slotEl.contains(el) || el.closest('#mobile-bottom-nav')) return {status:'already', el:el, selector:foundObj.selector};
+        if(wrapAsMoved){
+          var wrapper = document.createElement('div');
+          wrapper.className = 'moved-profile';
+          wrapper.setAttribute('data-profile-moved','true');
+          wrapper.appendChild(el);
+          slotEl.appendChild(wrapper);
+          el.classList.add('header-profile--mobile-hidden');
+          return {status:'moved', el:el, wrapper:wrapper, selector:foundObj.selector};
+        } else {
+          slotEl.appendChild(el);
+          return {status:'moved', el:el, selector:foundObj.selector};
+        }
+      }
+      var profileSelectors = ['#btnProfileMobile','#bnProfile','[data-role="profile"]','[aria-label="Profile"]','.profile-btn','#profile-btn','header .profile','[id*="profile"]'];
+      var messageSelectors = ['[data-role="messages"]','#btn-messages','.btn-messages','[aria-label="Messages"]','[id*="message"]'];
+      var settingsSelectors = ['[data-role="settings"]','#btn-settings','.btn-settings','[aria-label="Settings"]','[id*="settings"]'];
+      var leftSlot = document.getElementById('slot-left');
+      var centerSlot = document.getElementById('slot-center');
+      var rightSlot = document.getElementById('slot-right');
+
+      var msgFound = findFirst(messageSelectors);
+      if(msgFound) { moveIntoSlot(msgFound, leftSlot, false); }
+      else if(!leftSlot.firstElementChild){ var b=document.createElement('button'); b.id='btn-messages-fallback'; b.textContent='💬'; leftSlot.appendChild(b); }
+
+      var profileFound = findFirst(profileSelectors);
+      var profileResult = moveIntoSlot(profileFound, centerSlot, true);
+      if(!profileResult){
+        var guess = document.querySelector('[id*=\"profile\"], [class*=\"profile\"]');
+        if(guess){ var wrap=document.createElement('div'); wrap.className='moved-profile'; wrap.setAttribute('data-profile-moved','true'); wrap.appendChild(guess); centerSlot.appendChild(wrap); guess.classList.add('header-profile--mobile-hidden'); }
+        else { var pf=document.createElement('button'); pf.id='btn-profile-fallback'; pf.textContent='👤'; var w=document.createElement('div'); w.className='moved-profile'; w.appendChild(pf); centerSlot.appendChild(w); }
+      }
+
+      var setFound = findFirst(settingsSelectors);
+      if(setFound){ moveIntoSlot(setFound, rightSlot, false); }
+      else if(!rightSlot.firstElementChild){ var s=document.createElement('button'); s.id='btn-settings-fallback'; s.textContent='⚙️'; rightSlot.appendChild(s); }
+
+      // force reflow
+      setTimeout(function(){
+        if(window.__forceMobileSpacingFix) window.__forceMobileSpacingFix.reapplied = true;
+        console.log('Force mobile spacing fix applied');
+      }, 100);
+    });
+  }catch(e){ console.error('force-mobile-spacing-fix error', e); }
+})();
+</script>
+<!-- END: FORCE mobile spacing fix -->
 </body></html>"""
 
 @app.get("/chat", response_class=HTMLResponse)
