@@ -3944,6 +3944,154 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
+
+<!-- START: Mobile bottom-nav equal-spacing fix (inserted by assistant) -->
+<style>
+/* Only active on mobile widths */
+@media (max-width:820px) {
+  /* Ensure bottom nav exists and is full-width */
+  #mobile-bottom-nav { 
+    position:fixed; left:0; right:0; bottom:0; height:68px; z-index:1200;
+    display:block !important;
+    padding:8px 12px; box-sizing:border-box;
+    background: rgba(255,255,255,0.96);
+    border-top:1px solid rgba(0,0,0,0.06);
+  }
+
+  /* Use grid with equal outer columns and auto center column */
+  #mobile-bottom-nav .nav-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr; /* equal outer space, center auto-sized */
+    align-items: center;
+    gap: 8px;
+    height:100%;
+    width:100%;
+  }
+
+  /* slots */
+  #mobile-bottom-nav .slot { display:flex; align-items:center; justify-content:center; }
+
+  /* Ensures touch target is large for the moved profile */
+  #mobile-bottom-nav .slot .moved-profile {
+    min-width:64px; min-height:64px; height:64px; width:64px;
+    display:inline-flex; align-items:center; justify-content:center;
+    border-radius:12px; box-shadow:0 6px 16px rgba(0,0,0,0.08);
+    background: rgba(255,255,255,0.5);
+    touch-action: manipulation;
+  }
+
+  /* If the header profile still exists, hide it on mobile so it doesn't duplicate */
+  .header-profile--mobile-hidden { display:none !important; }
+}
+</style>
+
+<script>
+(function(){
+  // defensive ready
+  function ready(fn){
+    if(document.readyState !== 'loading') fn();
+    else document.addEventListener('DOMContentLoaded', fn);
+  }
+
+  ready(function(){
+    // run only once
+    if(document.querySelector('#mobile-bottom-nav[data-equalized="true"]')) return;
+
+    // find or create mobile nav
+    var nav = document.getElementById('mobile-bottom-nav');
+    if(!nav){
+      nav = document.createElement('nav');
+      nav.id = 'mobile-bottom-nav';
+      nav.setAttribute('aria-label','Mobile navigation');
+      document.body.appendChild(nav);
+    }
+
+    // mark nav so script is idempotent
+    nav.setAttribute('data-equalized','true');
+
+    // create grid if missing
+    var grid = nav.querySelector('.nav-grid');
+    if(!grid){
+      grid = document.createElement('div');
+      grid.className = 'nav-grid';
+      grid.innerHTML = '<div class="slot slot-left" id="slot-left"></div>'
+                     + '<div class="slot slot-center" id="slot-center"></div>'
+                     + '<div class="slot slot-right" id="slot-right"></div>';
+      nav.appendChild(grid);
+    }
+
+    // helper: try to move an existing element into a slot without cloning
+    function moveExisting(selectorCandidates, targetSlot){
+      var el = null;
+      for(var i=0;i<selectorCandidates.length;i++){
+        try{
+          el = document.querySelector(selectorCandidates[i]);
+        }catch(e){ el = null; }
+        if(el) break;
+      }
+      if(!el) return null;
+      // wrap if necessary to give large touch area for center slot
+      if(targetSlot.id === 'slot-center'){
+        var wrapper = document.createElement('div');
+        wrapper.className = 'moved-profile';
+        // move the element into wrapper (preserves listeners)
+        wrapper.appendChild(el);
+        targetSlot.appendChild(wrapper);
+        // mark original to hide on mobile if header
+        el.classList.add('header-profile--mobile-hidden');
+        return wrapper;
+      } else {
+        targetSlot.appendChild(el);
+        return el;
+      }
+    }
+
+    // populate left slot: prefer existing messages element
+    var left = document.getElementById('slot-left');
+    moveExisting(['[data-role="messages"]','#btn-messages','.btn-messages','[aria-label="Messages"]'], left);
+    // if nothing moved, create fallback button
+    if(!left.firstElementChild){
+      var b = document.createElement('button');
+      b.type='button'; b.id='btn-messages-fallback'; b.innerText='💬';
+      left.appendChild(b);
+    }
+
+    // populate center slot: move REAL profile button here (preserve handlers)
+    var center = document.getElementById('slot-center');
+    var moved = moveExisting(['#btnProfileMobile', '#bnProfile', '[data-role="profile"]', '[aria-label="Profile"]', '.profile-btn', '#profile-btn'], center);
+    // if not found, try to find header item with 'profile' in class/id
+    if(!moved){
+      var guess = document.querySelector('[id*="profile"], [class*="profile"]');
+      if(guess){
+        // move it
+        var wrap = document.createElement('div'); wrap.className='moved-profile';
+        wrap.appendChild(guess);
+        center.appendChild(wrap);
+        guess.classList.add('header-profile--mobile-hidden');
+      } else {
+        // fallback placeholder
+        var pf = document.createElement('button');
+        pf.type='button'; pf.id='btn-profile-fallback'; pf.innerText='👤';
+        var w = document.createElement('div'); w.className='moved-profile'; w.appendChild(pf);
+        center.appendChild(w);
+      }
+    }
+
+    // populate right slot: settings
+    var right = document.getElementById('slot-right');
+    moveExisting(['[data-role="settings"]','#btn-settings','.btn-settings','[aria-label="Settings"]'], right);
+    if(!right.firstElementChild){
+      var s = document.createElement('button');
+      s.type='button'; s.id='btn-settings-fallback'; s.innerText='⚙️';
+      right.appendChild(s);
+    }
+
+    // final debug log to help you test
+    console.log('mobile bottom nav equal spacing applied');
+  });
+})();
+</script>
+<!-- END: Mobile bottom-nav equal-spacing fix -->
 </body></html>"""
 
 @app.get("/chat", response_class=HTMLResponse)
