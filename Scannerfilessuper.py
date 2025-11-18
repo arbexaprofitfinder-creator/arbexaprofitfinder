@@ -1049,6 +1049,21 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
+
+<!-- Injected mobile-only fix: hide header profile dropdown on small screens to avoid overlap/conflict.
+     Moves the *existing* mobile profile button (btnProfileMobile) to the bottom nav center (preserves handlers).
+-->
+<style>
+@media (max-width: 820px) {
+  /* hide top/header profile dropdown to avoid overlap with bottom-nav profile */
+  #profileDD, .menu-anchor #profileDD, .menu-anchor details > summary[title="Profile"] { display: none !important; }
+  /* ensure original header profile avatar (if any) is hidden to prevent duplicates */
+  .header .mb-profile-btn, .header #btnProfileMobile { display: none !important; }
+  /* keep the working mobile profile button visible and usable */
+  #btnProfileMobile, #bnProfile { display: inline-flex !important; pointer-events: auto !important; }
+}
+</style>
+
 </head><body>
 <div class="wrap">
   <div class="header">
