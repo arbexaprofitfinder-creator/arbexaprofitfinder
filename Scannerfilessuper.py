@@ -1049,21 +1049,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
-
-<!-- Injected mobile-only fix: hide header profile dropdown on small screens to avoid overlap/conflict.
-     Moves the *existing* mobile profile button (btnProfileMobile) to the bottom nav center (preserves handlers).
--->
-<style>
-@media (max-width: 820px) {
-  /* hide top/header profile dropdown to avoid overlap with bottom-nav profile */
-  #profileDD, .menu-anchor #profileDD, .menu-anchor details > summary[title="Profile"] { display: none !important; }
-  /* ensure original header profile avatar (if any) is hidden to prevent duplicates */
-  .header .mb-profile-btn, .header #btnProfileMobile { display: none !important; }
-  /* keep the working mobile profile button visible and usable */
-  #btnProfileMobile, #bnProfile { display: inline-flex !important; pointer-events: auto !important; }
-}
-</style>
-
 </head><body>
 <div class="wrap">
   <div class="header">
@@ -3945,172 +3930,13 @@ document.addEventListener('click', function(e) {
 </script>
 
 
-<!-- START: Mobile bottom-nav equal-spacing fix (inserted by assistant) -->
-<style>
-/* Only active on mobile widths */
-@media (max-width:820px) {
-  /* Ensure bottom nav exists and is full-width */
-  #mobile-bottom-nav { 
-    position:fixed; left:0; right:0; bottom:0; height:68px; z-index:1200;
-    display:block !important;
-    padding:8px 12px; box-sizing:border-box;
-    background: rgba(255,255,255,0.96);
-    border-top:1px solid rgba(0,0,0,0.06);
-  }
-
-  /* Use grid with equal outer columns and auto center column */
-  #mobile-bottom-nav .nav-grid {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr; /* equal outer space, center auto-sized */
-    align-items: center;
-    gap: 8px;
-    height:100%;
-    width:100%;
-  }
-
-  /* slots */
-  #mobile-bottom-nav .slot { display:flex; align-items:center; justify-content:center; }
-
-  /* Ensures touch target is large for the moved profile */
-  #mobile-bottom-nav .slot .moved-profile {
-    min-width:64px; min-height:64px; height:64px; width:64px;
-    display:inline-flex; align-items:center; justify-content:center;
-    border-radius:12px; box-shadow:0 6px 16px rgba(0,0,0,0.08);
-    background: rgba(255,255,255,0.5);
-    touch-action: manipulation;
-  }
-
-  /* If the header profile still exists, hide it on mobile so it doesn't duplicate */
-  .header-profile--mobile-hidden { display:none !important; }
-}
-</style>
-
-<script>
-(function(){
-  // defensive ready
-  function ready(fn){
-    if(document.readyState !== 'loading') fn();
-    else document.addEventListener('DOMContentLoaded', fn);
-  }
-
-  ready(function(){
-    // run only once
-    if(document.querySelector('#mobile-bottom-nav[data-equalized="true"]')) return;
-
-    // find or create mobile nav
-    var nav = document.getElementById('mobile-bottom-nav');
-    if(!nav){
-      nav = document.createElement('nav');
-      nav.id = 'mobile-bottom-nav';
-      nav.setAttribute('aria-label','Mobile navigation');
-      document.body.appendChild(nav);
-    }
-
-    // mark nav so script is idempotent
-    nav.setAttribute('data-equalized','true');
-
-    // create grid if missing
-    var grid = nav.querySelector('.nav-grid');
-    if(!grid){
-      grid = document.createElement('div');
-      grid.className = 'nav-grid';
-      grid.innerHTML = '<div class="slot slot-left" id="slot-left"></div>'
-                     + '<div class="slot slot-center" id="slot-center"></div>'
-                     + '<div class="slot slot-right" id="slot-right"></div>';
-      nav.appendChild(grid);
-    }
-
-    // helper: try to move an existing element into a slot without cloning
-    function moveExisting(selectorCandidates, targetSlot){
-      var el = null;
-      for(var i=0;i<selectorCandidates.length;i++){
-        try{
-          el = document.querySelector(selectorCandidates[i]);
-        }catch(e){ el = null; }
-        if(el) break;
-      }
-      if(!el) return null;
-      // wrap if necessary to give large touch area for center slot
-      if(targetSlot.id === 'slot-center'){
-        var wrapper = document.createElement('div');
-        wrapper.className = 'moved-profile';
-        // move the element into wrapper (preserves listeners)
-        wrapper.appendChild(el);
-        targetSlot.appendChild(wrapper);
-        // mark original to hide on mobile if header
-        el.classList.add('header-profile--mobile-hidden');
-        return wrapper;
-      } else {
-        targetSlot.appendChild(el);
-        return el;
-      }
-    }
-
-    // populate left slot: prefer existing messages element
-    var left = document.getElementById('slot-left');
-    moveExisting(['[data-role="messages"]','#btn-messages','.btn-messages','[aria-label="Messages"]'], left);
-    // if nothing moved, create fallback button
-    if(!left.firstElementChild){
-      var b = document.createElement('button');
-      b.type='button'; b.id='btn-messages-fallback'; b.innerText='💬';
-      left.appendChild(b);
-    }
-
-    // populate center slot: move REAL profile button here (preserve handlers)
-    var center = document.getElementById('slot-center');
-    var moved = moveExisting(['#btnProfileMobile', '#bnProfile', '[data-role="profile"]', '[aria-label="Profile"]', '.profile-btn', '#profile-btn'], center);
-    // if not found, try to find header item with 'profile' in class/id
-    if(!moved){
-      var guess = document.querySelector('[id*="profile"], [class*="profile"]');
-      if(guess){
-        // move it
-        var wrap = document.createElement('div'); wrap.className='moved-profile';
-        wrap.appendChild(guess);
-        center.appendChild(wrap);
-        guess.classList.add('header-profile--mobile-hidden');
-      } else {
-        // fallback placeholder
-        var pf = document.createElement('button');
-        pf.type='button'; pf.id='btn-profile-fallback'; pf.innerText='👤';
-        var w = document.createElement('div'); w.className='moved-profile'; w.appendChild(pf);
-        center.appendChild(w);
-      }
-    }
-
-    // populate right slot: settings
-    var right = document.getElementById('slot-right');
-    moveExisting(['[data-role="settings"]','#btn-settings','.btn-settings','[aria-label="Settings"]'], right);
-    if(!right.firstElementChild){
-      var s = document.createElement('button');
-      s.type='button'; s.id='btn-settings-fallback'; s.innerText='⚙️';
-      right.appendChild(s);
-    }
-
-    // final debug log to help you test
-    console.log('mobile bottom nav equal spacing applied');
-  });
-})();
-</script>
-<!-- END: Mobile bottom-nav equal-spacing fix -->
-
-<!-- START: FORCE mobile spacing fix (injected by assistant) -->
-<style id="force-mobile-spacing-fix-style">
-@media (max-width:820px){
-  #mobile-bottom-nav{position:fixed !important; left:0 !important; right:0 !important; bottom:0 !important; height:72px !important; z-index:99999 !important; display:block !important; padding:6px 12px !important; background:rgba(255,255,255,0.98) !important; border-top:1px solid rgba(0,0,0,0.06) !important;}
-  #mobile-bottom-nav .nav-grid{display:grid !important; grid-template-columns:1fr auto 1fr !important; align-items:center !important; gap:8px !important; height:100% !important; width:100% !important;}
-  #mobile-bottom-nav .slot{display:flex !important; align-items:center !important; justify-content:center !important;}
-  #mobile-bottom-nav .moved-profile{min-width:84px !important; min-height:84px !important; width:84px !important; height:84px !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; border-radius:14px !important; box-shadow:0 8px 20px rgba(0,0,0,0.12) !important; background: rgba(255,255,255,0.6) !important; pointer-events:auto !important;}
-  .header-profile--mobile-hidden{display:none !important;}
-}
-</style>
-
-<script id="force-mobile-spacing-fix-script">
+<!-- START: Move nested Settings out from inside Profile into right slot (injected by assistant) -->
+<script id="extract-settings-from-profile">
 (function(){
   try{
-    // ensure DOM ready
     function ready(fn){ if(document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
     ready(function(){
-      // create nav/grid if missing
+      // Ensure mobile nav exists
       var nav = document.getElementById('mobile-bottom-nav');
       if(!nav){
         nav = document.createElement('nav');
@@ -4118,7 +3944,6 @@ document.addEventListener('click', function(e) {
         nav.setAttribute('aria-label','Mobile navigation');
         document.body.appendChild(nav);
       }
-      nav.setAttribute('data-equalized','true');
       var grid = nav.querySelector('.nav-grid');
       if(!grid){
         grid = document.createElement('div');
@@ -4126,63 +3951,128 @@ document.addEventListener('click', function(e) {
         grid.innerHTML = '<div class="slot slot-left" id="slot-left"></div><div class="slot slot-center" id="slot-center"></div><div class="slot slot-right" id="slot-right"></div>';
         nav.appendChild(grid);
       }
-      // helper functions
-      function findFirst(selectors){
-        for(var i=0;i<selectors.length;i++){
-          try{ var el = document.querySelector(selectors[i]); if(el) return {el:el, selector:selectors[i]}; }catch(e){}
-        }
-        return null;
+      var left = document.getElementById('slot-left');
+      var center = document.getElementById('slot-center');
+      var right = document.getElementById('slot-right');
+
+      // If settings already present in right slot, nothing to do
+      if(right && right.querySelector('[data-settings-moved="true"], [data-role="settings"], #btn-settings, .btn-settings, [aria-label="Settings"]')){
+        console.log('Settings already present in right slot; no extraction needed.');
+        return;
       }
-      function moveIntoSlot(foundObj, slotEl, wrapAsMoved){
-        if(!foundObj) return null;
-        var el = foundObj.el;
-        if(slotEl.contains(el) || el.closest('#mobile-bottom-nav')) return {status:'already', el:el, selector:foundObj.selector};
-        if(wrapAsMoved){
-          var wrapper = document.createElement('div');
-          wrapper.className = 'moved-profile';
-          wrapper.setAttribute('data-profile-moved','true');
-          wrapper.appendChild(el);
-          slotEl.appendChild(wrapper);
-          el.classList.add('header-profile--mobile-hidden');
-          return {status:'moved', el:el, wrapper:wrapper, selector:foundObj.selector};
+
+      // Find the profile element that was moved to center (or existing on page)
+      var profileCandidates = [
+        '#btnProfileMobile', '#bnProfile', '[data-role="profile"]', '[aria-label="Profile"]',
+        '.profile-btn', '#profile-btn', '[id*="profile"]', '.moved-profile'
+      ];
+      var profileEl = null;
+      for(var i=0;i<profileCandidates.length;i++){
+        try{
+          var el = document.querySelector(profileCandidates[i]);
+          if(el){
+            profileEl = el;
+            break;
+          }
+        }catch(e){}
+      }
+      // fallback: find element in center slot
+      if(!profileEl && center){
+        profileEl = center.querySelector('*');
+      }
+
+      if(!profileEl){
+        console.log('No profile element found to inspect for nested settings.');
+        return;
+      }
+
+      // Heuristic: look for a child that looks like settings (contains 'setting' in id/class, or an icon/emoji gear)
+      var possible = profileEl.querySelectorAll('*');
+      var settingsEl = null;
+      for(var j=0;j<possible.length;j++){
+        var node = possible[j];
+        var id = (node.id || '').toLowerCase();
+        var cls = (node.className || '').toLowerCase();
+        var aria = (node.getAttribute && (node.getAttribute('aria-label') || '')).toLowerCase();
+        var text = (node.textContent || '') .toLowerCase();
+        if(id.indexOf('setting') !== -1 || cls.indexOf('setting') !== -1 || aria.indexOf('setting') !== -1){
+          settingsEl = node;
+          break;
+        }
+        // check for gear unicode or emoji
+        if(text.indexOf('⚙') !== -1 || text.indexOf('gear') !== -1 || text.indexOf('settings') !== -1){
+          settingsEl = node;
+          break;
+        }
+        // check for white background style (heuristic)
+        try{
+          var bg = window.getComputedStyle(node).backgroundColor || '';
+          if(bg && (bg.indexOf('rgb') !== -1 || bg.indexOf('#') !== -1)){
+            if(bg.indexOf('255') !== -1 || bg.indexOf('white') !== -1){
+              if((id.indexOf('profile') !== -1 || cls.indexOf('profile') !== -1) || node.querySelector('[id*="setting"], [class*="setting"], [aria-label*="Setting"], [aria-label*="Settings"]')){
+                settingsEl = node;
+                break;
+              }
+            }
+          }
+        }catch(e){}
+      }
+
+      // If nothing found, also try to find any element in the document that looks like settings but is hidden or under profile
+      if(!settingsEl){
+        var globalCandidates = document.querySelectorAll('[id*="setting"], [class*="setting"], [aria-label*="Setting"], [aria-label*="Settings"]');
+        if(globalCandidates.length) settingsEl = globalCandidates[0];
+      }
+
+      if(!settingsEl){
+        console.log('No nested settings element detected inside profile.');
+        return;
+      }
+
+      // If settingsEl is inside the profile container, move it to right slot, preserving event listeners
+      if(profileEl.contains(settingsEl)){
+        // unwrap if settingsEl is inside other wrappers: we want the outermost element that contains the gear
+        var outer = settingsEl;
+        while(outer.parentElement && outer.parentElement !== profileEl){
+          if((outer.parentElement.id || '').toLowerCase().indexOf('setting') !== -1 || (outer.parentElement.className || '').toLowerCase().indexOf('setting') !== -1){
+            outer = outer.parentElement;
+            break;
+          }
+          outer = outer.parentElement;
+        }
+        // move outer to right slot
+        right.appendChild(outer);
+        outer.setAttribute('data-settings-moved','true');
+        outer.style.pointerEvents = 'auto';
+        outer.style.display = 'flex';
+        outer.style.alignItems = 'center';
+        outer.style.justifyContent = 'center';
+        // If the profile element now lacks content, leave as-is
+        console.log('Settings element extracted from profile and moved to right slot.');
+        // re-apply spacing force if needed
+        if(typeof window.__forceMobileSpacingFix === 'object' && window.__forceMobileSpacingFix.reapplied !== true){
+          // trigger a re-application marker
+          window.__forceMobileSpacingFix = window.__forceMobileSpacingFix || {};
+          window.__forceMobileSpacingFix.reapplied = true;
+        }
+      } else {
+        // If it's not contained but visually under profile, still move it if it's near profile in DOM
+        var rectP = profileEl.getBoundingClientRect();
+        var rectS = settingsEl.getBoundingClientRect();
+        if(Math.abs(rectP.top - rectS.top) < 150 && Math.abs(rectP.left - rectS.left) < 200){
+          right.appendChild(settingsEl);
+          settingsEl.setAttribute('data-settings-moved','true');
+          settingsEl.style.pointerEvents = 'auto';
+          console.log('Settings element near profile moved to right slot.');
         } else {
-          slotEl.appendChild(el);
-          return {status:'moved', el:el, selector:foundObj.selector};
+          console.log('Settings element found but not moved (not nested and not near profile).');
         }
       }
-      var profileSelectors = ['#btnProfileMobile','#bnProfile','[data-role="profile"]','[aria-label="Profile"]','.profile-btn','#profile-btn','header .profile','[id*="profile"]'];
-      var messageSelectors = ['[data-role="messages"]','#btn-messages','.btn-messages','[aria-label="Messages"]','[id*="message"]'];
-      var settingsSelectors = ['[data-role="settings"]','#btn-settings','.btn-settings','[aria-label="Settings"]','[id*="settings"]'];
-      var leftSlot = document.getElementById('slot-left');
-      var centerSlot = document.getElementById('slot-center');
-      var rightSlot = document.getElementById('slot-right');
-
-      var msgFound = findFirst(messageSelectors);
-      if(msgFound) { moveIntoSlot(msgFound, leftSlot, false); }
-      else if(!leftSlot.firstElementChild){ var b=document.createElement('button'); b.id='btn-messages-fallback'; b.textContent='💬'; leftSlot.appendChild(b); }
-
-      var profileFound = findFirst(profileSelectors);
-      var profileResult = moveIntoSlot(profileFound, centerSlot, true);
-      if(!profileResult){
-        var guess = document.querySelector('[id*=\"profile\"], [class*=\"profile\"]');
-        if(guess){ var wrap=document.createElement('div'); wrap.className='moved-profile'; wrap.setAttribute('data-profile-moved','true'); wrap.appendChild(guess); centerSlot.appendChild(wrap); guess.classList.add('header-profile--mobile-hidden'); }
-        else { var pf=document.createElement('button'); pf.id='btn-profile-fallback'; pf.textContent='👤'; var w=document.createElement('div'); w.className='moved-profile'; w.appendChild(pf); centerSlot.appendChild(w); }
-      }
-
-      var setFound = findFirst(settingsSelectors);
-      if(setFound){ moveIntoSlot(setFound, rightSlot, false); }
-      else if(!rightSlot.firstElementChild){ var s=document.createElement('button'); s.id='btn-settings-fallback'; s.textContent='⚙️'; rightSlot.appendChild(s); }
-
-      // force reflow
-      setTimeout(function(){
-        if(window.__forceMobileSpacingFix) window.__forceMobileSpacingFix.reapplied = true;
-        console.log('Force mobile spacing fix applied');
-      }, 100);
     });
-  }catch(e){ console.error('force-mobile-spacing-fix error', e); }
+  }catch(e){ console.error('extract-settings-from-profile error', e); }
 })();
 </script>
-<!-- END: FORCE mobile spacing fix -->
+<!-- END: Move nested Settings out from inside Profile into right slot -->
 </body></html>"""
 
 @app.get("/chat", response_class=HTMLResponse)
