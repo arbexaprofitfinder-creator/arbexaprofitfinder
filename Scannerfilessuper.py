@@ -1049,29 +1049,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
-</head>
-<style>
-/* >>> PATCH (mobile-only): remove profile button completely on mobile */
-@media (max-width: 820px) {
-  /* hide placeholder and any existing profile button variants */
-  #bnProfile,
-  #btnProfileMobile,
-  .profile-btn,
-  .mb-profile-btn,
-  #__profile_insert_here,
-  span#__profile_insert_here {
-    display: none !important;
-    visibility: hidden !important;
-    width: 0 !important;
-    height: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-  }
-}
-</style>
-
-<body>
+</head><body>
 <div class="wrap">
   <div class="header">
     <div class="brand">
