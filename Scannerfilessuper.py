@@ -2387,7 +2387,8 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
           <polyline points="21 3 21 9 15 9"/>
         </svg>
       </button>
-<button id="btnProfileMobile" class="mb-profile-btn" aria-label="Profile" title="Profile">👤</button>
+<button id="btnProfileMobile" class="mb-profile-btn" aria-label="Profile" title="Profile" style="transform: translateX(-18px);">👤</button>
+
 
       <button id="drawerOpen" class="drawer-btn" title="Menu" aria-label="Open menu"><span class="emoji" aria-hidden="true">🍔</span></button>
 
