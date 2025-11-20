@@ -1035,6 +1035,9 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     border-radius: 12px;
     backdrop-filter: blur(8px);
   }
+  /* Defensive override: ensure settings button participates in normal flow on mobile */
+  .bottom-nav .ms-btn { position: static !important; left: auto !important; right: auto !important; }
+
   .bottom-nav .navbtn, .bottom-nav .ms-btn, .bottom-nav .profile-btn {
     width: 48px;
     height: 48px;
@@ -1049,29 +1052,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
-</head>
-<!-- >>> PATCH (mobile-only): remove profile button completely on mobile -->
-<style>
-@media (max-width: 820px) {
-  /* hide placeholder and any existing profile button variants */
-  #bnProfile,
-  #btnProfileMobile,
-  .profile-btn,
-  .mb-profile-btn,
-  #__profile_insert_here,
-  span#__profile_insert_here {
-    display: none !important;
-    visibility: hidden !important;
-    width: 0 !important;
-    height: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-  }
-}
-</style>
-
-<body>
+</head><body>
 <div class="wrap">
   <div class="header">
     <div class="brand">
@@ -3188,19 +3169,21 @@ document.addEventListener('click', function(e) {
   </div>
 
 <script>
-// MOBILE BOTTOM-NAV EQUAL-SPACING FIX (injected)
+// MOBILE BOTTOM-NAV EQUAL-SPACING FIX (improved & non-destructive)
 (function(){
   try{
     function applyFix(){
       const nav = document.querySelector('.bottom-nav');
       if(!nav) return;
       // Use flex spacing so three buttons are exactly equally spaced.
+      nav.style.display = 'flex';
       nav.style.justifyContent = 'space-between';
+      nav.style.alignItems = 'center';
       // Ensure consistent side padding so center aligns visually.
       nav.style.paddingLeft = '18px';
       nav.style.paddingRight = '18px';
-      // Force consistent button sizing
-      const btns = nav.querySelectorAll('.navbtn, .ms-btn, .profile-btn, .mb-profile-btn, #bnProfile, #bnChat, #btnSettingsMobile');
+      // Force consistent button sizing and normal flow for Settings (.ms-btn)
+      const btns = nav.querySelectorAll('.navbtn, .ms-btn, .profile-btn, .mb-profile-btn, #bnProfile, #bnChat, #btnSettingsMobile, #btnProfileMobile');
       btns.forEach(b=>{
         try{
           b.style.width = '56px';
@@ -3209,12 +3192,24 @@ document.addEventListener('click', function(e) {
           b.style.display = 'inline-flex';
           b.style.alignItems = 'center';
           b.style.justifyContent = 'center';
+          // force Settings button (.ms-btn) into normal flow so it doesn't overlay other buttons
+          if (b.classList && b.classList.contains('ms-btn')){
+            b.style.position = 'static';
+            b.style.left = '';
+            b.style.right = '';
+            b.style.bottom = '';
+            b.style.top = '';
+          }
+          // ensure profile button is not absolutely positioned
+          if (b.id === 'btnProfileMobile' || b.id === 'bnProfile' || b.classList.contains('mb-profile-btn') || b.classList.contains('profile-btn')){
+            b.style.position = 'static';
+          }
         }catch(_){}
       });
       // If placeholder span exists, ensure it's replaced with a sized element to keep spacing
       const placeholder = document.getElementById('__profile_insert_here');
       if(placeholder && placeholder.parentNode){
-        // create an empty sized spacer if nothing replaced it
+        // create an empty sized spacer if nothing replaced it yet
         if(!placeholder.querySelector('.navbtn') && !document.getElementById('bnProfile')){
           const spacer = document.createElement('div');
           spacer.style.width = '56px';
@@ -3224,6 +3219,15 @@ document.addEventListener('click', function(e) {
           placeholder.parentNode.replaceChild(spacer, placeholder);
         }
       }
+      // make sure there are exactly three flex children -- if not, set gap to preserve spacing
+      try{
+        const children = Array.from(nav.children).filter(c=>c.offsetParent!==null);
+        if(children.length >= 3){
+          nav.style.gap = '12px';
+        }else{
+          nav.style.gap = '14px';
+        }
+      }catch(_){}
     }
     // Run on DOM ready, and again after short delay for SPA-like updates.
     document.addEventListener('DOMContentLoaded', applyFix);
