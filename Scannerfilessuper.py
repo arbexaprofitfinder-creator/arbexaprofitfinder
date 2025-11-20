@@ -2387,8 +2387,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
           <polyline points="21 3 21 9 15 9"/>
         </svg>
       </button>
-<button id="btnProfileMobile" class="mb-profile-btn" aria-label="Profile" title="Profile" style="transform: translateX(-18px);">👤</button>
-
+<button id="btnProfileMobile" class="mb-profile-btn" aria-label="Profile" title="Profile">👤</button>
 
       <button id="drawerOpen" class="drawer-btn" title="Menu" aria-label="Open menu"><span class="emoji" aria-hidden="true">🍔</span></button>
 
@@ -3231,6 +3230,37 @@ document.addEventListener('DOMContentLoaded', function(){
       placeholder.parentNode.replaceChild(existing, placeholder);
       // Set id to bnProfile so other scripts can reference it
       existing.id = 'bnProfile';
+// === Extract nested Settings if moved with profile ===
+try{
+  var nestedSettings = existing && existing.querySelector && existing.querySelector('#btnSettingsMobile, [data-role="settings"], .btn-settings, [aria-label="Settings"], [id*="setting"], [class*="setting"]');
+  if(nestedSettings){
+    var navTarget = (placeholder && placeholder.parentNode) ? placeholder.parentNode : document.getElementById('bottomNav') || document.getElementById('bottom-nav') || document.querySelector('.bottom-nav');
+    var settingsTarget = document.getElementById('btnSettingsMobile') || (navTarget && navTarget.querySelector && navTarget.querySelector('#btnSettingsMobile')) || null;
+    var outer = nestedSettings;
+    // climb to reasonable ancestor if needed
+    while(outer.parentElement && outer.parentElement !== existing && outer.parentElement !== document.body){
+      if(((outer.parentElement.id||'').toLowerCase().indexOf('setting')!==-1) || ((outer.parentElement.className||'').toLowerCase().indexOf('setting')!==-1)){
+        outer = outer.parentElement;
+        break;
+      }
+      outer = outer.parentElement;
+    }
+    if(settingsTarget && settingsTarget.parentNode){
+      settingsTarget.parentNode.replaceChild(outer, settingsTarget);
+    } else if(navTarget){
+      navTarget.appendChild(outer);
+    } else if(existing.parentNode){
+      existing.parentNode.insertBefore(outer, existing.nextSibling);
+    }
+    outer.setAttribute('data-settings-moved','true');
+    outer.style.pointerEvents = 'auto';
+    outer.style.display = 'flex';
+    outer.style.alignItems = 'center';
+    outer.style.justifyContent = 'center';
+  }
+}catch(e){ console.warn('extract nested settings failed', e); }
+// === end extraction snippet ===
+
       // Ensure accessible title
       existing.setAttribute('title','Profile');
       existing.setAttribute('aria-label','Profile');
