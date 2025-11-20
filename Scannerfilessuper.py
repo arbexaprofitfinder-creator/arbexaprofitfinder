@@ -1049,7 +1049,29 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
-</head><body>
+</head>
+<style>
+/* >>> PATCH (mobile-only): remove profile button completely on mobile */
+@media (max-width: 820px) {
+  /* hide placeholder and any existing profile button variants */
+  #bnProfile,
+  #btnProfileMobile,
+  .profile-btn,
+  .mb-profile-btn,
+  #__profile_insert_here,
+  span#__profile_insert_here {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+}
+</style>
+
+<body>
 <div class="wrap">
   <div class="header">
     <div class="brand">
@@ -3230,37 +3252,6 @@ document.addEventListener('DOMContentLoaded', function(){
       placeholder.parentNode.replaceChild(existing, placeholder);
       // Set id to bnProfile so other scripts can reference it
       existing.id = 'bnProfile';
-// === Extract nested Settings if moved with profile ===
-try{
-  var nestedSettings = existing && existing.querySelector && existing.querySelector('#btnSettingsMobile, [data-role="settings"], .btn-settings, [aria-label="Settings"], [id*="setting"], [class*="setting"]');
-  if(nestedSettings){
-    var navTarget = (placeholder && placeholder.parentNode) ? placeholder.parentNode : document.getElementById('bottomNav') || document.getElementById('bottom-nav') || document.querySelector('.bottom-nav');
-    var settingsTarget = document.getElementById('btnSettingsMobile') || (navTarget && navTarget.querySelector && navTarget.querySelector('#btnSettingsMobile')) || null;
-    var outer = nestedSettings;
-    // climb to reasonable ancestor if needed
-    while(outer.parentElement && outer.parentElement !== existing && outer.parentElement !== document.body){
-      if(((outer.parentElement.id||'').toLowerCase().indexOf('setting')!==-1) || ((outer.parentElement.className||'').toLowerCase().indexOf('setting')!==-1)){
-        outer = outer.parentElement;
-        break;
-      }
-      outer = outer.parentElement;
-    }
-    if(settingsTarget && settingsTarget.parentNode){
-      settingsTarget.parentNode.replaceChild(outer, settingsTarget);
-    } else if(navTarget){
-      navTarget.appendChild(outer);
-    } else if(existing.parentNode){
-      existing.parentNode.insertBefore(outer, existing.nextSibling);
-    }
-    outer.setAttribute('data-settings-moved','true');
-    outer.style.pointerEvents = 'auto';
-    outer.style.display = 'flex';
-    outer.style.alignItems = 'center';
-    outer.style.justifyContent = 'center';
-  }
-}catch(e){ console.warn('extract nested settings failed', e); }
-// === end extraction snippet ===
-
       // Ensure accessible title
       existing.setAttribute('title','Profile');
       existing.setAttribute('aria-label','Profile');
