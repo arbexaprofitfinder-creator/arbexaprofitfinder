@@ -1049,62 +1049,29 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
-
-<!-- START: MOBILE-ONLY OPPORTUNITIES + BOTTOM-NAV OVERRIDES (INJECTED) -->
+</head>
+<!-- >>> PATCH (mobile-only): remove profile button completely on mobile -->
 <style>
 @media (max-width: 820px) {
-  /* Make opportunity list fill full mobile width and expand visually */
-  .opportunities-container, .opportunities-list, .cards, .scanner-list, .scanner-cards {
-    width: 100% !important;
-    max-width: 100% !important;
+  /* hide placeholder and any existing profile button variants */
+  #bnProfile,
+  #btnProfileMobile,
+  .profile-btn,
+  .mb-profile-btn,
+  #__profile_insert_here,
+  span#__profile_insert_here {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
     margin: 0 !important;
-    padding: 6px 10px !important;
-    box-sizing: border-box !important;
+    border: none !important;
   }
-
-  /* Make each opportunity card use full width (no boxed floating card) */
-  .opportunity-card, .scanner-card, .scanner-row, .card.opportunity, .card.scanner {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 8px 0 !important;
-    padding: 16px !important;
-    border-radius: 12px !important;
-    box-shadow: none !important;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)) !important;
-    border: 1px solid rgba(255,255,255,0.04) !important;
-  }
-
-  /* Larger, crisper typography for mobile readability */
-  .opportunity-card .pair, .opportunity-card .pair-name, .scanner-card .pair { font-size: 1.08rem !important; font-weight: 700 !important; }
-  .opportunity-card .arb-percent, .scanner-card .edge { font-size: 1.12rem !important; font-weight: 900 !important; }
-  .opportunity-card .meta, .opportunity-card .price, .scanner-card .meta { font-size: 0.98rem !important; }
-
-  /* Make the list occupy the full viewport height minus bottom nav */
-  :root { --bottom-nav-height: 64px; }
-  .opportunities-container { min-height: calc(100vh - var(--bottom-nav-height)) !important; padding-bottom: calc(var(--bottom-nav-height) + 12px) !important; }
-
-  /* Bottom nav: force settings (.ms-btn) into normal flow so Profile can be centered */
-  .bottom-nav { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:12px !important;
-                 height: var(--bottom-nav-height); padding: 8px 12px !important; position: fixed; left: env(safe-area-inset-left, 12px); right: env(safe-area-inset-right, 12px); bottom: calc(8px + env(safe-area-inset-bottom)); z-index:1200;
-                 background: rgba(6,10,18,0.6); border-radius: 12px; backdrop-filter: blur(6px); }
-  .bottom-nav .ms-btn { position: static !important; transform: none !important; margin: 0 6px !important; }
-  .bottom-nav .navbtn, .bottom-nav .ms-btn, .bottom-nav .profile-btn { width:48px; height:48px; border-radius:10px; }
-
-  /* Center Profile button, between chat and settings on mobile (mobile-only lock) */
-  .bottom-nav .chat-btn { order: 1 !important; }
-  .bottom-nav .profile-btn { order: 2 !important; margin: 0 auto !important; position: relative !important; left: 0 !important; }
-  .bottom-nav .settings-btn, .bottom-nav .ms-btn { order: 3 !important; }
-
-  /* Prevent content overlap with bottom nav */
-  .content-root, .main-scanner, .scanner-root, .opps-root { padding-bottom: calc(var(--bottom-nav-height) + 18px) !important; }
-
-  /* Remove stray floating profile elements that cause overlap */
-  .floating-profile, .profile-overlay, .floating-profile-btn { display: none !important; }
 }
 </style>
-<!-- END: MOBILE-ONLY OPPORTUNITIES + BOTTOM-NAV OVERRIDES (INJECTED) -->
 
-</head><body>
+<body>
 <div class="wrap">
   <div class="header">
     <div class="brand">
@@ -1311,61 +1278,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #chat-fab, .fab-message, .floating-message { display: none !important; }
 }
 </style>
-
-<!-- START: MOBILE-ONLY OPPORTUNITIES + BOTTOM-NAV OVERRIDES (INJECTED) -->
-<style>
-@media (max-width: 820px) {
-  /* Make opportunity list fill full mobile width and expand visually */
-  .opportunities-container, .opportunities-list, .cards, .scanner-list, .scanner-cards {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 6px 10px !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Make each opportunity card use full width (no boxed floating card) */
-  .opportunity-card, .scanner-card, .scanner-row, .card.opportunity, .card.scanner {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 8px 0 !important;
-    padding: 16px !important;
-    border-radius: 12px !important;
-    box-shadow: none !important;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)) !important;
-    border: 1px solid rgba(255,255,255,0.04) !important;
-  }
-
-  /* Larger, crisper typography for mobile readability */
-  .opportunity-card .pair, .opportunity-card .pair-name, .scanner-card .pair { font-size: 1.08rem !important; font-weight: 700 !important; }
-  .opportunity-card .arb-percent, .scanner-card .edge { font-size: 1.12rem !important; font-weight: 900 !important; }
-  .opportunity-card .meta, .opportunity-card .price, .scanner-card .meta { font-size: 0.98rem !important; }
-
-  /* Make the list occupy the full viewport height minus bottom nav */
-  :root { --bottom-nav-height: 64px; }
-  .opportunities-container { min-height: calc(100vh - var(--bottom-nav-height)) !important; padding-bottom: calc(var(--bottom-nav-height) + 12px) !important; }
-
-  /* Bottom nav: force settings (.ms-btn) into normal flow so Profile can be centered */
-  .bottom-nav { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:12px !important;
-                 height: var(--bottom-nav-height); padding: 8px 12px !important; position: fixed; left: env(safe-area-inset-left, 12px); right: env(safe-area-inset-right, 12px); bottom: calc(8px + env(safe-area-inset-bottom)); z-index:1200;
-                 background: rgba(6,10,18,0.6); border-radius: 12px; backdrop-filter: blur(6px); }
-  .bottom-nav .ms-btn { position: static !important; transform: none !important; margin: 0 6px !important; }
-  .bottom-nav .navbtn, .bottom-nav .ms-btn, .bottom-nav .profile-btn { width:48px; height:48px; border-radius:10px; }
-
-  /* Center Profile button, between chat and settings on mobile (mobile-only lock) */
-  .bottom-nav .chat-btn { order: 1 !important; }
-  .bottom-nav .profile-btn { order: 2 !important; margin: 0 auto !important; position: relative !important; left: 0 !important; }
-  .bottom-nav .settings-btn, .bottom-nav .ms-btn { order: 3 !important; }
-
-  /* Prevent content overlap with bottom nav */
-  .content-root, .main-scanner, .scanner-root, .opps-root { padding-bottom: calc(var(--bottom-nav-height) + 18px) !important; }
-
-  /* Remove stray floating profile elements that cause overlap */
-  .floating-profile, .profile-overlay, .floating-profile-btn { display: none !important; }
-}
-</style>
-<!-- END: MOBILE-ONLY OPPORTUNITIES + BOTTOM-NAV OVERRIDES (INJECTED) -->
-
 </head><body>
 <div class="wrap">
   <div class="box">
@@ -1716,61 +1628,6 @@ a{color:var(--acc);text-decoration:none}
 img, canvas, video, svg { max-width: 100%; height: auto; }
 * { box-sizing: border-box; }
 </style>
-
-<!-- START: MOBILE-ONLY OPPORTUNITIES + BOTTOM-NAV OVERRIDES (INJECTED) -->
-<style>
-@media (max-width: 820px) {
-  /* Make opportunity list fill full mobile width and expand visually */
-  .opportunities-container, .opportunities-list, .cards, .scanner-list, .scanner-cards {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 6px 10px !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Make each opportunity card use full width (no boxed floating card) */
-  .opportunity-card, .scanner-card, .scanner-row, .card.opportunity, .card.scanner {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 8px 0 !important;
-    padding: 16px !important;
-    border-radius: 12px !important;
-    box-shadow: none !important;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)) !important;
-    border: 1px solid rgba(255,255,255,0.04) !important;
-  }
-
-  /* Larger, crisper typography for mobile readability */
-  .opportunity-card .pair, .opportunity-card .pair-name, .scanner-card .pair { font-size: 1.08rem !important; font-weight: 700 !important; }
-  .opportunity-card .arb-percent, .scanner-card .edge { font-size: 1.12rem !important; font-weight: 900 !important; }
-  .opportunity-card .meta, .opportunity-card .price, .scanner-card .meta { font-size: 0.98rem !important; }
-
-  /* Make the list occupy the full viewport height minus bottom nav */
-  :root { --bottom-nav-height: 64px; }
-  .opportunities-container { min-height: calc(100vh - var(--bottom-nav-height)) !important; padding-bottom: calc(var(--bottom-nav-height) + 12px) !important; }
-
-  /* Bottom nav: force settings (.ms-btn) into normal flow so Profile can be centered */
-  .bottom-nav { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:12px !important;
-                 height: var(--bottom-nav-height); padding: 8px 12px !important; position: fixed; left: env(safe-area-inset-left, 12px); right: env(safe-area-inset-right, 12px); bottom: calc(8px + env(safe-area-inset-bottom)); z-index:1200;
-                 background: rgba(6,10,18,0.6); border-radius: 12px; backdrop-filter: blur(6px); }
-  .bottom-nav .ms-btn { position: static !important; transform: none !important; margin: 0 6px !important; }
-  .bottom-nav .navbtn, .bottom-nav .ms-btn, .bottom-nav .profile-btn { width:48px; height:48px; border-radius:10px; }
-
-  /* Center Profile button, between chat and settings on mobile (mobile-only lock) */
-  .bottom-nav .chat-btn { order: 1 !important; }
-  .bottom-nav .profile-btn { order: 2 !important; margin: 0 auto !important; position: relative !important; left: 0 !important; }
-  .bottom-nav .settings-btn, .bottom-nav .ms-btn { order: 3 !important; }
-
-  /* Prevent content overlap with bottom nav */
-  .content-root, .main-scanner, .scanner-root, .opps-root { padding-bottom: calc(var(--bottom-nav-height) + 18px) !important; }
-
-  /* Remove stray floating profile elements that cause overlap */
-  .floating-profile, .profile-overlay, .floating-profile-btn { display: none !important; }
-}
-</style>
-<!-- END: MOBILE-ONLY OPPORTUNITIES + BOTTOM-NAV OVERRIDES (INJECTED) -->
-
 </head><body>
 <header class="nav">
   <div class="brand">
@@ -2480,61 +2337,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #chat-fab, .fab-message, .floating-message { display: none !important; }
 }
 </style>
-
-<!-- START: MOBILE-ONLY OPPORTUNITIES + BOTTOM-NAV OVERRIDES (INJECTED) -->
-<style>
-@media (max-width: 820px) {
-  /* Make opportunity list fill full mobile width and expand visually */
-  .opportunities-container, .opportunities-list, .cards, .scanner-list, .scanner-cards {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 6px 10px !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Make each opportunity card use full width (no boxed floating card) */
-  .opportunity-card, .scanner-card, .scanner-row, .card.opportunity, .card.scanner {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 8px 0 !important;
-    padding: 16px !important;
-    border-radius: 12px !important;
-    box-shadow: none !important;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)) !important;
-    border: 1px solid rgba(255,255,255,0.04) !important;
-  }
-
-  /* Larger, crisper typography for mobile readability */
-  .opportunity-card .pair, .opportunity-card .pair-name, .scanner-card .pair { font-size: 1.08rem !important; font-weight: 700 !important; }
-  .opportunity-card .arb-percent, .scanner-card .edge { font-size: 1.12rem !important; font-weight: 900 !important; }
-  .opportunity-card .meta, .opportunity-card .price, .scanner-card .meta { font-size: 0.98rem !important; }
-
-  /* Make the list occupy the full viewport height minus bottom nav */
-  :root { --bottom-nav-height: 64px; }
-  .opportunities-container { min-height: calc(100vh - var(--bottom-nav-height)) !important; padding-bottom: calc(var(--bottom-nav-height) + 12px) !important; }
-
-  /* Bottom nav: force settings (.ms-btn) into normal flow so Profile can be centered */
-  .bottom-nav { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:12px !important;
-                 height: var(--bottom-nav-height); padding: 8px 12px !important; position: fixed; left: env(safe-area-inset-left, 12px); right: env(safe-area-inset-right, 12px); bottom: calc(8px + env(safe-area-inset-bottom)); z-index:1200;
-                 background: rgba(6,10,18,0.6); border-radius: 12px; backdrop-filter: blur(6px); }
-  .bottom-nav .ms-btn { position: static !important; transform: none !important; margin: 0 6px !important; }
-  .bottom-nav .navbtn, .bottom-nav .ms-btn, .bottom-nav .profile-btn { width:48px; height:48px; border-radius:10px; }
-
-  /* Center Profile button, between chat and settings on mobile (mobile-only lock) */
-  .bottom-nav .chat-btn { order: 1 !important; }
-  .bottom-nav .profile-btn { order: 2 !important; margin: 0 auto !important; position: relative !important; left: 0 !important; }
-  .bottom-nav .settings-btn, .bottom-nav .ms-btn { order: 3 !important; }
-
-  /* Prevent content overlap with bottom nav */
-  .content-root, .main-scanner, .scanner-root, .opps-root { padding-bottom: calc(var(--bottom-nav-height) + 18px) !important; }
-
-  /* Remove stray floating profile elements that cause overlap */
-  .floating-profile, .profile-overlay, .floating-profile-btn { display: none !important; }
-}
-</style>
-<!-- END: MOBILE-ONLY OPPORTUNITIES + BOTTOM-NAV OVERRIDES (INJECTED) -->
-
 </head><body data-mobile="v2">
 <header>
   <div class="brandrow">
@@ -4053,61 +3855,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #opps-header{ padding-left:0 !important; }
 }
 </style>
-
-<!-- START: MOBILE-ONLY OPPORTUNITIES + BOTTOM-NAV OVERRIDES (INJECTED) -->
-<style>
-@media (max-width: 820px) {
-  /* Make opportunity list fill full mobile width and expand visually */
-  .opportunities-container, .opportunities-list, .cards, .scanner-list, .scanner-cards {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 6px 10px !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Make each opportunity card use full width (no boxed floating card) */
-  .opportunity-card, .scanner-card, .scanner-row, .card.opportunity, .card.scanner {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 8px 0 !important;
-    padding: 16px !important;
-    border-radius: 12px !important;
-    box-shadow: none !important;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)) !important;
-    border: 1px solid rgba(255,255,255,0.04) !important;
-  }
-
-  /* Larger, crisper typography for mobile readability */
-  .opportunity-card .pair, .opportunity-card .pair-name, .scanner-card .pair { font-size: 1.08rem !important; font-weight: 700 !important; }
-  .opportunity-card .arb-percent, .scanner-card .edge { font-size: 1.12rem !important; font-weight: 900 !important; }
-  .opportunity-card .meta, .opportunity-card .price, .scanner-card .meta { font-size: 0.98rem !important; }
-
-  /* Make the list occupy the full viewport height minus bottom nav */
-  :root { --bottom-nav-height: 64px; }
-  .opportunities-container { min-height: calc(100vh - var(--bottom-nav-height)) !important; padding-bottom: calc(var(--bottom-nav-height) + 12px) !important; }
-
-  /* Bottom nav: force settings (.ms-btn) into normal flow so Profile can be centered */
-  .bottom-nav { display:flex !important; align-items:center !important; justify-content:space-between !important; gap:12px !important;
-                 height: var(--bottom-nav-height); padding: 8px 12px !important; position: fixed; left: env(safe-area-inset-left, 12px); right: env(safe-area-inset-right, 12px); bottom: calc(8px + env(safe-area-inset-bottom)); z-index:1200;
-                 background: rgba(6,10,18,0.6); border-radius: 12px; backdrop-filter: blur(6px); }
-  .bottom-nav .ms-btn { position: static !important; transform: none !important; margin: 0 6px !important; }
-  .bottom-nav .navbtn, .bottom-nav .ms-btn, .bottom-nav .profile-btn { width:48px; height:48px; border-radius:10px; }
-
-  /* Center Profile button, between chat and settings on mobile (mobile-only lock) */
-  .bottom-nav .chat-btn { order: 1 !important; }
-  .bottom-nav .profile-btn { order: 2 !important; margin: 0 auto !important; position: relative !important; left: 0 !important; }
-  .bottom-nav .settings-btn, .bottom-nav .ms-btn { order: 3 !important; }
-
-  /* Prevent content overlap with bottom nav */
-  .content-root, .main-scanner, .scanner-root, .opps-root { padding-bottom: calc(var(--bottom-nav-height) + 18px) !important; }
-
-  /* Remove stray floating profile elements that cause overlap */
-  .floating-profile, .profile-overlay, .floating-profile-btn { display: none !important; }
-}
-</style>
-<!-- END: MOBILE-ONLY OPPORTUNITIES + BOTTOM-NAV OVERRIDES (INJECTED) -->
-
 </head><body>
 <div class="wrap">
   <div class="header">
