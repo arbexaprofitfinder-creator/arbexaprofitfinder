@@ -2384,7 +2384,12 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
         </div>
       </details>
 
-      
+      <button id="refreshNow" class="refresh-btn" title="Refresh now" aria-label="Refresh now">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
+          <polyline points="21 3 21 9 15 9"/>
+        </svg>
+      </button>
 <button id="btnProfileMobile" class="mb-profile-btn" aria-label="Profile" title="Profile">👤</button>
 
       <button id="drawerOpen" class="drawer-btn" title="Menu" aria-label="Open menu"><span class="emoji" aria-hidden="true">🍔</span></button>
@@ -3157,8 +3162,6 @@ document.addEventListener('click', function(e) {
 
 
   <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Bottom Navigation">
-    <button id="refresh-btn" aria-label="Refresh" title="Refresh" class="navbtn" onclick="location.reload();">⟳</button>
-
     <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">💬</button>
     <!-- Mobile-only Profile button (centered between Chat and Settings) -->
     <span id="__profile_insert_here"></span>
@@ -3854,6 +3857,27 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #opps-header .avatar-badge,
   header .user-initial{ display:none !important; }
   #opps-header{ padding-left:0 !important; }
+}
+</style>
+
+<!-- Adjust bottom-nav settings button: ensure same size, background, border, and remove white square -->
+<style>
+@media (max-width: 820px) {
+  .bottom-nav .ms-btn {
+    background: rgba(15,20,36,0.9) !important;
+    color: var(--txt) !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  /* Ensure the gear icon itself (if an img or svg) does not have a white bg */
+  .bottom-nav .ms-btn img, .bottom-nav .ms-btn svg { background: transparent !important; display: block; max-width: 24px; max-height: 24px; }
 }
 </style>
 </head><body>
