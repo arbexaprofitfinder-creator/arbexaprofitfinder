@@ -2384,12 +2384,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
         </div>
       </details>
 
-      <button id="refreshNow" class="refresh-btn" title="Refresh now" aria-label="Refresh now">
-        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12a9 9 0 1 1-2.64-6.36"/>
-          <polyline points="21 3 21 9 15 9"/>
-        </svg>
-      </button>
+      
 <button id="btnProfileMobile" class="mb-profile-btn" aria-label="Profile" title="Profile">👤</button>
 
       <button id="drawerOpen" class="drawer-btn" title="Menu" aria-label="Open menu"><span class="emoji" aria-hidden="true">🍔</span></button>
@@ -3162,6 +3157,8 @@ document.addEventListener('click', function(e) {
 
 
   <div id="bottomNav" class="bottom-nav" role="navigation" aria-label="Bottom Navigation">
+    <button id="refresh-btn" aria-label="Refresh" title="Refresh" class="navbtn" onclick="location.reload();">⟳</button>
+
     <button id="bnChat" class="navbtn" title="Chat" aria-label="Chat">💬</button>
     <!-- Mobile-only Profile button (centered between Chat and Settings) -->
     <span id="__profile_insert_here"></span>
@@ -3860,24 +3857,30 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 }
 </style>
 
-<!-- Adjust bottom-nav settings button: ensure same size, background, border, and remove white square -->
 <style>
+/* Mobile Settings button normalization */
 @media (max-width: 820px) {
-  .bottom-nav .ms-btn {
-    background: rgba(15,20,36,0.9) !important;
-    color: var(--txt) !important;
-    border: 1px solid rgba(255,255,255,0.06) !important;
-    width: 48px !important;
-    height: 48px !important;
-    border-radius: 10px !important;
+  .bottom-nav .ms-btn,
+  #btnSettingsMobile {
+    position: static !important;
+    width: 56px !important;
+    height: 56px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    box-shadow: none !important;
+    flex: 0 0 56px !important;
+    border-radius: 10px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
     padding: 0 !important;
   }
-  /* Ensure the gear icon itself (if an img or svg) does not have a white bg */
-  .bottom-nav .ms-btn img, .bottom-nav .ms-btn svg { background: transparent !important; display: block; max-width: 24px; max-height: 24px; }
+  .bottom-nav .ms-btn img,
+  #btnSettingsMobile img,
+  .bottom-nav .ms-btn svg,
+  #btnSettingsMobile svg {
+    width: 28px !important;
+    height: 28px !important;
+  }
 }
 </style>
 </head><body>
@@ -3976,6 +3979,35 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
+
+<script>
+// Normalize Settings button dynamically (SPA-safe)
+(function(){
+  function fix(){
+    if(window.innerWidth > 820) return;
+    const sel = ['.bottom-nav .ms-btn', '#btnSettingsMobile'];
+    sel.forEach(s=>{
+      const el = document.querySelector(s);
+      if(!el) return;
+      el.style.position='static';
+      el.style.width='56px';
+      el.style.height='56px';
+      el.style.display='inline-flex';
+      el.style.alignItems='center';
+      el.style.justifyContent='center';
+      el.style.flex='0 0 56px';
+      el.style.borderRadius='10px';
+      let ic = el.querySelector('img,svg');
+      if(ic){ ic.style.width='28px'; ic.style.height='28px'; }
+    });
+  }
+  document.addEventListener('DOMContentLoaded', fix);
+  setTimeout(fix,300);
+  setTimeout(fix,800);
+  new MutationObserver(fix).observe(document.body,{childList:true,subtree:true});
+  window.addEventListener('resize', fix);
+})();
+</script>
 </body></html>"""
 
 @app.get("/chat", response_class=HTMLResponse)
