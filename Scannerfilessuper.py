@@ -3856,6 +3856,30 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #opps-header{ padding-left:0 !important; }
 }
 </style>
+
+<!-- FORCED MOBILE OVERRIDE: ensure Settings (.ms-btn) matches bottom-nav buttons on mobile -->
+<style>
+@media (max-width: 820px){
+  .bottom-nav .ms-btn, .bottom-nav .navbtn, .bottom-nav .profile-btn {
+    background: rgba(15,20,36,0.9) !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    box-shadow: none !important;
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    opacity: 1 !important;
+    height: 48px !important;
+    width: 48px !important;
+    border-radius: 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  /* keep the profile button shadow if needed */
+  .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important; }
+}
+</style>
 </head><body>
 <div class="wrap">
   <div class="header">
@@ -3952,6 +3976,34 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
+
+<script>
+(function(){
+  try{
+    if (window.innerWidth && window.innerWidth <= 820) {
+      document.addEventListener('DOMContentLoaded', function(){
+        try{
+          document.querySelectorAll('.bottom-nav .ms-btn, .ms-btn').forEach(function(b){
+            try{
+              b.style.setProperty('background', 'rgba(15,20,36,0.9)', 'important');
+              b.style.setProperty('border', '1px solid rgba(255,255,255,0.06)', 'important');
+              b.style.setProperty('position', 'static', 'important');
+              b.style.setProperty('left', 'auto', 'important');
+              b.style.setProperty('right', 'auto', 'important');
+              b.style.setProperty('box-shadow', 'none', 'important');
+              b.style.setProperty('height', '48px', 'important');
+              b.style.setProperty('width', '48px', 'important');
+              b.style.setProperty('display', 'inline-flex', 'important');
+              b.style.setProperty('align-items', 'center', 'important');
+              b.style.setProperty('justify-content', 'center', 'important');
+            }catch(e){}
+          });
+        }catch(e){}
+      });
+    }
+  }catch(e){}
+})();
+</script>
 </body></html>"""
 
 @app.get("/chat", response_class=HTMLResponse)
