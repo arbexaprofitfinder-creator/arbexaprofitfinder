@@ -1053,41 +1053,20 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 }
 </style>
 
-<!-- Stronger minimal override: make any "Settings" control visually match the profile square on the left -->
+<!-- START: mobile-only settings color override added by assistant -->
 <style>
-:root { --settings-bg: #0e1a35; --settings-text: #e7eefc; --settings-border: #23345f; }
-#settingsDD > summary,
-#settings-button, #btnSettings, .settings-summary, .btn-settings,
-button[title*="Settings"], a[title*="Settings"], span[title*="Settings"],
-*[aria-label*="Settings"],
-summary[title*="Settings"], summary[title*="settings"],
-*[data-action*="settings"], .icon-settings, .gear-button, .gear-icon, .settings-icon,
-.settings-square, .menu .settings {
-  background: var(--settings-bg) !important;
-  color: var(--settings-text) !important;
-  border: 1px solid var(--settings-border) !important;
-  box-shadow: none !important;
-  border-radius: 12px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  padding: 8px !important;
-}
-#settingsDD > summary .emoji, .gear-icon svg, .gear-button svg, .settings-icon svg {
-  filter: none !important;
-  opacity: 1 !important;
-  fill: var(--settings-text) !important;
-  color: var(--settings-text) !important;
-}
-@media (max-width: 920px) {
-  #settingsDD > summary, #settings-button, #btnSettings, .settings-summary, .btn-settings,
-  button[title*="Settings"], *[aria-label*="Settings"], .gear-button {
-    background: var(--settings-bg) !important;
-    color: var(--settings-text) !important;
+@media only screen and (max-width: 768px) {
+  .bottom-nav .ms-btn {
+    background-color: transparent !important;
+    color: inherit !important;
+    border: none !important;
+    background: none !important;
+    position: static !important;
   }
+  .bottom-nav .ms-btn .icon, .bottom-nav .ms-btn svg { color: inherit !important; fill: currentColor !important; }
 }
 </style>
-
+<!-- END: mobile-only settings color override added by assistant -->
 </head><body>
 <div class="wrap">
   <div class="header">
