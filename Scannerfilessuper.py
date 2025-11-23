@@ -951,18 +951,18 @@ a{color:var(--acc);text-decoration:none}
 .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
 
 @media (max-width: 820px){
-  .ms-btn{ background: rgba(15,20,36,0.9); border: 1px solid rgba(255,255,255,0.06); 
+  .ms-btn{
     position: fixed; left: max(12px, env(safe-area-inset-left));
     bottom: calc(8px + env(safe-area-inset-bottom)); z-index: 1001;
     width: 44px; height: 44px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(15,20,36,0.9); color: var(--txt); font-size: 20px; line-height: 44px;
+    background: rgba(26,36,64,0.92); color: var(--txt); font-size: 20px; line-height: 44px;
     display: inline-flex; align-items: center; justify-content: center;
     backdrop-filter: blur(8px);
   }
   .ms-btn:active{ transform: translateY(1px); }
 }
 @media (min-width: 821px){
-  .ms-btn{ background: rgba(15,20,36,0.9); border: 1px solid rgba(255,255,255,0.06);  display:none; }
+  .ms-btn{ display:none; }
 }
 
 </style>
@@ -1036,7 +1036,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     backdrop-filter: blur(8px);
   }
   /* Defensive override: ensure settings button participates in normal flow on mobile */
-  .bottom-nav .ms-btn { position: static !important; left: auto !important; right: auto !important; background: rgba(15,20,36,0.9); border: 1px solid rgba(255,255,255,0.06); }
+  .bottom-nav .ms-btn { position: static !important; left: auto !important; right: auto !important; }
 
   .bottom-nav .navbtn, .bottom-nav .ms-btn, .bottom-nav .profile-btn {
     width: 48px;
@@ -2020,7 +2020,7 @@ _OPPS_HTML = """<!doctype html><html lang="en"><head>
     top:   calc(8px  + env(safe-area-inset-top));
     width: 40px; height: 40px; border-radius: 10px;
     border: 1px solid rgba(255,255,255,0.10);
-    background: rgba(15,20,36,0.9);
+    background: rgba(26,36,64,0.92);
     color: var(--txt); font-size: 18px;
     display: inline-flex; align-items:center; justify-content:center;
     z-index: 6;
@@ -3857,28 +3857,37 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 }
 </style>
 
-<!-- FORCED MOBILE OVERRIDE: ensure Settings (.ms-btn) matches bottom-nav buttons on mobile -->
+<!-- OPPS CARDIFIED: styles for opportunity cards -->
 <style>
-@media (max-width: 820px){
-  .bottom-nav .ms-btn, .bottom-nav .navbtn, .bottom-nav .profile-btn {
-    background: rgba(15,20,36,0.9) !important;
-    border: 1px solid rgba(255,255,255,0.06) !important;
-    box-shadow: none !important;
-    position: static !important;
-    left: auto !important;
-    right: auto !important;
-    transform: none !important;
-    opacity: 1 !important;
-    height: 48px !important;
-    width: 48px !important;
-    border-radius: 10px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-  /* keep the profile button shadow if needed */
-  .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important; }
+.opp-card {
+  background: linear-gradient(180deg, rgba(12,18,30,0.98), rgba(10,14,24,0.98));
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 10px 8px;
+  color: #e7eefc;
+  box-shadow: 0 6px 18px rgba(3,8,20,0.6);
+  max-width: 980px;
+  word-break: break-word;
 }
+.opp-card .opp-header {
+  font-weight: 900;
+  font-size: 18px;
+  margin-bottom: 8px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.opp-card .opp-meta { font-size:14px; color: #d6e6ff; margin-bottom:8px; }
+.opp-card .opp-line { display:block; margin:6px 0; font-size:15px; }
+.opp-card .opp-price { font-weight:800; font-size:15px; color:#dbeffd; }
+.opp-card .opp-small { font-size:13px; color:#a9c3e8; }
+@media (max-width:820px){
+  .opp-card { margin-left:6px; margin-right:6px; padding:12px; border-radius:12px; }
+  .opp-card .opp-header { font-size:20px; }
+}
+/* hide original compact rows if they also exist */
+.opp-compact-preserved { display:none; }
 </style>
 </head><body>
 <div class="wrap">
@@ -3980,27 +3989,61 @@ document.addEventListener('click', function(e) {
 <script>
 (function(){
   try{
-    if (window.innerWidth && window.innerWidth <= 820) {
-      document.addEventListener('DOMContentLoaded', function(){
-        try{
-          document.querySelectorAll('.bottom-nav .ms-btn, .ms-btn').forEach(function(b){
-            try{
-              b.style.setProperty('background', 'rgba(15,20,36,0.9)', 'important');
-              b.style.setProperty('border', '1px solid rgba(255,255,255,0.06)', 'important');
-              b.style.setProperty('position', 'static', 'important');
-              b.style.setProperty('left', 'auto', 'important');
-              b.style.setProperty('right', 'auto', 'important');
-              b.style.setProperty('box-shadow', 'none', 'important');
-              b.style.setProperty('height', '48px', 'important');
-              b.style.setProperty('width', '48px', 'important');
-              b.style.setProperty('display', 'inline-flex', 'important');
-              b.style.setProperty('align-items', 'center', 'important');
-              b.style.setProperty('justify-content', 'center', 'important');
-            }catch(e){}
+    document.addEventListener('DOMContentLoaded', function(){
+      try{
+        var all = Array.from(document.querySelectorAll('body *'));
+        var candidates = all.filter(function(el){
+          try{
+            // Choose leaf nodes with text that includes '/USDT' or similar
+            return el.childElementCount === 0 && /\/[A-Z0-9_\-]{2,}T/.test((el.textContent||'').trim());
+          }catch(e){ return false; }
+        });
+        if(!candidates.length) return;
+        var parents = {};
+        candidates.forEach(function(c){
+          var p = c.parentElement;
+          if(!p) return;
+          var key = p.tagName + '|' + (p.className||'') + '|' + (p.id||'');
+          parents[key] = parents[key] || {parent:p, items:[]};
+          parents[key].items.push(c);
+        });
+        Object.keys(parents).forEach(function(k){
+          var info = parents[k];
+          var p = info.parent;
+          if(info.items.length < 3) return; // likely not the main list
+          var wrapper = document.createElement('div');
+          wrapper.className = 'opp-cards-wrapper';
+          Array.from(p.children).forEach(function(ch){
+            var txt = (ch.textContent || '').trim();
+            if(!/\/[A-Z0-9_\-]{2,}T/.test(txt)){
+              var holder = document.createElement('div');
+              holder.className = 'opp-preserve';
+              holder.innerHTML = ch.innerHTML;
+              wrapper.appendChild(holder);
+              return;
+            }
+            var pairMatch = txt.match(/([A-Z0-9_\-]+\/[A-Z0-9_\-]+)/i);
+            var edgeMatch = txt.match(/(\d{1,2}\.\d{1,2})%/);
+            var priceMatch = txt.match(/\$\s*([0-9.,eE\-]+)/);
+            var volMatch = txt.match(/Vol[:\s]*\$?([0-9,\.]+)/i);
+            var card = document.createElement('div');
+            card.className = 'opp-card';
+            var header = '<div class="opp-header">' +
+                         '<span style="background:#0c2340;border-radius:6px;padding:6px;display:inline-flex;align-items:center;justify-content:center;height:34px;width:34px">🔁</span>' +
+                         '<div>' + (pairMatch?('<div>'+pairMatch[1]+'</div>'):'<div>Pair</div>') +
+                         '<div class="opp-small">' + (edgeMatch?('Edge: ' + edgeMatch[1] + '%'):'') + '</div></div></div>';
+            var meta = '';
+            if(priceMatch) meta += '<div class="opp-line opp-price">Price: $' + priceMatch[1] + '</div>';
+            if(volMatch) meta += '<div class="opp-line opp-small">Vol: $' + volMatch[1] + '</div>';
+            var details = '<div class="opp-line opp-meta">' + ch.innerHTML + '</div>';
+            card.innerHTML = header + meta + details;
+            wrapper.appendChild(card);
           });
-        }catch(e){}
-      });
-    }
+          p.parentNode.insertBefore(wrapper, p);
+          p.style.display = 'none';
+        });
+      }catch(e){ console.warn('opp-cardify failed', e); }
+    });
   }catch(e){}
 })();
 </script>
