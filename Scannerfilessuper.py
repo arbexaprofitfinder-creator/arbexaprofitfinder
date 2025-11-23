@@ -1053,38 +1053,37 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 }
 </style>
 
-<!-- Minimal override: only change the Settings button/summary color (non-destructive) -->
+<!-- Stronger minimal override: make any "Settings" control visually match the profile square on the left -->
 <style>
-#settingsDD > summary, #settings-button, #btnSettings, .settings-summary, .btn-settings {
-  background: #0e1a35 !important;
-  color: #e7eefc !important;
-  border-color: #23345f !important;
+:root { --settings-bg: #0e1a35; --settings-text: #e7eefc; --settings-border: #23345f; }
+#settingsDD > summary,
+#settings-button, #btnSettings, .settings-summary, .btn-settings,
+button[title*="Settings"], a[title*="Settings"], span[title*="Settings"],
+*[aria-label*="Settings"],
+summary[title*="Settings"], summary[title*="settings"],
+*[data-action*="settings"], .icon-settings, .gear-button, .gear-icon, .settings-icon,
+.settings-square, .menu .settings {
+  background: var(--settings-bg) !important;
+  color: var(--settings-text) !important;
+  border: 1px solid var(--settings-border) !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px !important;
 }
-#settingsDD > summary .emoji { filter: none !important; opacity: 1 !important; }
+#settingsDD > summary .emoji, .gear-icon svg, .gear-button svg, .settings-icon svg {
+  filter: none !important;
+  opacity: 1 !important;
+  fill: var(--settings-text) !important;
+  color: var(--settings-text) !important;
+}
 @media (max-width: 920px) {
-  /* keep same look on mobile */
-  #settingsDD > summary, #settings-button, #btnSettings, .settings-summary, .btn-settings {
-    background: #0e1a35 !important;
-    color: #e7eefc !important;
-  }
-}
-</style>
-
-
-<!-- Minimal override: only change the Settings summary/button color (non-destructive) -->
-<style>
-/* Target summary inside settings details and any element with common settings IDs/classes */
-#settingsDD > summary, #settings-button, #btnSettings, .settings-summary, .btn-settings {
-  background: #0e1a35 !important;
-  color: #e7eefc !important;
-  border-color: #23345f !important;
-}
-#settingsDD > summary .emoji, #settings-button .emoji, .btn-settings .emoji { filter: none !important; opacity: 1 !important; }
-/* Ensure same on mobile */
-@media (max-width: 920px) {
-  #settingsDD > summary, #settings-button, #btnSettings, .settings-summary, .btn-settings {
-    background: #0e1a35 !important;
-    color: #e7eefc !important;
+  #settingsDD > summary, #settings-button, #btnSettings, .settings-summary, .btn-settings,
+  button[title*="Settings"], *[aria-label*="Settings"], .gear-button {
+    background: var(--settings-bg) !important;
+    color: var(--settings-text) !important;
   }
 }
 </style>
