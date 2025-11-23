@@ -1052,6 +1052,43 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
+
+<!-- Minimal override: only change the Settings button/summary color (non-destructive) -->
+<style>
+#settingsDD > summary, #settings-button, #btnSettings, .settings-summary, .btn-settings {
+  background: #0e1a35 !important;
+  color: #e7eefc !important;
+  border-color: #23345f !important;
+}
+#settingsDD > summary .emoji { filter: none !important; opacity: 1 !important; }
+@media (max-width: 920px) {
+  /* keep same look on mobile */
+  #settingsDD > summary, #settings-button, #btnSettings, .settings-summary, .btn-settings {
+    background: #0e1a35 !important;
+    color: #e7eefc !important;
+  }
+}
+</style>
+
+
+<!-- Minimal override: only change the Settings summary/button color (non-destructive) -->
+<style>
+/* Target summary inside settings details and any element with common settings IDs/classes */
+#settingsDD > summary, #settings-button, #btnSettings, .settings-summary, .btn-settings {
+  background: #0e1a35 !important;
+  color: #e7eefc !important;
+  border-color: #23345f !important;
+}
+#settingsDD > summary .emoji, #settings-button .emoji, .btn-settings .emoji { filter: none !important; opacity: 1 !important; }
+/* Ensure same on mobile */
+@media (max-width: 920px) {
+  #settingsDD > summary, #settings-button, #btnSettings, .settings-summary, .btn-settings {
+    background: #0e1a35 !important;
+    color: #e7eefc !important;
+  }
+}
+</style>
+
 </head><body>
 <div class="wrap">
   <div class="header">
@@ -3856,33 +3893,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #opps-header{ padding-left:0 !important; }
 }
 </style>
-
-<style>
-/* Mobile Settings button normalization */
-@media (max-width: 820px) {
-  .bottom-nav .ms-btn,
-  #btnSettingsMobile {
-    position: static !important;
-    width: 56px !important;
-    height: 56px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    flex: 0 0 56px !important;
-    border-radius: 10px !important;
-    box-sizing: border-box !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-  .bottom-nav .ms-btn img,
-  #btnSettingsMobile img,
-  .bottom-nav .ms-btn svg,
-  #btnSettingsMobile svg {
-    width: 28px !important;
-    height: 28px !important;
-  }
-}
-</style>
 </head><body>
 <div class="wrap">
   <div class="header">
@@ -3979,35 +3989,6 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
-
-<script>
-// Normalize Settings button dynamically (SPA-safe)
-(function(){
-  function fix(){
-    if(window.innerWidth > 820) return;
-    const sel = ['.bottom-nav .ms-btn', '#btnSettingsMobile'];
-    sel.forEach(s=>{
-      const el = document.querySelector(s);
-      if(!el) return;
-      el.style.position='static';
-      el.style.width='56px';
-      el.style.height='56px';
-      el.style.display='inline-flex';
-      el.style.alignItems='center';
-      el.style.justifyContent='center';
-      el.style.flex='0 0 56px';
-      el.style.borderRadius='10px';
-      let ic = el.querySelector('img,svg');
-      if(ic){ ic.style.width='28px'; ic.style.height='28px'; }
-    });
-  }
-  document.addEventListener('DOMContentLoaded', fix);
-  setTimeout(fix,300);
-  setTimeout(fix,800);
-  new MutationObserver(fix).observe(document.body,{childList:true,subtree:true});
-  window.addEventListener('resize', fix);
-})();
-</script>
 </body></html>"""
 
 @app.get("/chat", response_class=HTMLResponse)
