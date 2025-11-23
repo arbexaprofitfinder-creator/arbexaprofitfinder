@@ -951,18 +951,18 @@ a{color:var(--acc);text-decoration:none}
 .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
 
 @media (max-width: 820px){
-  .ms-btn{
+  .ms-btn{ background: rgba(15,20,36,0.9); border: 1px solid rgba(255,255,255,0.06); 
     position: fixed; left: max(12px, env(safe-area-inset-left));
     bottom: calc(8px + env(safe-area-inset-bottom)); z-index: 1001;
     width: 44px; height: 44px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(26,36,64,0.92); color: var(--txt); font-size: 20px; line-height: 44px;
+    background: rgba(15,20,36,0.9); color: var(--txt); font-size: 20px; line-height: 44px;
     display: inline-flex; align-items: center; justify-content: center;
     backdrop-filter: blur(8px);
   }
   .ms-btn:active{ transform: translateY(1px); }
 }
 @media (min-width: 821px){
-  .ms-btn{ display:none; }
+  .ms-btn{ background: rgba(15,20,36,0.9); border: 1px solid rgba(255,255,255,0.06);  display:none; }
 }
 
 </style>
@@ -1036,7 +1036,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     backdrop-filter: blur(8px);
   }
   /* Defensive override: ensure settings button participates in normal flow on mobile */
-  .bottom-nav .ms-btn { position: static !important; left: auto !important; right: auto !important; }
+  .bottom-nav .ms-btn { position: static !important; left: auto !important; right: auto !important; background: rgba(15,20,36,0.9); border: 1px solid rgba(255,255,255,0.06); }
 
   .bottom-nav .navbtn, .bottom-nav .ms-btn, .bottom-nav .profile-btn {
     width: 48px;
@@ -1052,21 +1052,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
-
-<!-- START: mobile-only settings color override added by assistant -->
-<style>
-@media only screen and (max-width: 768px) {
-  .bottom-nav .ms-btn {
-    background-color: transparent !important;
-    color: inherit !important;
-    border: none !important;
-    background: none !important;
-    position: static !important;
-  }
-  .bottom-nav .ms-btn .icon, .bottom-nav .ms-btn svg { color: inherit !important; fill: currentColor !important; }
-}
-</style>
-<!-- END: mobile-only settings color override added by assistant -->
 </head><body>
 <div class="wrap">
   <div class="header">
@@ -2035,7 +2020,7 @@ _OPPS_HTML = """<!doctype html><html lang="en"><head>
     top:   calc(8px  + env(safe-area-inset-top));
     width: 40px; height: 40px; border-radius: 10px;
     border: 1px solid rgba(255,255,255,0.10);
-    background: rgba(26,36,64,0.92);
+    background: rgba(15,20,36,0.9);
     color: var(--txt); font-size: 18px;
     display: inline-flex; align-items:center; justify-content:center;
     z-index: 6;
