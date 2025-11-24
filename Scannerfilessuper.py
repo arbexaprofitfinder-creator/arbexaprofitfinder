@@ -3856,6 +3856,111 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #opps-header{ padding-left:0 !important; }
 }
 </style>
+
+/* MOBILE-ONLY-PATCH: START */
+<style id="mobile-only-patch-styles">
+@media (max-width:820px) {
+  .bottom-nav .ms-btn, .bottom-nav .navbtn, .bottom-nav .profile-btn {
+    background: rgba(15,20,36,0.9) !important;
+    border: 1px solid rgba(255,255,255,0.06) !important;
+    box-shadow: none !important;
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    opacity: 1 !important;
+    height: 48px !important;
+    width: 48px !important;
+    border-radius: 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important; }
+
+  .opp-cards-wrapper { display: flex; flex-direction: column; gap: 8px; padding: 6px; }
+  .opp-card {
+    background: linear-gradient(180deg, rgba(12,18,30,0.98), rgba(10,14,24,0.98));
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin: 6px 4px;
+    color: #e7eefc;
+    box-shadow: 0 6px 18px rgba(3,8,20,0.6);
+    word-break: break-word;
+  }
+  .opp-card .opp-header { display:flex; align-items:center; gap:8px; font-weight:800; font-size:16px; }
+  .opp-card .opp-meta { margin-top:6px; font-size:14px; color:#d6e6ff; }
+  .opp-card .opp-line { margin:6px 0; font-size:14px; }
+  .opp-card .opp-price { font-weight:700; }
+  .opp-card .opp-small { font-size:12px; color:#a9c3e8; }
+}
+</style>
+
+<!-- MOBILE-ONLY-PATCH: JS START -->
+<script id="mobile-only-patch-js">
+(function(){
+  try{
+    if (typeof window === 'undefined') return;
+    function isMobileWidth(){ return window.innerWidth <= 820; }
+    function findMainOppContainers(){
+      var nodes = Array.from(document.querySelectorAll('body *'));
+      var leafs = nodes.filter(function(el){ try{ return el.childElementCount === 0 && /\/[A-Z0-9_\-]{2,}T/i.test((el.textContent||'').trim()); }catch(e){return false;} });
+      var parents = {};
+      leafs.forEach(function(l){ var p = l.parentElement; if(!p) return; var key = p.tagName + '|' + (p.className||'') + '|' + (p.id||''); parents[key] = parents[key] || { parent: p, count: 0 }; parents[key].count++; });
+      return Object.keys(parents).map(function(k){ return parents[k]; }).filter(function(x){ return x.count >= 3; }).map(function(x){ return x.parent; });
+    }
+    function buildCardFromElement(ch){
+      var txt = (ch.textContent||'').trim();
+      var pairMatch = txt.match(/([A-Z0-9_\-]+\/[A-Z0-9_\-]+)/i);
+      var edgeMatch = txt.match(/(\d{1,2}\.\d{1,2})%/);
+      var priceMatch = txt.match(/\$\s*([0-9.,eE\-]+)/);
+      var volMatch = txt.match(/Vol[:\s]*\$?([0-9,\.]+)/i);
+      var card = document.createElement('div');
+      card.className = 'opp-card';
+      var header = document.createElement('div'); header.className = 'opp-header';
+      var badge = document.createElement('div'); badge.style.cssText = 'background:#0c2340;border-radius:6px;padding:6px;display:inline-flex;align-items:center;justify-content:center;height:34px;width:34px'; badge.textContent = '🔁';
+      var titleWrap = document.createElement('div');
+      var title = document.createElement('div'); title.textContent = pairMatch ? pairMatch[1] : (txt.split('\n')[0] || 'Pair');
+      var small = document.createElement('div'); small.className='opp-small'; small.textContent = edgeMatch ? ('Edge: ' + edgeMatch[1] + '%') : '';
+      titleWrap.appendChild(title); titleWrap.appendChild(small);
+      header.appendChild(badge); header.appendChild(titleWrap);
+      card.appendChild(header);
+      if(priceMatch){ var p = document.createElement('div'); p.className='opp-line opp-price'; p.textContent = 'Price: $' + priceMatch[1]; card.appendChild(p); }
+      if(volMatch){ var v = document.createElement('div'); v.className='opp-line opp-small'; v.textContent = 'Vol: $' + volMatch[1]; card.appendChild(v); }
+      var details = document.createElement('div'); details.className='opp-line opp-meta';
+      try{ var clone = ch.cloneNode(true); details.appendChild(clone); }catch(e){ details.textContent = ch.innerText || ch.textContent || ''; }
+      card.appendChild(details);
+      return card;
+    }
+    function cardify(){
+      try{
+        if(!isMobileWidth()) return;
+        var containers = findMainOppContainers();
+        if(!containers || !containers.length) return;
+        containers.forEach(function(c){
+          if(c.getAttribute('data-cardified') === '1') return;
+          var wrapper = document.createElement('div'); wrapper.className = 'opp-cards-wrapper';
+          Array.from(c.children).forEach(function(ch){
+            var txt = (ch.textContent||'').trim();
+            if(!/\/[A-Z0-9_\-]{2,}T/i.test(txt)){ var holder = document.createElement('div'); holder.className='opp-preserve'; holder.innerHTML = ch.innerHTML; wrapper.appendChild(holder); return; }
+            try{ var card = buildCardFromElement(ch); wrapper.appendChild(card); }catch(e){ try{ var holder = document.createElement('div'); holder.innerHTML = ch.innerHTML; wrapper.appendChild(holder);}catch(_){} }
+          });
+          c.parentNode.insertBefore(wrapper, c);
+          c.style.display = 'none';
+          c.setAttribute('data-cardified','1');
+        });
+      }catch(e){ console.warn('cardify error', e); }
+    }
+    function runSafely(){ try{ cardify(); }catch(e){}; setTimeout(cardify,200); setTimeout(cardify,800); setTimeout(cardify,2000); }
+    if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', runSafely); } else { runSafely(); }
+    window.addEventListener('resize', function(){ setTimeout(cardify, 200); });
+  }catch(e){ console.warn('mobile-only-patch fatal', e); }
+})();
+</script>
+<!-- MOBILE-ONLY-PATCH: JS END -->
+
+/* MOBILE-ONLY-PATCH: END */
 </head><body>
 <div class="wrap">
   <div class="header">
@@ -3952,71 +4057,6 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
-
-<!-- START: Mobile-only opportunity-card override inserted by assistant -->
-<style>
-/* Mobile-only: mimic the detailed opportunity card layout */
-@media (max-width: 768px) {
-  /* Broad selectors to find likely card elements */
-  .opportunity, .opp-card, .opportunity-card, .op-card, .opportunities .card, .opportunityItem, [class*="opportu"] {
-    display: block !important;
-    box-sizing: border-box !important;
-    width: calc(100% - 24px) !important;
-    margin: 8px 12px !important;
-    padding: 14px !important;
-    border-radius: 12px !important;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12) !important;
-    background: #ffffff !important;
-    color: inherit !important;
-    align-items: flex-start !important;
-    flex-direction: column !important;
-    text-align: left !important;
-  }
-
-  /* Make images smaller and aligned left */
-  .opportunity img, .opp-card img, .op-card img, .opportunity .thumb, .opportunityItem img {
-    width: 64px !important;
-    height: 64px !important;
-    object-fit: cover !important;
-    border-radius: 8px !important;
-    margin-right: 12px !important;
-    float: left !important;
-  }
-
-  /* Ensure title and meta stack nicely */
-  .opportunity .title, .opp-card .title, .op-card .title, .opportunityItem .title {
-    display: block !important;
-    font-weight: 700 !important;
-    font-size: 16px !important;
-    margin: 0 0 6px 0 !important;
-  }
-
-  .opportunity .meta, .opp-card .meta, .op-card .meta, .opportunityItem .meta {
-    display: block !important;
-    font-size: 13px !important;
-    color: #666 !important;
-    margin-top: 4px !important;
-  }
-
-  /* Ensure action buttons move below content and are full-width */
-  .opportunity .actions, .opp-card .actions, .op-card .actions, .opportunityItem .actions, .opportunity .cta {
-    display: flex !important;
-    gap: 8px !important;
-    margin-top: 10px !important;
-    flex-wrap: wrap !important;
-  }
-  .opportunity .actions button, .opportunity .actions a, .opp-card .actions button, .op-card .actions button {
-    flex: 1 1 48% !important;
-    min-width: 0 !important;
-  }
-
-  /* Remove any inline grid forcing columns on mobile */
-  .opportunities, .opportunity-list, .opportunity-grid {
-    display: block !important;
-  }
-}
-</style>
-<!-- END: Mobile-only opportunity-card override inserted by assistant -->
 </body></html>"""
 
 @app.get("/chat", response_class=HTMLResponse)
