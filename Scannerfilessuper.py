@@ -3856,31 +3856,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #opps-header{ padding-left:0 !important; }
 }
 </style>
-
-    /* MOBILE-ONLY-PATCH: START */
-    <style>
-    @media (max-width:820px) {
-      /* Force Settings (.ms-btn) to match bottom-nav buttons on mobile */
-      .bottom-nav .ms-btn, .bottom-nav .navbtn, .bottom-nav .profile-btn {
-        background: rgba(15,20,36,0.9) !important;
-        border: 1px solid rgba(255,255,255,0.06) !important;
-        box-shadow: none !important;
-        position: static !important;
-        left: auto !important;
-        right: auto !important;
-        transform: none !important;
-        opacity: 1 !important;
-        height: 48px !important;
-        width: 48px !important;
-        border-radius: 10px !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-      }
-      .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35) !important; }
-    }
-    /* MOBILE-ONLY-PATCH: END */
-    </style>
 </head><body>
 <div class="wrap">
   <div class="header">
@@ -3978,53 +3953,70 @@ document.addEventListener('click', function(e) {
 </script>
 
 
-    <!-- MOBILE-ONLY-PATCH: JS START -->
-    <script>
-    (function(){
-      try{
-        function cardifyOpportunities(){
-          if(window.innerWidth > 820) return; // mobile-only
-          try{
-            var candidates = Array.from(document.querySelectorAll('body *'))
-              .filter(function(el){ try{ return el.childElementCount===0 && /\/[A-Z0-9_\-]{2,}T/.test((el.textContent||'').trim()); }catch(e){return false;} });
-            if(!candidates.length) return;
-            var parents = {};
-            candidates.forEach(function(c){ var p=c.parentElement; if(!p) return; var k = (p.tagName||'') + '|' + (p.className||'') + '|' + (p.id||''); parents[k]=parents[k]||{parent:p,items:[]}; parents[k].items.push(c); });
-            Object.keys(parents).forEach(function(k){
-              var info = parents[k]; var p = info.parent; if(info.items.length < 3) return; // likely not main list
-              var wrapper = document.createElement('div'); wrapper.className='opp-cards-wrapper';
-              Array.from(p.children).forEach(function(ch){
-                var txt = (ch.textContent||'').trim();
-                if(!/\/[A-Z0-9_\-]{2,}T/.test(txt)){ var holder=document.createElement('div'); holder.className='opp-preserve'; holder.innerHTML = ch.innerHTML; wrapper.appendChild(holder); return; }
-                var pairMatch = txt.match(/([A-Z0-9_\-]+\/[A-Z0-9_\-]+)/i);
-                var edgeMatch = txt.match(/(\d{1,2}\.\d{1,2})%/);
-                var priceMatch = txt.match(/\$\s*([0-9.,eE\-]+)/);
-                var volMatch = txt.match(/Vol[:\s]*\$?([0-9,\.]+)/i);
-                var card = document.createElement('div'); card.className='opp-card';
-                var header = '<div class="opp-header">' +
-                             '<span style="background:#0c2340;border-radius:6px;padding:6px;display:inline-flex;align-items:center;justify-content:center;height:34px;width:34px">🔁</span>' +
-                             '<div>' + (pairMatch?('<div>'+pairMatch[1]+'</div>'):('<div>Pair</div>')) +
-                             '<div class="opp-small">' + (edgeMatch?('Edge: ' + edgeMatch[1] + '%'):'') + '</div></div></div>';
-                var meta = '';
-                if(priceMatch) meta += '<div class="opp-line opp-price">Price: $' + priceMatch[1] + '</div>';
-                if(volMatch) meta += '<div class="opp-line opp-small">Vol: $' + volMatch[1] + '</div>';
-                var details = '<div class="opp-line opp-meta">' + ch.innerHTML + '</div>';
-                card.innerHTML = header + meta + details;
-                wrapper.appendChild(card);
-              });
-              p.parentNode.insertBefore(wrapper, p);
-              p.style.display = 'none';
-            });
-          }catch(e){ console.warn('mobile-opps-cardify error', e); }
-        }
-        var css = '\n<style id="mobile-opps-card-css">@media (max-width:820px) { .opp-card { background: linear-gradient(180deg, rgba(12,18,30,0.98), rgba(10,14,24,0.98)); border:1px solid rgba(255,255,255,0.04); border-radius:12px; padding:10px 12px; margin:8px; color:#e7eefc; box-shadow:0 6px 18px rgba(3,8,20,0.6); } .opp-card .opp-header{ font-weight:900; font-size:16px; display:flex; gap:8px; align-items:center; } .opp-line{ margin:6px 0; font-size:14px; } .opp-small{ font-size:12px; color:#a9c3e8; } }</style>\n';
-        if(!document.getElementById('mobile-opps-card-css')){ var el=document.createElement('div'); el.innerHTML = css; document.head.appendChild(el); }
-        document.addEventListener('DOMContentLoaded', function(){ setTimeout(cardifyOpportunities, 120); setTimeout(cardifyOpportunities, 800); setTimeout(cardifyOpportunities, 1600); });
-        if(document.readyState==='complete' || document.readyState==='interactive'){ setTimeout(cardifyOpportunities, 80); }
-      }catch(e){}
-    })();
-    </script>
-    <!-- MOBILE-ONLY-PATCH: JS END -->
+<!-- START: Mobile-only opportunity-card override inserted by assistant -->
+<style>
+/* Mobile-only: mimic the detailed opportunity card layout */
+@media (max-width: 768px) {
+  /* Broad selectors to find likely card elements */
+  .opportunity, .opp-card, .opportunity-card, .op-card, .opportunities .card, .opportunityItem, [class*="opportu"] {
+    display: block !important;
+    box-sizing: border-box !important;
+    width: calc(100% - 24px) !important;
+    margin: 8px 12px !important;
+    padding: 14px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12) !important;
+    background: #ffffff !important;
+    color: inherit !important;
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    text-align: left !important;
+  }
+
+  /* Make images smaller and aligned left */
+  .opportunity img, .opp-card img, .op-card img, .opportunity .thumb, .opportunityItem img {
+    width: 64px !important;
+    height: 64px !important;
+    object-fit: cover !important;
+    border-radius: 8px !important;
+    margin-right: 12px !important;
+    float: left !important;
+  }
+
+  /* Ensure title and meta stack nicely */
+  .opportunity .title, .opp-card .title, .op-card .title, .opportunityItem .title {
+    display: block !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    margin: 0 0 6px 0 !important;
+  }
+
+  .opportunity .meta, .opp-card .meta, .op-card .meta, .opportunityItem .meta {
+    display: block !important;
+    font-size: 13px !important;
+    color: #666 !important;
+    margin-top: 4px !important;
+  }
+
+  /* Ensure action buttons move below content and are full-width */
+  .opportunity .actions, .opp-card .actions, .op-card .actions, .opportunityItem .actions, .opportunity .cta {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
+    flex-wrap: wrap !important;
+  }
+  .opportunity .actions button, .opportunity .actions a, .opp-card .actions button, .op-card .actions button {
+    flex: 1 1 48% !important;
+    min-width: 0 !important;
+  }
+
+  /* Remove any inline grid forcing columns on mobile */
+  .opportunities, .opportunity-list, .opportunity-grid {
+    display: block !important;
+  }
+}
+</style>
+<!-- END: Mobile-only opportunity-card override inserted by assistant -->
 </body></html>"""
 
 @app.get("/chat", response_class=HTMLResponse)
