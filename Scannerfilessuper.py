@@ -3898,13 +3898,14 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 </style>
 
 
-/* === FORCE: Make opportunities card-like for ALL viewports (not scrollable) === */
-<style id="force-cardified-styles">
-  /* Hide the original table listing in favor of cards */
-  #opptable { display: none !important; }
 
-  /* Cards wrapper: vertical column, no internal scrolling */
-  .opp-cards-wrapper {
+<!-- CARDIFY: global styles to force card appearance and remove scrolling -->
+<style id="cardify-global-styles">
+  /* Hide original table visuals */
+  #opptable, .opportunities table, .opportunities thead, .opportunities tbody { display: none !important; }
+
+  /* Ensure parent containers don't limit height/scroll */
+  .opp-cards-wrapper, .opportunities, .opportunities-container, .opps-list {
     display: flex !important;
     flex-direction: column !important;
     gap: 10px !important;
@@ -3913,7 +3914,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     overflow: visible !important;
   }
 
-  /* Individual opp card visual */
   .opp-card {
     background: linear-gradient(180deg, rgba(12,18,30,0.98), rgba(10,14,24,0.98)) !important;
     border: 1px solid rgba(255,255,255,0.04) !important;
@@ -3924,12 +3924,206 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     box-shadow: 0 6px 18px rgba(3,8,20,0.45) !important;
     word-break: break-word !important;
   }
-  .opp-card .opp-header { display:flex; align-items:center; gap:8px; font-weight:800; font-size:16px; }
-  .opp-card .opp-meta { margin-top:6px; font-size:14px; color:#d6e6ff; }
   .opp-card .opp-line { margin:6px 0; font-size:14px; }
-  .opp-card .opp-price { font-weight:700; }
   .opp-card .opp-small { font-size:12px; color:#a9c3e8; }
 </style>
+
+<style id="cardify-horizontal-fix">
+  /* Prevent horizontal scrolling caused by wide table cells or flex items */
+  html, body { overflow-x: hidden !important; }
+
+  /* Wrapper must not force horizontal layout */
+  .opp-cards-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    flex-wrap: nowrap !important; /* ensure column flow stays */
+    align-items: stretch !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+
+  .opp-card {
+    width: 100% !important;
+    min-width: 0 !important; /* allows flex children to shrink */
+    box-sizing: border-box !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* Defensive styles for residual table cells */
+  table, thead, tbody, tr, td, th {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+  }
+  td, th {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* If any container uses horizontal scrolling, force vertical stacking */
+  .opportunities, .opportunities-container, .opps-list {
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+</style>
+
+
+
+<!-- CARDIFY-RUNNER: convert tables/rows into cards and observe DOM -->
+<script id="cardify-runner">
+(function(){
+  function ensureStyles(){
+    if(!document.getElementById('cardify-global-styles')){
+      var head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+      var wrapper = document.createElement('div');
+      wrapper.innerHTML = `
+<!-- CARDIFY: global styles to force card appearance and remove scrolling -->
+<style id="cardify-global-styles">
+  /* Hide original table visuals */
+  #opptable, .opportunities table, .opportunities thead, .opportunities tbody { display: none !important; }
+
+  /* Ensure parent containers don't limit height/scroll */
+  .opp-cards-wrapper, .opportunities, .opportunities-container, .opps-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 8px !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .opp-card {
+    background: linear-gradient(180deg, rgba(12,18,30,0.98), rgba(10,14,24,0.98)) !important;
+    border: 1px solid rgba(255,255,255,0.04) !important;
+    border-radius: 12px !important;
+    padding: 10px 12px !important;
+    margin: 6px 4px !important;
+    color: #e7eefc !important;
+    box-shadow: 0 6px 18px rgba(3,8,20,0.45) !important;
+    word-break: break-word !important;
+  }
+  .opp-card .opp-line { margin:6px 0; font-size:14px; }
+  .opp-card .opp-small { font-size:12px; color:#a9c3e8; }
+</style>
+`;
+      // append only the style element inside
+      var style = wrapper.querySelector('style#cardify-global-styles');
+      if(style) head.appendChild(style);
+    }
+  }
+
+  function createCardFromCells(cells){
+    var card = document.createElement('div');
+    card.className = 'opp-card';
+    for(var i=0;i<cells.length;i++){
+      var td = cells[i];
+      var line = document.createElement('div');
+      line.className = 'opp-line';
+      // preserve small text nodes like badges
+      line.innerHTML = td.innerHTML;
+      card.appendChild(line);
+    }
+    return card;
+  }
+
+  function convertTable(table){
+    try {
+      if(!table || table.dataset.__cardified) return;
+      table.dataset.__cardified = "1";
+      // find or create wrapper
+      var container = table.closest('.opportunities') || table.parentNode || document.body;
+      var wrapper = container.querySelector('.opp-cards-wrapper');
+      if(!wrapper){
+        wrapper = document.createElement('div');
+        wrapper.className = 'opp-cards-wrapper';
+        // insert wrapper before the table so it occupies similar place
+        container.insertBefore(wrapper, table);
+      }
+      // get all meaningful rows (ignore header rows)
+      var rows = Array.from(table.querySelectorAll('tr')).filter(function(r){
+        // exclude header cells
+        return r.querySelectorAll('td').length > 0;
+      });
+      if(rows.length === 0){
+        // if table has no tr>td, but has tbody>tr patterns, fallback
+        rows = Array.from(table.querySelectorAll('tbody tr'));
+      }
+      rows.forEach(function(r){
+        var tds = Array.from(r.querySelectorAll('td'));
+        if(tds.length === 0){
+          // if row has no td, use row text
+          var card = document.createElement('div');
+          card.className = 'opp-card';
+          card.innerHTML = r.innerHTML || r.textContent || '';
+          wrapper.appendChild(card);
+        } else {
+          var card = createCardFromCells(tds);
+          wrapper.appendChild(card);
+        }
+        // remove row
+        if(r.parentNode) r.parentNode.removeChild(r);
+      });
+      // finally remove the table element to avoid fallback visuals
+      if(table.parentNode) table.parentNode.removeChild(table);
+    } catch(e){
+      console && console.warn && console.warn('cardify convertTable error', e);
+    }
+  }
+
+  function findAndConvertAll(){
+    ensureStyles();
+    // heuristics: tables with ids or classes mentioning 'opp','oppor','opportunities','oppts'
+    var candidates = Array.from(document.querySelectorAll('table'));
+    candidates.forEach(function(tbl){
+      var id = (tbl.id||'').toLowerCase();
+      var cls = (tbl.className||'').toLowerCase();
+      var html = (tbl.outerHTML||'').toLowerCase();
+      if(id.indexOf('opp') !== -1 || cls.indexOf('opp') !== -1 || html.indexOf('opport') !== -1 || tbl.closest('.opportunities') || tbl.closest('#opptable')){
+        convertTable(tbl);
+      }
+    });
+
+    // also convert any residual rows that might exist outside table tags
+    var residualRows = Array.from(document.querySelectorAll('.opp-row, .op-row, .opportunity-row'));
+    residualRows.forEach(function(r){
+      var wrapper = r.closest('.opp-cards-wrapper') || document.querySelector('.opp-cards-wrapper') || (function(){ var w=document.createElement('div'); w.className='opp-cards-wrapper'; document.body.appendChild(w); return w; })();
+      var card = document.createElement('div');
+      card.className='opp-card';
+      card.innerHTML = r.innerHTML || r.textContent || '';
+      wrapper.appendChild(card);
+      if(r.parentNode) r.parentNode.removeChild(r);
+    });
+  }
+
+  // initial run
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ findAndConvertAll(); });
+  } else {
+    findAndConvertAll();
+  }
+
+  // observe mutations and re-run conversion if new tables appear
+  var obs = new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      if(m.addedNodes && m.addedNodes.length){
+        var needs = false;
+        for(var i=0;i<m.addedNodes.length;i++){
+          var n = m.addedNodes[i];
+          if(n && (n.nodeType===1) && (n.matches && n.matches('table') || n.querySelector && (n.querySelector('table') || n.querySelector('.opp-row')))){
+            needs = true; break;
+          }
+        }
+        if(needs) setTimeout(findAndConvertAll, 50);
+      }
+    });
+  });
+  obs.observe(document.documentElement || document.body, { childList:true, subtree:true });
+
+})();
+</script>
 
 <!-- MOBILE-ONLY-PATCH: JS START -->
 <script id="mobile-only-patch-js">
