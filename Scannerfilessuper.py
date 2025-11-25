@@ -3897,6 +3897,40 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 }
 </style>
 
+
+/* === FORCE: Make opportunities card-like for ALL viewports (not scrollable) === */
+<style id="force-cardified-styles">
+  /* Hide the original table listing in favor of cards */
+  #opptable { display: none !important; }
+
+  /* Cards wrapper: vertical column, no internal scrolling */
+  .opp-cards-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 8px !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Individual opp card visual */
+  .opp-card {
+    background: linear-gradient(180deg, rgba(12,18,30,0.98), rgba(10,14,24,0.98)) !important;
+    border: 1px solid rgba(255,255,255,0.04) !important;
+    border-radius: 12px !important;
+    padding: 10px 12px !important;
+    margin: 6px 4px !important;
+    color: #e7eefc !important;
+    box-shadow: 0 6px 18px rgba(3,8,20,0.45) !important;
+    word-break: break-word !important;
+  }
+  .opp-card .opp-header { display:flex; align-items:center; gap:8px; font-weight:800; font-size:16px; }
+  .opp-card .opp-meta { margin-top:6px; font-size:14px; color:#d6e6ff; }
+  .opp-card .opp-line { margin:6px 0; font-size:14px; }
+  .opp-card .opp-price { font-weight:700; }
+  .opp-card .opp-small { font-size:12px; color:#a9c3e8; }
+</style>
+
 <!-- MOBILE-ONLY-PATCH: JS START -->
 <script id="mobile-only-patch-js">
 (function(){
@@ -3935,7 +3969,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     }
     function cardify(){
       try{
-        if(!isMobileWidth()) return;
         var containers = findMainOppContainers();
         if(!containers || !containers.length) return;
         containers.forEach(function(c){
