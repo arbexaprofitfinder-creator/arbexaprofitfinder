@@ -37,22 +37,51 @@ SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", os.getenv("SU
 _sb_queue = _deque(maxlen=2000)   # simple in-memory queue
 _sb_last_post_err = None
 
-/rest/v1/{",
+def _sb_post_rows(table: str, rows: list):
+    """Insert rows via Supabase PostgREST. Uses service role key so it bypasses RLS.
+    Safe no-op if env vars are missing.
+    """
+    global _sb_last_post_err
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY or not rows:
+        return False
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/{table}"
+        hdrs = {
+            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
             "Content-Type": "application/json",
             "Prefer": "return=minimal"
         }
         r = requests.post(url, headers=hdrs, data=_json.dumps(rows), timeout=10)
         if r.status_code >= 300:
-            _sb_last_post_err = f"SB insert {: {r.text[:200]}"
+            _sb_last_post_err = f"SB insert {table} HTTP {r.status_code}: {r.text[:200]}"
             print("[supabase]", _sb_last_post_err)
             return False
         return True
     except Exception as e:
-        _sb_last_post_err = f"SB insert {: {e}"
+        _sb_last_post_err = f"SB insert {table} error: {type(e).__name__}: {e}"
         print("[supabase]", _sb_last_post_err)
         return False
 
-/rest/v1/{"
+def _sb_enqueue(table: str, row: dict):
+    # keep tiny & safe
+    try:
+        _sb_queue.append((table, row))
+    except Exception as _e:
+        print("[supabase] enqueue error:", _e)
+
+
+def _sb_upsert(table: str, rows: list, on_conflict: str | None = None):
+    """Upsert rows via PostgREST using resolution=merge-duplicates.
+    If on_conflict is provided, adds ?on_conflict=col to the endpoint.
+    """
+    global _sb_last_post_err
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY or not rows:
+        return False
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/{table}"
+        if on_conflict:
+            url += f"?on_conflict={on_conflict}"
         hdrs = {
             "apikey": SUPABASE_SERVICE_ROLE_KEY,
             "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
@@ -61,12 +90,12 @@ _sb_last_post_err = None
         }
         r = requests.post(url, headers=hdrs, data=_json.dumps(rows), timeout=10)
         if r.status_code >= 300:
-            _sb_last_post_err = f"SB upsert {: {r.text[:200]}"
+            _sb_last_post_err = f"SB upsert {table} HTTP {r.status_code}: {r.text[:200]}"
             print("[supabase]", _sb_last_post_err)
             return False
         return True
     except Exception as e:
-        _sb_last_post_err = f"SB upsert {: {e}"
+        _sb_last_post_err = f"SB upsert {table} error: {type(e).__name__}: {e}"
         print("[supabase]", _sb_last_post_err)
         return False
 
@@ -74,7 +103,8 @@ _sb_last_post_err = None
 def _sb_flush(max_batch=100):
     if not _sb_queue:
         return
-
+    # batch by table
+    batches = {}
     try:
         while _sb_queue and max_batch>0:
             tbl, row = _sb_queue.popleft()
@@ -87,7 +117,34 @@ def _sb_flush(max_batch=100):
 
 
 # --- tiny helpers for mirroring into Supabase ---
-",
+def _sb_enqueue_and_post(table: str, row: dict):
+    """Enqueue a single row AND try to post immediately.
+    Keeps your current queue semantics, but also best-effort posts right now.
+    Safe no-op if Supabase env is missing.
+    """
+    try:
+        _sb_enqueue(table, row)
+        # fire-and-forget best-effort direct post (single-row list)
+        try:
+            _sb_post_rows(table, [row])
+        except Exception as e:
+            # swallow; periodic flusher will retry
+            print("[supabase] enqueue_and_post error:", e)
+    except Exception as e:
+        print("[supabase] enqueue_and_post failed:", e)
+
+def _sb_get_profile_id(email: str) -> str | None:
+    """Resolve Supabase PROFILES.id (UUID) for a given email.
+    Tries both quoted-uppercase and lowercase table names to match your DB.
+    Returns UUID string or None.
+    """
+    try:
+        if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY or not email:
+            return None
+        base = SUPABASE_URL.rstrip("/") + "/rest/v1/"
+        hdrs = {
+            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
             "Accept": "application/json",
         }
         for tbl in ("PROFILES", "profiles"):
@@ -102,7 +159,33 @@ def _sb_flush(max_batch=100):
                     rid = arr[0].get("id") or arr[0].get("ID") or arr[0].get("Id")
                     if rid:
                         return str(rid)
-",
+            # if 404 for this table name, try the other name
+        return None
+    except Exception as e:
+        print("[supabase] get_profile_id error:", e)
+        return None
+
+
+# ---------- SETTINGS helpers ----------
+def _sb_get_or_create_profile_id(email: str, username: str):
+    """
+    Ensure a PROFILES row exists for the given email, and return its id.
+    """
+    try:
+        pid = _sb_get_profile_id(email=email)
+        if pid:
+            return pid
+    except Exception as _e:
+        print("[supabase] lookup profile error:", _e)
+
+    if not (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY):
+        return None
+
+    try:
+        url = SUPABASE_URL.rstrip("/") + "/rest/v1/PROFILES"
+        hdrs = {
+            "apikey": SUPABASE_SERVICE_ROLE_KEY,
+            "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
             "Prefer": "return=representation",
             "Content-Type": "application/json",
             "Accept": "application/json",
@@ -177,7 +260,10 @@ def _ensure_username_column():
             cols = conn.execute(text("PRAGMA table_info('users')")).fetchall()
             have = any((c[1] == "username") for c in cols)
             if not have:
-")
+                conn.execute(text("ALTER TABLE users ADD COLUMN username VARCHAR(64)"))
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_unique ON users(username)"))
+    except Exception as e:
+        print(f"[migrate] username column check/add failed: {e}")
 
 def _ensure_public_id_column():
     try:
@@ -187,7 +273,10 @@ def _ensure_public_id_column():
             cols = conn.execute(text("PRAGMA table_info('users')")).fetchall()
             have = any((c[1] == "public_id") for c in cols)
             if not have:
-")
+                conn.execute(text("ALTER TABLE users ADD COLUMN public_id INTEGER"))
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_public_id_unique ON users(public_id)"))
+    except Exception as e:
+        print(f"[migrate] public_id column check/add failed: {e}")
 
 def _ensure_recovery_columns():
     try:
@@ -197,7 +286,10 @@ def _ensure_recovery_columns():
             cols = conn.execute(text("PRAGMA table_info('users')")).fetchall()
             have = any((c[1] == "recovery_sha") for c in cols)
             if not have:
-")
+                conn.execute(text("ALTER TABLE users ADD COLUMN recovery_sha VARCHAR(64)"))
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_recovery_sha_unique ON users(recovery_sha)"))
+    except Exception as e:
+        print(f"[migrate] recovery column check/add failed: {e}")
 
 _ensure_username_column()
 _ensure_public_id_column()
@@ -213,7 +305,30 @@ class Message(Base):
     text = Column(String(2000), nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow, index=True)
 
+# Ensure messages table exists
+Base.metadata.create_all(bind=engine)
 
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def hash_pw(p: str) -> str:
+    return pwd_ctx.hash(p)
+
+def verify_pw(p: str, h: str) -> bool:
+    return pwd_ctx.verify(p, h)
+
+def sha256_hex(s: str) -> str:
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()
+
+def make_token(user_id: int, email: str) -> str:
+    now = int(time.time())
+    payload = {"sub": str(user_id), "email": email, "iat": now, "exp": now + JWT_EXPIRE_MINUTES * 60}
     return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
 def decode_token(token: str) -> dict:
@@ -873,7 +988,7 @@ a{color:var(--acc);text-decoration:none}
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
   /* Tables scroll horizontally on narrow screens */
-
+  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
   th, td { white-space: nowrap; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
@@ -942,7 +1057,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   <div class="header">
     <div class="brand">
       <img src="/brandlogo" alt="Arbexa">
-      <div style="">Go Pro</div>
+      <div style="font-weight:900;letter-spacing:.6px">Go Pro</div>
     </div>
     <a class="back" href="/opps" aria-label="Back to opportunities">Back →</a>
   </div>
@@ -1057,102 +1172,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
-
-
-<!-- ONLY-CARDS: enforce card-only visuals and remove any non-card nodes in opportunity containers -->
-<style id="only-cards-styles">
-  html, body { overflow-x: hidden !important; }
-  .opportunities > *:not(.opp-cards-wrapper),
-  .opportunities-container > *:not(.opp-cards-wrapper),
-  .opps-list > *:not(.opp-cards-wrapper) {
-    display: none !important;
-    visibility: hidden !important;
-  }
-  .opp-cards-wrapper {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px !important;
-    padding: 8px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    overflow: visible !important;
-  }
-  .opp-card {
-    width: 100% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
-    white-space: normal !important;
-    overflow-wrap: anywhere !important;
-    word-break: break-word !important;
-    margin: 6px 0 !important;
-  }
-  /* Hide any table visuals globally (defensive) */
-  table, thead, tbody, tr, td, th { display:none !important; visibility:hidden !important; width:0 !important; height:0 !important; margin:0 !important; padding:0 !important; }
-</style>
-
-<script id="only-cards-runner">
-(function(){
-  function enforceOnlyCardsIn(container){
-    try {
-      if(!container) return;
-      container.style.overflowX = 'hidden';
-      // remove any table elements inside container
-      Array.from(container.querySelectorAll('table, thead, tbody, tr, td, th, .table')).forEach(function(t){ try{ t.remove(); }catch(e){} });
-      // ensure wrapper exists
-      var wrapper = container.querySelector('.opp-cards-wrapper');
-      if(!wrapper){
-        wrapper = document.createElement('div');
-        wrapper.className = 'opp-cards-wrapper';
-        container.insertBefore(wrapper, container.firstChild);
-      }
-      // convert common row-like candidates into cards
-      var candidates = Array.from(container.querySelectorAll('.opp-row, .op-row, .opportunity-row, .row, [data-opp-row]'));
-      candidates.forEach(function(r){
-        if(!r || r.closest('.opp-cards-wrapper')) return;
-        var card = document.createElement('div');
-        card.className = 'opp-card';
-        card.innerHTML = r.innerHTML || r.textContent || '';
-        wrapper.appendChild(card);
-        try{ r.remove(); }catch(e){}
-      });
-      // remove any direct non-wrapper children
-      Array.from(container.children).forEach(function(ch){
-        if(!ch || ch === wrapper) return;
-        if(ch.classList && ch.classList.contains('opp-cards-wrapper')) return;
-        try{ ch.remove(); }catch(e){}
-      });
-    } catch(e){
-      console && console.warn && console.warn('only-cards enforce error', e);
-    }
-  }
-  function runAll(){
-    var selectors = ['.opportunities', '.opportunities-container', '.opps-list'];
-    selectors.forEach(function(sel){
-      var nodes = document.querySelectorAll(sel);
-      nodes.forEach(function(n){ enforceOnlyCardsIn(n); });
-    });
-    // Also enforce on parent of #opptable if present
-    var table = document.getElementById('opptable');
-    if(table && table.parentNode) enforceOnlyCardsIn(table.parentNode);
-  }
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(runAll,50); });
-  } else {
-    setTimeout(runAll,50);
-  }
-  var obs = new MutationObserver(function(muts){
-    var added = false;
-    for(var i=0;i<muts.length;i++){
-      if(muts[i].addedNodes && muts[i].addedNodes.length){ added = true; break; }
-    }
-    if(added) setTimeout(runAll,80);
-  });
-  obs.observe(document.documentElement || document.body, { childList:true, subtree:true });
-  window.__enforceOnlyCards = runAll;
-})();
-</script>
-
 </body></html>"""
 
 LOGIN_HTML = """<!doctype html><html lang="en"><head>
@@ -1211,7 +1230,7 @@ LOGIN_HTML = """<!doctype html><html lang="en"><head>
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
   /* Tables scroll horizontally on narrow screens */
-
+  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
   th, td { white-space: nowrap; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
@@ -1256,7 +1275,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
       <div class="row"><button id="btnLogin" class="btn primary">LOGIN</button></div>
       <div class="small italic"><a id="linkForgot" class="link">Forgot password?</a></div>
       <div class="help">If you haven’t registered, <a id="linkToSignup" class="link">sign up here</a>.</div>
-      <div class="small italic" style="">Having Issues Signing In Or Signing Up? Click <a href="https://t.me/ArbexaProfitFinderSupport" target="_blank" rel="noopener" class="link" style="">SUPPORT</a></div>
+      <div class="small italic" style="color:#22c55e;margin-top:10px">Having Issues Signing In Or Signing Up? Click <a href="https://t.me/ArbexaProfitFinderSupport" target="_blank" rel="noopener" class="link" style="color:#22c55e;font-weight:700">SUPPORT</a></div>
       <div class="notice">Note: Only GMAIL addresses are allowed for now.</div>
     </div>
 
@@ -1270,7 +1289,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
       <div class="small">This is your <strong>only recovery phrase</strong> to change your password. Keep it safe. Without it, your account cannot be recovered.</div>
       <div class="row"><button id="btnSignup" class="btn primary">SIGN UP</button></div>
       <div class="help">Have an account? <a id="linkToLogin" class="link">log in</a>.</div>
-      <div class="small italic" style="">Having Issues Signing In Or Signing Up? Click <a href="https://t.me/ArbexaProfitFinderSupport" target="_blank" rel="noopener" class="link" style="">SUPPORT</a></div>
+      <div class="small italic" style="color:#22c55e;margin-top:10px">Having Issues Signing In Or Signing Up? Click <a href="https://t.me/ArbexaProfitFinderSupport" target="_blank" rel="noopener" class="link" style="color:#22c55e;font-weight:700">SUPPORT</a></div>
     </div>
 
     <!-- RESET VIEW -->
@@ -1573,7 +1592,7 @@ a{color:var(--acc);text-decoration:none}
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
   /* Tables scroll horizontally on narrow screens */
-
+  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
   th, td { white-space: nowrap; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
@@ -1605,10 +1624,10 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 
 <section class="hero">
   <div class="fade">
-    <div class="chip" style="">
-      <span>🔎 Spot Arbitrage Scanner</span><span style="">•</span><span>Multi-exchange</span><span style="">•</span><span>Orderbooks ×15</span>
+    <div class="chip" style="display:inline-flex;gap:8px;align-items:center;background:#0e1a35;border:1px solid #23345f;padding:6px 10px;border-radius:999px">
+      <span>🔎 Spot Arbitrage Scanner</span><span style="opacity:.6">•</span><span>Multi-exchange</span><span style="opacity:.6">•</span><span>Orderbooks ×15</span>
     </div>
-    <h1 class="h1">Cryptocurrency Arbitrage <span style="">Made Easy</span></h1>
+    <h1 class="h1">Cryptocurrency Arbitrage <span style="color:var(--acc)">Made Easy</span></h1>
     <p class="p">Arbexa scans leading spot exchanges in real-time, surfaces buy/sell gaps, shows depth-aware liquidity and suggests sensible trade sizes — no API keys required to view.</p>
     <div class="cta">
       <a class="btn primary" href="/login">Get started — Sign up / Login</a>
@@ -1631,7 +1650,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 </section>
 
 <section class="sec fade" id="exchanges">
-  <h3 style="">Supported exchanges</h3>
+  <h3 style="margin:0 0 10px">Supported exchanges</h3>
   <div class="logos" id="logos"><div class="logo pulse">Loading…</div></div>
   
 </section>
@@ -1643,12 +1662,12 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
       <div>1) Buy on the cheaper exchange.</div>
       <div>2) Transfer on a fast, low-fee network (e.g. TRC20/BEP20).</div>
       <div>3) Sell on the higher-priced exchange.</div>
-      <div class="small" style="">Full walkthrough in the <a href="https://www.dropbox.com/scl/fi/paqtorxp2q2couih5z5vs/Guide-All-You-Need-To-Know-From-ArbexaProfitFinder.pdf?dl=0" target="_blank" rel="noopener">Guide</a>.</div>
+      <div class="small" style="opacity:.9">Full walkthrough in the <a href="https://www.dropbox.com/scl/fi/paqtorxp2q2couih5z5vs/Guide-All-You-Need-To-Know-From-ArbexaProfitFinder.pdf?dl=0" target="_blank" rel="noopener">Guide</a>.</div>
     </div>
   </div>
   <div class="box">
     <h3>Why Arbexa</h3>
-    <ul class="small" style="">
+    <ul class="small" style="margin:10px 0 0 25px">
       <li>Real-time scanner across popular spot markets</li>
       <li>Depth-aware liquidity &amp; suggested size</li>
       <li>No API keys to view opportunities</li>
@@ -1657,7 +1676,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   </div>
   <div class="box">
     <h3>Stay updated</h3>
-    <p class="small" style="">Follow our socials for the latest updates and join the Telegram Channel &amp; Chat to get the best of Arbexa and connect with other users.</p>
+    <p class="small" style="margin-top:6px">Follow our socials for the latest updates and join the Telegram Channel &amp; Chat to get the best of Arbexa and connect with other users.</p>
     <div class="socials">
       <a class="sicon" target="_blank" rel="noopener" href="https://x.com/arbexascanner?s=21"><img alt="X" src="https://logo.clearbit.com/x.com"></a>
       <a class="sicon" target="_blank" rel="noopener" href="https://www.youtube.com/@ArbexaProfitFinder"><img alt="YouTube" src="https://logo.clearbit.com/youtube.com"></a>
@@ -1670,16 +1689,16 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 </section>
 
 <section class="sec fade" id="pricing">
-  <h3 style="">Pricing</h3>
+  <h3 style="margin:0 0 10px">Pricing</h3>
   <div class="pricing">
     <div class="plan"><div class="t">Weekly</div><div class="p">$10</div><a class="btn" href="/login">Get Started</a></div>
     <div class="plan"><div class="t">Monthly</div><div class="p">$20</div><a class="btn" href="/login">Get Started</a></div>
-    <div class="plan"><div class="t">3 Months</div><div class="p">$55 <span class="small" style="">(~8% off)</span></div><a class="btn" href="/login">Get Started</a></div>
-    <div class="plan"><div class="t">6 Months</div><div class="p">$100 <span class="small" style="">(~17% off • $16.7/mo)</span></div><a class="btn" href="/login">Get Started</a></div>
-    <div class="plan rec"><div class="t">Yearly</div><div class="p">$180 <span class="small" style="">(Recommended • $15/mo)</span></div><a class="btn primary" href="/login">Get Started</a></div>
-    <div class="plan"><div class="t">3 Years</div><div class="p">$450 <span class="small" style="">(~38% off • $12.5/mo)</span></div><a class="btn" href="/login">Get Started</a></div>
+    <div class="plan"><div class="t">3 Months</div><div class="p">$55 <span class="small" style="opacity:.8">(~8% off)</span></div><a class="btn" href="/login">Get Started</a></div>
+    <div class="plan"><div class="t">6 Months</div><div class="p">$100 <span class="small" style="opacity:.8">(~17% off • $16.7/mo)</span></div><a class="btn" href="/login">Get Started</a></div>
+    <div class="plan rec"><div class="t">Yearly</div><div class="p">$180 <span class="small" style="opacity:.8">(Recommended • $15/mo)</span></div><a class="btn primary" href="/login">Get Started</a></div>
+    <div class="plan"><div class="t">3 Years</div><div class="p">$450 <span class="small" style="opacity:.8">(~38% off • $12.5/mo)</span></div><a class="btn" href="/login">Get Started</a></div>
   </div>
-  <div class="small cons" style="">By signing up, you agree to our
+  <div class="small cons" style="margin-top:10px">By signing up, you agree to our
     <a href="https://www.dropbox.com/scl/fi/aw3wca53knh4n89m8t2ec/Arbexa_Terms_And_Conditions_And-Privacy-Policy.pdf?dl=0" target="_blank" rel="noopener">Terms &amp; Conditions</a>
     and <a href="https://www.dropbox.com/scl/fi/aw3wca53knh4n89m8t2ec/Arbexa_Terms_And_Conditions_And-Privacy-Policy.pdf?dl=0" target="_blank" rel="noopener">Privacy Policy</a>.
   </div>
@@ -1748,12 +1767,12 @@ def login_page():
     return HTMLResponse(LOGIN_HTML)
 
 LOGO_SVG = """
-<svg xmlns="http://www.w3.org/2000/svg" height="40" viewBox="0 0 520 80">
+<svg xmlns="http://www.w3.org/2000/svg" width="260" height="40" viewBox="0 0 520 80">
   <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2bd576"/><stop offset="1" stop-color="#1e78ff"/></linearGradient></defs>
-  <rect height="100%" fill="none"/>
+  <rect width="100%" height="100%" fill="none"/>
   <path d="M20,60 L70,20 L110,50 L150,18" stroke="url(#g)" stroke-width="10" fill="none" stroke-linecap="round"/>
   <text x="166" y="52" font-size="34" font-family="Segoe UI, Arial, sans-serif" fill="#e7eefc" font-weight="700">Arbexa</text>
-  <rect x="165" y="58" rx="6" ry="6" height="20" fill="#0e1a35" stroke="#26345e" stroke-width="1"/>
+  <rect x="165" y="58" rx="6" ry="6" width="330" height="20" fill="#0e1a35" stroke="#26345e" stroke-width="1"/>
   <text x="172" y="73" font-size="14" font-family="Segoe UI, Arial, sans-serif" fill="#2bd576" letter-spacing="1.2">ARBEXAPROFITFINDER.COM</text>
 </svg>
 """.strip()
@@ -1970,14 +1989,14 @@ def brandlogo():
 @app.get("/static/logo-coinex.svg")
 def logo_coinex():
     svg = """
-<svg xmlns="http://www.w3.org/2000/svg" height="256" viewBox="0 0 256 256">
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
   <defs>
     <linearGradient id="cxg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#09C372"/>
       <stop offset="1" stop-color="#00A6C8"/>
     </linearGradient>
   </defs>
-  <rect height="256" rx="48" fill="#0b1220"/>
+  <rect width="256" height="256" rx="48" fill="#0b1220"/>
   <g transform="translate(28,28)">
     <circle cx="100" cy="100" r="96" fill="none" stroke="url(#cxg)" stroke-width="24"/>
     <path d="M160 74a54 54 0 1 0 0 52" fill="none" stroke="url(#cxg)" stroke-width="24" stroke-linecap="round"/>
@@ -2087,7 +2106,7 @@ header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,#0b1220
 .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px}
 .filters .block{background:var(--card);border:1px solid #182241;padding:8px 10px;border-radius:12px;display:flex;gap:8px;align-items:center}
 #tblwrap{padding:8px 10px 18px}
-
+table{width:100%;border-collapse:separate;border-spacing:0 10px}
 thead th{text-align:left;font-size:12px;color:var(--muted);padding:0 10px}
 tbody tr{background:var(--card);border:1px solid #1a2547}
 tbody td{padding:12px 10px;vertical-align:top;border-top:1px solid #1a2547;border-bottom:1px solid #1a2547}
@@ -2106,7 +2125,7 @@ tbody td:last-child{border-right:1px solid #1a2547;border-top-right-radius:14px;
 .obtbl td:nth-child(3){ color:#e7eefc; }
 footer{color:#8ea3c8;font-size:12px;padding:6px 12px 18px}
 .grid-cards{display:none}
-@media(max-width:920px){.grid-cards{display:grid;gap:10px;padding:10px;grid-template-columns:1fr}.card{background:var(--card);border:1px solid #1a2547;border-radius:16px;padding:10px}.card h3{margin:4px 0 8px;font-size:16px}.kv{gap:6px 10px;font-size:13px}}
+@media(max-width:920px){table{display:none}.grid-cards{display:grid;gap:10px;padding:10px;grid-template-columns:1fr}.card{background:var(--card);border:1px solid #1a2547;border-radius:16px;padding:10px}.card h3{margin:4px 0 8px;font-size:16px}.kv{gap:6px 10px;font-size:13px}}
 .cell-ob .stack details+details{margin-top:6px}
 .disc{color:#cfe0ff}.disc ul{margin:8px 0 0 0; padding-left:18px}.disc li{margin:4px 0}
 .tradecontent{ max-width:460px; max-height:60vh; overflow:auto; padding-right:6px;}
@@ -2189,7 +2208,8 @@ img.exlogo{width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-
   .free-banner{ margin:10px 12px 0 12px; }
   .dash-tip{ margin:8px 12px; }
 
- /* leave space above bottom nav */
+  /* Reserve large middle area for opportunities (table/cards) */
+  #tblwrap{ padding-bottom:90px; } /* leave space above bottom nav */
 
   /* Bottom nav bar */
   .bottom-nav{ position:fixed; left:0; right:0; bottom:0; height:58px; background:#0d152a; border-top:1px solid #1a2547; display:flex; align-items:center; justify-content:space-around; z-index:80; }
@@ -2222,7 +2242,7 @@ img.exlogo{width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
   /* Tables scroll horizontally on narrow screens */
-
+  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
   th, td { white-space: nowrap; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
@@ -2318,17 +2338,17 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
             <div>
               <div class="set-filters">
                 <div class="block"><button id="soundToggle" class="btnpdf" type="button" aria-pressed="true">🔊 Sound: ON</button></div>
-                <div class="block"><span>📈 Edge %</span><input id="minEdge" type="number" step="0.1" value="1" style=""><span>–</span><input id="maxEdge" type="number" step="0.1" value="25" style=""></div>
-                <div class="block"><span>🔎 Pair</span><input id="q" placeholder="e.g. BTC/USDT" style=""></div>
-                <div class="block"><span>💧 Min $24h Vol</span><input id="minVol" type="number" step="1000" value="0" style=""></div>
-                <div class="block"><span>🧪 Min Liquidity</span><input id="minLiq" type="number" min="0" max="100" step="1" value="0" style=""></div>
-                <div class="block"><span>💡 Trade Size $</span><input id="tsMin" type="number" step="1" placeholder="100" style=""><span>–</span><input id="tsMax" type="number" step="1" placeholder="6500" style=""></div>
+                <div class="block"><span>📈 Edge %</span><input id="minEdge" type="number" step="0.1" value="1" style="width:70px"><span>–</span><input id="maxEdge" type="number" step="0.1" value="25" style="width:70px"></div>
+                <div class="block"><span>🔎 Pair</span><input id="q" placeholder="e.g. BTC/USDT" style="width:160px"></div>
+                <div class="block"><span>💧 Min $24h Vol</span><input id="minVol" type="number" step="1000" value="0" style="width:120px"></div>
+                <div class="block"><span>🧪 Min Liquidity</span><input id="minLiq" type="number" min="0" max="100" step="1" value="0" style="width:70px"></div>
+                <div class="block"><span>💡 Trade Size $</span><input id="tsMin" type="number" step="1" placeholder="100" style="width:90px"><span>–</span><input id="tsMax" type="number" step="1" placeholder="6500" style="width:90px"></div>
               </div>
               <div class="set-ex">
                 <h4>🏦 Exchanges</h4>
                 <div class="exgrid">
-                  
-                  
+                  <table class="extable" id="extable1"></table>
+                  <table class="extable" id="extable2"></table>
                 </div>
                 <div class="ex-toolbar">
                   <button type="button" id="exAll" class="btnpdf">Select All</button>
@@ -2358,7 +2378,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
             <summary class="btnpdf">T&amp;C ▾</summary>
             <div class="menu-list">
               <a id="tncLink" href="https://www.dropbox.com/scl/fi/aw3wca53knh4n89m8t2ec/Arbexa_Terms_And_Conditions_And-Privacy-Policy.pdf?dl=0" target="_blank" rel="noopener">📄 Terms &amp; Conditions / Privacy Policy</a>
-              <div style=""><button id="agreeBtn" class="btnpdf" type="button">Agreed?</button></div>
+              <div style="padding:6px 8px"><button id="agreeBtn" class="btnpdf" type="button">Agreed?</button></div>
             </div>
           </details>
         </div>
@@ -2372,15 +2392,15 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
       <!-- Profile dropdown -->
       <details id="profileDD">
         <summary class="btnpdf" title="Profile">👤 Profile ▾</summary>
-        <div id="profileCard" class="menu-panel" style="">
-          <div style="">Loading…</div>
+        <div id="profileCard" class="menu-panel" style="max-width:420px; padding:12px">
+          <div style="color:#9fb2d9">Loading…</div>
         </div>
       </details>
 
       <div class="auth-anchor">
         <button id="btnSignup" class="auth-btn" type="button" title="Create account">Sign up</button>
         <button id="btnLogin"  class="auth-btn primary" type="button" title="Login">Log in</button>
-        <button id="btnLogout" class="auth-btn" type="button" title="Logout" style="">Log out</button>
+        <button id="btnLogout" class="auth-btn" type="button" title="Logout" style="display:none">Log out</button>
       </div>
     </div>
   </div>
@@ -2388,7 +2408,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   <details id="infoDD" class="info-dropdown">
   <summary class="btnpdf" title="Info">Info ▾</summary>
   <div class="info-panel">
-    <a id="extDoc" class="btnpdf" href="#" target="_blank" rel="noopener" style=""></a>
+    <a id="extDoc" class="btnpdf" href="#" target="_blank" rel="noopener" style="display:none"></a>
     <details id="tradeDD">
       <summary class="btnpdf">Trade Details ▾</summary>
       <div class="tradecontent" id="tradeContent"></div>
@@ -2433,7 +2453,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 <div id="cpModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cpTitle">
   <div class="box">
     <p id="cpTitle">Change Password</p>
-    <div style="">
+    <div style="display:grid;gap:8px;margin:8px 0">
       <input id="cpCur" type="password" placeholder="Current password">
       <input id="cpNew" type="password" placeholder="New password (min 6)">
       <input id="cpNew2" type="password" placeholder="Confirm new password">
@@ -2445,13 +2465,24 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   </div>
 </div>
 <div id="tblwrap">
-  Edge% 📈Buy @ 🛒Sell @ 💸
-      $24h Vol (Buy/Sell) 💧
-      Liquidity score 🧪
-      Suggest Size 💡Example Profit 🤑Price ($)Best Ask 🔼Best Bid 🔽Details 📚
-    
+  <table id="opptable">
+    <thead><tr>
+      <th>Pair 🔁</th><th>Edge% 📈</th><th>Buy @ 🛒</th><th>Sell @ 💸</th>
+      <th>$24h Vol (Buy/Sell) 💧</th>
+      <th title="Higher score reflects stronger 24h volume and tighter order-book depth near the top price.">Liquidity score 🧪</th>
+      <th>Suggest Size 💡</th><th>Example Profit 🤑</th><th>Price ($)</th><th>Best Ask 🔼</th><th>Best Bid 🔽</th><th>Details 📚</th>
+    </tr></thead>
     <tbody></tbody>
+  </table>
+  <div class="grid-cards" id="cards"></div>
+</div>
 
+<footer><div class="kv"><div>⏱️ Auto-refresh: every 10s</div><div>⚠️ Examples only; fees, latency and slippage apply.</div></div></footer>
+
+<script>
+try{
+  const _t = localStorage.getItem('arbexa_token');
+  if(!_t){ location.replace('/'); }
 }catch(_){ location.replace('/'); }
 
 const SOUND_KEY='arbexa_sound';
@@ -2516,7 +2547,7 @@ function disclaimerHTML(){return `<div class="disc"><div><strong>Disclaimer‼</
 <li>Trading fee at the buy exchange. (Spot — usually 0.1–0.4%)</li>
 <li>Withdrawal/Network Fee from buy exchange. (Confirm at exchange)</li>
 <li>Trading fee at the sell exchange. (Spot — usually 0.1–0.4%)</li>
-</ul><div style=""><em>We do not provide guaranteed profit, we only help you spot opportunities, and how to utilize them.</em></div></div>`;}
+</ul><div style="margin-top:6px;"><em>We do not provide guaranteed profit, we only help you spot opportunities, and how to utilize them.</em></div></div>`;}
 const FORCE_TRADE_TEXT=disclaimerHTML();
 function renderTradeDetails(){const box=qs('#tradeContent'); if(box) box.innerHTML=FORCE_TRADE_TEXT;}
 
@@ -2654,10 +2685,10 @@ function wireDDSave(){
 }
 
 function obTable(title, rows, isAsks){
-  if(!rows||rows.length===0){return `<div style=""><div class="badge">${title}</div><div class="mononu" style="">No levels</div></div>`;}
-  const lines=rows.map(([p,a])=>{const usd=(p&&a)?(p*a):0; return `${numFull(p)}${numFull(a)}${usdFull(usd)}`;}).join('');
+  if(!rows||rows.length===0){return `<div style="margin-top:8px"><div class="badge">${title}</div><div class="mononu" style="margin-top:6px">No levels</div></div>`;}
+  const lines=rows.map(([p,a])=>{const usd=(p&&a)?(p*a):0; return `<tr><td>${numFull(p)}</td><td>${numFull(a)}</td><td class="mononu">${usdFull(usd)}</td></tr>`;}).join('');
   const cls=isAsks?'obtbl ob-ask':'obtbl ob-bid'; const subtitle=isAsks?'Asks (buy levels)':'Bids (sell levels)';
-  return `<div style=""><div class="badge">${title} — ${subtitle}</div></div>`;
+  return `<div style="margin-top:8px"><div class="badge">${title} — ${subtitle}</div><table class="${cls}"><thead><tr><th>Price $</th><th>Qty</th><th>≈ USD</th></tr></thead><tbody>${lines}</tbody></table></div>`;
 }
 function obHTML(r){return obTable('🛒 '+cap(r.buy_ex)+' '+r.symbol,r.ob_buy_asks,true)+obTable('💸 '+cap(r.sell_ex)+' '+r.symbol,r.ob_sell_bids,false);}
 
@@ -2666,7 +2697,7 @@ function render(rows){
   const tb=qs('#opptable tbody'), cards=qs('#cards');
   if(!rows||rows.length===0){
     const msg=`<div class="emptymsg"><em><strong>Filter too strict, try default settings for opportunities.</strong></em></div>`;
-    tb.innerHTML=`${msg}`; cards.innerHTML=`<div class="card">${msg}</div>`;
+    tb.innerHTML=`<tr><td colspan="12">${msg}</td></tr>`; cards.innerHTML=`<div class="card">${msg}</div>`;
     setOppCount(0);
     return;
   }
@@ -2677,19 +2708,19 @@ function render(rows){
     const lb = exLogoSrc(r.buy_ex)  ? `<img class="exlogo" src="${exLogoSrc(r.buy_ex)}" onerror="this.style.display='none'">` : '';
     const ls = exLogoSrc(r.sell_ex) ? `<img class="exlogo" src="${exLogoSrc(r.sell_ex)}" onerror="this.style.display='none'">` : '';
     const drops=`<div class="stack"><details><summary>📚 Orderbooks (15)</summary>${obHTML(r)}</details><details><summary>📊 Volume &amp; Disclaimer</summary>${disclaimerHTML()}</details></div>`;
-    return `
-      <span class="badge">🔁 ${r.symbol}</span>
-      ${r.edge.toFixed(2)}%
-      <span class="badge">🛒 ${lb} ${cap(r.buy_ex)}</span><div class="mononu">${usdFull(r.buy_ask)}</div>
-      <span class="badge">💸 ${ls} ${cap(r.sell_ex)}</span><div class="mononu">${usdFull(r.sell_bid)}</div>
-      $${Number(r.qv_buy||0).toLocaleString()} / $${Number(r.qv_sell||0).toLocaleString()}
-      <span title="Higher score reflects stronger 24h volume and tighter depth near the top price.">${r.liquidity}</span>
-      ${sugg}<div><small class="muted">Example guidance only</small></div>
-      ${usdFull(r.example_profit_1000)} <small class="muted">(on $1000)</small>
-      ${usdFull(r.price)}
-      ${usdFull(r.buy_ask)}
-      ${usdFull(r.sell_bid)}
-      ${drops}`;
+    return `<tr data-sym="${r.symbol}">
+      <td class="mononu"><span class="badge">🔁 ${r.symbol}</span></td>
+      <td class="mononu edge ${edgeClass}">${r.edge.toFixed(2)}%</td>
+      <td><span class="badge">🛒 ${lb} ${cap(r.buy_ex)}</span><div class="mononu">${usdFull(r.buy_ask)}</div></td>
+      <td><span class="badge">💸 ${ls} ${cap(r.sell_ex)}</span><div class="mononu">${usdFull(r.sell_bid)}</div></td>
+      <td class="mononu">$${Number(r.qv_buy||0).toLocaleString()} / $${Number(r.qv_sell||0).toLocaleString()}</td>
+      <td class="mononu"><span title="Higher score reflects stronger 24h volume and tighter depth near the top price.">${r.liquidity}</span></td>
+      <td class="mononu">${sugg}<div><small class="muted">Example guidance only</small></div></td>
+      <td class="mononu">${usdFull(r.example_profit_1000)} <small class="muted">(on $1000)</small></td>
+      <td class="mononu">${usdFull(r.price)}</td>
+      <td class="mononu">${usdFull(r.buy_ask)}</td>
+      <td class="mononu">${usdFull(r.sell_bid)}</td>
+      <td class="cell-ob">${drops}</td></tr>`;
   }).join('');
 
   cards.innerHTML=rows.map(r=>{
@@ -2708,7 +2739,7 @@ function render(rows){
         <div>💵 Price: ${usdFull(r.price)}</div>
       </div>
       <details class="details"><summary>📚 Orderbooks (15)</summary>${obHTML(r)}</details>
-      <details class="details" style=""><summary>📊 Volume &amp; Disclaimer</summary>${disclaimerHTML()}</details>
+      <details class="details" style="margin-top:6px"><summary>📊 Volume &amp; Disclaimer</summary>${disclaimerHTML()}</details>
     </div>`;
   }).join('');
 
@@ -2726,9 +2757,9 @@ async function buildExTables(){
 
   function rows(of){
     return of.map(ex=>{
-      return `<label><input type="checkbox" name="ex" value="${ex}" checked>
+      return `<tr><td><label><input type="checkbox" name="ex" value="${ex}" checked>
         <img class="exlogo" src="${exLogoSrc(ex)}" onerror="this.style.display='none'">
-        ${ex.charAt(0).toUpperCase()+ex.slice(1)}</label>`;
+        ${ex.charAt(0).toUpperCase()+ex.slice(1)}</label></td></tr>`;
     }).join('');
   }
 
@@ -2914,28 +2945,28 @@ function profileCardHTML(p){
     ['Status', (p.status||'free').toUpperCase()],
     ['User ID', (p.user_id!=null ? String(p.user_id) : '-')],
   ];
-  const items = rows.map(([k,v])=>`<div style="">
-    <div style="">${k}</div>
-    <div class="mononu" style="">${v}</div>
+  const items = rows.map(([k,v])=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border:1px solid #182241;border-radius:10px;background:#0f1a33">
+    <div style="color:#9fb2d9;font-weight:700">${k}</div>
+    <div class="mononu" style="font-weight:800">${v}</div>
   </div>`).join('');
-  return `<div style=""><div style="">
-      <span class="badge">👤 Profile</span><span style="">Card preview (read-only)</span></div>${items}</div>`;
+  return `<div style="display:grid;gap:8px"><div style="display:flex;align-items:center;gap:8px">
+      <span class="badge">👤 Profile</span><span style="color:#b8c8e8">Card preview (read-only)</span></div>${items}</div>`;
 }
 async function loadProfileIntoCard(){
   const card = document.getElementById('profileCard');
   if(!card) return;
   try{
     const res = await authFetch('/me', {cache:'no-store'});
-    if(res.status === 401){ card.innerHTML = `<div style="">Please log in to view your profile.</div>`; return; }
+    if(res.status === 401){ card.innerHTML = `<div style="color:#ffcf5a">Please log in to view your profile.</div>`; return; }
     const p = await res.json();
     card.innerHTML = profileCardHTML(p);
     try{ localStorage.setItem('arbexa_profile', JSON.stringify(p)); }catch(_){}
   }catch(e){
     try{
       const cached = JSON.parse(localStorage.getItem('arbexa_profile')||'null');
-      card.innerHTML = cached ? profileCardHTML(cached) : `<div style="">Failed to load profile.</div>`;
+      card.innerHTML = cached ? profileCardHTML(cached) : `<div style="color:#ff6b6b">Failed to load profile.</div>`;
     }catch(_){
-      card.innerHTML = `<div style="">Failed to load profile.</div>`;
+      card.innerHTML = `<div style="color:#ff6b6b">Failed to load profile.</div>`;
     }
   }
 }
@@ -3050,8 +3081,8 @@ setInterval(()=>load(true),10000);
 <div id="drawerScrim" class="scrim" aria-hidden="true"></div>
 <aside id="drawer" class="drawer" aria-hidden="true" aria-label="Mobile menu">
   <div class="dh">
-    <div style="">
-      <img src="/brandlogo" alt="Arbexa" style="">
+    <div style="display:flex; align-items:center; gap:10px">
+      <img src="/brandlogo" alt="Arbexa" style="height:26px">
       <strong>Arbexa</strong>
     </div>
     <button id="drawerClose" class="drawer-btn" aria-label="Close menu">×</button>
@@ -3289,7 +3320,7 @@ document.addEventListener('DOMContentLoaded', () => {
   <div class="settings-header">
     <button id="btnBackSettings" class="back-btn" aria-label="Back">←</button>
     <h1 id="settingsTitle">Settings</h1>
-    <div style=""></div>
+    <div style="width:44px;"></div>
   </div>
   <div class="settings-body">
     <div id="settingsCloneTarget"></div>
@@ -3387,7 +3418,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <div id="pfScrim" class="pf-scrim" role="button" aria-label="Close profile"></div>
 <div id="pfModal" class="pf-modal" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
   <div class="pf-head">
-    <div style=""></div>
+    <div style="width:36px;"></div>
     <div id="pfTitle" class="pf-title">Profile</div>
     <button id="pfClose" class="pf-close" aria-label="Close">×</button>
   </div>
@@ -3787,7 +3818,7 @@ a{color:var(--acc);text-decoration:none}
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
   /* Tables scroll horizontally on narrow screens */
-
+  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
   th, td { white-space: nowrap; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
@@ -3815,8 +3846,8 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .free-banner, .banner-blue, .free-plan-note, .notice{ margin:8px 0 10px !important; padding:10px 12px !important; }
   .page, .container{ padding:8px 10px 72px !important; }
   #tblwrap{ padding-bottom:84px !important; }
-
-
+  .opps-table{ width:100%; table-layout:fixed; }
+  .opps-table th, .opps-table td{ padding:8px 10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   #opps-header .user-initial,
   #opps-header .avatar,
@@ -3869,14 +3900,230 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 
 
 <!-- CARDIFY: global styles to force card appearance and remove scrolling -->
+<style id="cardify-global-styles">
+  /* Hide original table visuals */
+  #opptable, .opportunities table, .opportunities thead, .opportunities tbody { display: none !important; }
 
+  /* Ensure parent containers don't limit height/scroll */
+  .opp-cards-wrapper, .opportunities, .opportunities-container, .opps-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 8px !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
 
+  .opp-card {
+    background: linear-gradient(180deg, rgba(12,18,30,0.98), rgba(10,14,24,0.98)) !important;
+    border: 1px solid rgba(255,255,255,0.04) !important;
+    border-radius: 12px !important;
+    padding: 10px 12px !important;
+    margin: 6px 4px !important;
+    color: #e7eefc !important;
+    box-shadow: 0 6px 18px rgba(3,8,20,0.45) !important;
+    word-break: break-word !important;
+  }
+  .opp-card .opp-line { margin:6px 0; font-size:14px; }
+  .opp-card .opp-small { font-size:12px; color:#a9c3e8; }
+</style>
 
+<style id="cardify-horizontal-fix">
+  /* Prevent horizontal scrolling caused by wide table cells or flex items */
+  html, body { overflow-x: hidden !important; }
+
+  /* Wrapper must not force horizontal layout */
+  .opp-cards-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    flex-wrap: nowrap !important; /* ensure column flow stays */
+    align-items: stretch !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+
+  .opp-card {
+    width: 100% !important;
+    min-width: 0 !important; /* allows flex children to shrink */
+    box-sizing: border-box !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* Defensive styles for residual table cells */
+  table, thead, tbody, tr, td, th {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+  }
+  td, th {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* If any container uses horizontal scrolling, force vertical stacking */
+  .opportunities, .opportunities-container, .opps-list {
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+</style>
 
 
 
 <!-- CARDIFY-RUNNER: convert tables/rows into cards and observe DOM -->
+<script id="cardify-runner">
+(function(){
+  function ensureStyles(){
+    if(!document.getElementById('cardify-global-styles')){
+      var head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+      var wrapper = document.createElement('div');
+      wrapper.innerHTML = `
+<!-- CARDIFY: global styles to force card appearance and remove scrolling -->
+<style id="cardify-global-styles">
+  /* Hide original table visuals */
+  #opptable, .opportunities table, .opportunities thead, .opportunities tbody { display: none !important; }
 
+  /* Ensure parent containers don't limit height/scroll */
+  .opp-cards-wrapper, .opportunities, .opportunities-container, .opps-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 8px !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .opp-card {
+    background: linear-gradient(180deg, rgba(12,18,30,0.98), rgba(10,14,24,0.98)) !important;
+    border: 1px solid rgba(255,255,255,0.04) !important;
+    border-radius: 12px !important;
+    padding: 10px 12px !important;
+    margin: 6px 4px !important;
+    color: #e7eefc !important;
+    box-shadow: 0 6px 18px rgba(3,8,20,0.45) !important;
+    word-break: break-word !important;
+  }
+  .opp-card .opp-line { margin:6px 0; font-size:14px; }
+  .opp-card .opp-small { font-size:12px; color:#a9c3e8; }
+</style>
+`;
+      // append only the style element inside
+      var style = wrapper.querySelector('style#cardify-global-styles');
+      if(style) head.appendChild(style);
+    }
+  }
+
+  function createCardFromCells(cells){
+    var card = document.createElement('div');
+    card.className = 'opp-card';
+    for(var i=0;i<cells.length;i++){
+      var td = cells[i];
+      var line = document.createElement('div');
+      line.className = 'opp-line';
+      // preserve small text nodes like badges
+      line.innerHTML = td.innerHTML;
+      card.appendChild(line);
+    }
+    return card;
+  }
+
+  function convertTable(table){
+    try {
+      if(!table || table.dataset.__cardified) return;
+      table.dataset.__cardified = "1";
+      // find or create wrapper
+      var container = table.closest('.opportunities') || table.parentNode || document.body;
+      var wrapper = container.querySelector('.opp-cards-wrapper');
+      if(!wrapper){
+        wrapper = document.createElement('div');
+        wrapper.className = 'opp-cards-wrapper';
+        // insert wrapper before the table so it occupies similar place
+        container.insertBefore(wrapper, table);
+      }
+      // get all meaningful rows (ignore header rows)
+      var rows = Array.from(table.querySelectorAll('tr')).filter(function(r){
+        // exclude header cells
+        return r.querySelectorAll('td').length > 0;
+      });
+      if(rows.length === 0){
+        // if table has no tr>td, but has tbody>tr patterns, fallback
+        rows = Array.from(table.querySelectorAll('tbody tr'));
+      }
+      rows.forEach(function(r){
+        var tds = Array.from(r.querySelectorAll('td'));
+        if(tds.length === 0){
+          // if row has no td, use row text
+          var card = document.createElement('div');
+          card.className = 'opp-card';
+          card.innerHTML = r.innerHTML || r.textContent || '';
+          wrapper.appendChild(card);
+        } else {
+          var card = createCardFromCells(tds);
+          wrapper.appendChild(card);
+        }
+        // remove row
+        if(r.parentNode) r.parentNode.removeChild(r);
+      });
+      // finally remove the table element to avoid fallback visuals
+      if(table.parentNode) table.parentNode.removeChild(table);
+    } catch(e){
+      console && console.warn && console.warn('cardify convertTable error', e);
+    }
+  }
+
+  function findAndConvertAll(){
+    ensureStyles();
+    // heuristics: tables with ids or classes mentioning 'opp','oppor','opportunities','oppts'
+    var candidates = Array.from(document.querySelectorAll('table'));
+    candidates.forEach(function(tbl){
+      var id = (tbl.id||'').toLowerCase();
+      var cls = (tbl.className||'').toLowerCase();
+      var html = (tbl.outerHTML||'').toLowerCase();
+      if(id.indexOf('opp') !== -1 || cls.indexOf('opp') !== -1 || html.indexOf('opport') !== -1 || tbl.closest('.opportunities') || tbl.closest('#opptable')){
+        convertTable(tbl);
+      }
+    });
+
+    // also convert any residual rows that might exist outside table tags
+    var residualRows = Array.from(document.querySelectorAll('.opp-row, .op-row, .opportunity-row'));
+    residualRows.forEach(function(r){
+      var wrapper = r.closest('.opp-cards-wrapper') || document.querySelector('.opp-cards-wrapper') || (function(){ var w=document.createElement('div'); w.className='opp-cards-wrapper'; document.body.appendChild(w); return w; })();
+      var card = document.createElement('div');
+      card.className='opp-card';
+      card.innerHTML = r.innerHTML || r.textContent || '';
+      wrapper.appendChild(card);
+      if(r.parentNode) r.parentNode.removeChild(r);
+    });
+  }
+
+  // initial run
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){ findAndConvertAll(); });
+  } else {
+    findAndConvertAll();
+  }
+
+  // observe mutations and re-run conversion if new tables appear
+  var obs = new MutationObserver(function(muts){
+    muts.forEach(function(m){
+      if(m.addedNodes && m.addedNodes.length){
+        var needs = false;
+        for(var i=0;i<m.addedNodes.length;i++){
+          var n = m.addedNodes[i];
+          if(n && (n.nodeType===1) && (n.matches && n.matches('table') || n.querySelector && (n.querySelector('table') || n.querySelector('.opp-row')))){
+            needs = true; break;
+          }
+        }
+        if(needs) setTimeout(findAndConvertAll, 50);
+      }
+    });
+  });
+  obs.observe(document.documentElement || document.body, { childList:true, subtree:true });
+
+})();
+</script>
 
 <!-- MOBILE-ONLY-PATCH: JS START -->
 <script id="mobile-only-patch-js">
@@ -3945,7 +4192,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 <div class="wrap">
   <div class="header">
     <a class="back" href="/opps" aria-label="Back to opportunities">← Back</a>
-    <div class="brand"><img src="/brandlogo" alt="Arbexa"><span style="">Chat</span></div>
+    <div class="brand"><img src="/brandlogo" alt="Arbexa"><span style="font-weight:900;letter-spacing:.6px">Chat</span></div>
   </div>
   <div class="rules">
     <strong>Rules:</strong> Be respectful • No spam, scams, or financial advice claims • Keep messages on-topic • Admin may remove content and suspend access for abuse.
@@ -3954,7 +4201,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   <form id="form" class="input" autocomplete="off">
     <textarea id="ta" class="ta" placeholder="Type a message..." maxlength="2000" required></textarea>
     <button class="send" id="btnSend" type="submit">Send</button>
-    <span id="warn" class="warn" style=""></span>
+    <span id="warn" class="warn" style="display:none"></span>
   </form>
 </div>
 
