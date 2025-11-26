@@ -4188,6 +4188,37 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 <!-- MOBILE-ONLY-PATCH: JS END -->
 
 /* MOBILE-ONLY-PATCH: END */
+
+<!-- Mobile override: force detailed card view for opportunities and hide simple horizontal list -->
+<style>
+@media (max-width: 820px) {
+  /* Hide known simple/horizontal list containers if present */
+  .opp-list, .opps-list, .simple-list, .horizontal-list, .list-view, table.opps, .opportunities-table, .opp-row { display: none !important; }
+
+  /* Force detailed card view to always show */
+  .opp-card, .opp-detailed, .opportunity-card, .card-view, .opp-panel { 
+    display: block !important; 
+    width: 100% !important; 
+    box-sizing: border-box !important;
+    margin: 8px 0 !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
+    background: rgba(10,15,26,0.75) !important;
+    border: 1px solid rgba(255,255,255,0.04) !important;
+  }
+
+  /* Ensure elements inside the card wrap and use full width */
+  .opp-card .row, .opp-card .cols, .opp-card .col { display:block !important; width:100% !important; }
+
+  /* Bottom nav: make settings button participate in normal flow and unify button sizes */
+  .bottom-nav { position: fixed !important; left: env(safe-area-inset-left, 12px) !important; right: env(safe-area-inset-right, 12px) !important; bottom: calc(8px + env(safe-area-inset-bottom)); display:flex !important; align-items:center !important; justify-content:center !important; gap:14px; padding:6px 12px; background: rgba(6,10,18,0.6); border-radius:12px; backdrop-filter: blur(8px); z-index:1200; }
+  .bottom-nav .ms-btn { position: static !important; left: auto !important; right: auto !important; box-shadow:none !important; }
+  .bottom-nav .navbtn, .bottom-nav .ms-btn, .bottom-nav .profile-btn { width:48px !important; height:48px !important; border-radius:10px !important; border:1px solid rgba(255,255,255,0.06) !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; background: rgba(15,20,36,0.9) !important; }
+
+  /* Defensive: ensure any floating chat/fab removed so cards have space */
+  .chat-fab, .fab-message, .floating-message { display: none !important; }
+}
+</style>
 </head><body>
 <div class="wrap">
   <div class="header">
