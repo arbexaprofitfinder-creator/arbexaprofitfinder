@@ -3856,6 +3856,62 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #opps-header{ padding-left:0 !important; }
 }
 </style>
+
+<!-- START: Mobile-only CARD-ONLY override -->
+<style>
+@media (max-width: 768px) {
+
+  /* --- Hide any compact/horizontal/table-based opportunity views --- */
+  #opptable, table#opptable, .opptable,
+  .grid-cards, .cards, .opportunity-list, .compact-list, .op-row, .horizontal-list, .compact-card {
+      display: none !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: none !important;
+  }
+
+  /* --- Prevent page horizontal scrolling on mobile --- */
+  html, body, .opportunities-container, .main, .content, #main {
+      max-width: 100% !important;
+      overflow-x: hidden !important;
+  }
+
+  /* --- Force card/detailed layout to be visible and full-width --- */
+  .card, .opportunity-card, .detailed-opportunity, .big-opportunity-card, .grid-cards .card, .cards .card {
+      display: block !important;
+      width: calc(100% - 24px) !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      margin: 8px 12px !important;
+      padding: 12px !important;
+      border-radius: 10px !important;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08) !important;
+      background: #fff !important;
+      float: none !important;
+      clear: both !important;
+  }
+
+  /* --- Make sure cells / headers wrap instead of forcing width --- */
+  #opptable td, #opptable th, .opptable td, .opptable th {
+      white-space: normal !important;
+      word-break: break-word !important;
+  }
+
+  /* --- Ensure images and inner elements don't force horizontal overflow --- */
+  img, svg, .thumb, .avatar {
+      max-width: 100% !important;
+      height: auto !important;
+  }
+
+  /* Accessibility: hide elements but keep them readable to screen readers if needed */
+  .sr-hidden-mobile { position: absolute !important; left: -9999px !important; top: auto !important; width: 1px !important; height: 1px !important; overflow: hidden !important; }
+
+}
+</style>
+<!-- END: Mobile-only CARD-ONLY override -->
 </head><body>
 <div class="wrap">
   <div class="header">
@@ -3952,187 +4008,6 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
-
-<!-- START: Mobile-only aggressive remover + converter v6 -->
-<style>
-@media (max-width: 768px) {
-  /* Defensive hide for known containers to prevent duplicate render */
-  #opptable, table#opptable, .opptable, .opportunity-list, .opportunity-grid, .opportunity-listing, .compact-list, .grid-cards, .cards, .card, .compact-card, .op-row {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    overflow: hidden !important;
-  }
-
-  /* Styling for generated cards */
-  .assistant-opportunity-cards { display: block !important; padding: 6px 4px !important; }
-  .assistant-opportunity-card {
-    display: flex !important;
-    gap: 12px !important;
-    align-items: flex-start !important;
-    width: calc(100% - 24px) !important;
-    margin: 8px 12px !important;
-    padding: 12px !important;
-    border-radius: 12px !important;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08) !important;
-    background: #ffffff !important;
-    box-sizing: border-box !important;
-    color: inherit !important;
-  }
-  .assistant-opportunity-card img { width: 64px !important; height: 64px !important; object-fit: cover !important; border-radius: 8px !important; flex: 0 0 64px !important; }
-  .assistant-opportunity-card .aoc-body { flex: 1 1 auto !important; }
-  .assistant-opportunity-card .aoc-title { font-weight:700 !important; font-size:16px !important; margin:0 0 6px 0 !important; }
-  .assistant-opportunity-card .aoc-meta { font-size:13px !important; color:#666 !important; margin:0 0 6px 0 !important; }
-  .assistant-opportunity-card .aoc-actions { display:flex !important; gap:8px !important; flex-wrap:wrap !important; margin-top:8px !important; }
-  .assistant-opportunity-card .aoc-actions a, .assistant-opportunity-card .aoc-actions button { flex:1 1 48% !important; min-width:0 !important; }
-}
-</style>
-
-<script>
-(function(){
-  function isMobile() { return window.matchMedia && window.matchMedia('(max-width: 768px)').matches; }
-  function textFromCell(td) { if(!td) return ''; return td.textContent ? td.textContent.trim().replace(/\\s+/g,' ') : ''; }
-
-  function makeCardFromRow(tr, headers) {
-    var tds = tr.querySelectorAll('td');
-    var card = document.createElement('div');
-    card.className = 'assistant-opportunity-card';
-    var imgEl = document.createElement('img');
-    imgEl.alt = 'opp';
-    var pairText = tds.length>0 ? textFromCell(tds[0]) : 'Opportunity';
-    imgEl.alt = pairText;
-    var foundImg = tr.querySelector('img');
-    if(foundImg && foundImg.src) {
-      imgEl.src = foundImg.src;
-    } else {
-      var initials = (pairText || '').split(/\\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
-      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" fill="#e8eef8"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="20" fill="#4b6cb7" font-family="Arial, sans-serif">'+(initials||'')+'</text></svg>';
-      imgEl.src = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
-    }
-
-    var body = document.createElement('div');
-    body.className = 'aoc-body';
-
-    var title = document.createElement('div');
-    title.className = 'aoc-title';
-    title.textContent = pairText;
-
-    var meta = document.createElement('div');
-    meta.className = 'aoc-meta';
-    var metaParts = [];
-    for(var i=1;i<tds.length;i++){
-      var t = textFromCell(tds[i]);
-      if(t) metaParts.push(t);
-    }
-    meta.textContent = metaParts.join(' • ');
-
-    var actions = document.createElement('div');
-    actions.className = 'aoc-actions';
-    var links = tr.querySelectorAll('a, button');
-    if(links.length>0){
-      links.forEach(function(l){ actions.appendChild(l.cloneNode(true)); });
-    } else {
-      var btn = document.createElement('button');
-      btn.textContent = 'Details';
-      btn.onclick = function(){ tr.scrollIntoView({behavior:'smooth', block:'center'}); };
-      actions.appendChild(btn);
-    }
-
-    body.appendChild(title);
-    body.appendChild(meta);
-    body.appendChild(actions);
-
-    card.appendChild(imgEl);
-    card.appendChild(body);
-    return card;
-  }
-
-  function removeNodes(selectors) {
-    selectors.forEach(function(sel){
-      try{
-        document.querySelectorAll(sel).forEach(function(n){
-          n.remove ? n.remove() : (n.style && (n.style.display='none'));
-        });
-      } catch(e){ /* ignore */ }
-    });
-  }
-
-  function convertTableToCards(table) {
-    if(!table) return null;
-    var tbody = table.querySelector('tbody') || table;
-    var rows = tbody.querySelectorAll('tr');
-    if(rows.length === 0) return null;
-    var headers = [];
-    var ths = table.querySelectorAll('thead th');
-    if(ths && ths.length) {
-      ths.forEach(function(th){ headers.push((th.textContent||'').trim()); });
-    }
-    var container = document.createElement('div');
-    container.className = 'assistant-opportunity-cards';
-    rows.forEach(function(tr){
-      try {
-        var card = makeCardFromRow(tr, headers);
-        container.appendChild(card);
-      } catch(e){ console.error('card error', e); }
-    });
-    table.parentNode.insertBefore(container, table.nextSibling);
-    return container;
-  }
-
-  function ensure() {
-    if(!isMobile()) return;
-    // Remove/hide known duplicate containers aggressively
-    var known = ['#opptable', 'table#opptable', '.opptable', '.opportunity-list', '.opportunity-grid', '.opportunity-listing', '.compact-list', '.grid-cards', '.cards', '.compact-card', '.op-row'];
-    removeNodes(known);
-    // Find any table-like structure by header text "Pair" to convert before it's removed
-    var tables = Array.from(document.querySelectorAll('table')).filter(function(t){
-      var th = t.querySelector('thead th');
-      return th && /Pair/i.test(th.textContent || '');
-    });
-    if(tables.length === 0){
-      // maybe a generic table - try first table
-      var t = document.querySelector('table#opptable') || document.querySelector('table');
-      if(t) tables = [t];
-    }
-    tables.forEach(function(t){
-      // convert if not already converted
-      if(!document.querySelector('.assistant-opportunity-cards')) {
-        convertTableToCards(t);
-      }
-      // remove the original table to avoid duplicates
-      try { t.remove(); } catch(e){ t.style.display='none'; t.setAttribute('aria-hidden','true'); }
-    });
-
-    // Also remove compact list nodes that might render the second layout
-    removeNodes(['.grid-cards', '.cards', '.compact-list', '.compact-card', '.list-item-compact']);
-
-    // If some original cards remain, hide them but keep their functionality
-    document.querySelectorAll('[class*="compact"], [class*="small"], [class*="mini"]').forEach(function(n){
-      try{ n.style.display='none'; n.setAttribute('aria-hidden','true'); } catch(e){}
-    });
-  }
-
-  function setupObserver() {
-    var body = document.body;
-    if(!body) return;
-    var mo = new MutationObserver(function(mutations){
-      // run ensure on changes (debounced)
-      ensure();
-    });
-    mo.observe(body, { childList: true, subtree: true });
-    // run immediately once
-    ensure();
-  }
-
-  if(document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupObserver);
-  } else {
-    setupObserver();
-  }
-  window.addEventListener('resize', ensure);
-})();
-</script>
-<!-- END: Mobile-only aggressive remover + converter v6 -->
 </body></html>"""
 
 @app.get("/chat", response_class=HTMLResponse)
