@@ -2465,16 +2465,8 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   </div>
 </div>
 <div id="tblwrap">
-  <table id="opptable">
-    <thead><tr>
-      <th>Pair 🔁</th><th>Edge% 📈</th><th>Buy @ 🛒</th><th>Sell @ 💸</th>
-      <th>$24h Vol (Buy/Sell) 💧</th>
-      <th title="Higher score reflects stronger 24h volume and tighter order-book depth near the top price.">Liquidity score 🧪</th>
-      <th>Suggest Size 💡</th><th>Example Profit 🤑</th><th>Price ($)</th><th>Best Ask 🔼</th><th>Best Bid 🔽</th><th>Details 📚</th>
-    </tr></thead>
-    <tbody></tbody>
-  </table>
   <div class="grid-cards" id="cards"></div>
+</div>
 </div>
 
 <footer><div class="kv"><div>⏱️ Auto-refresh: every 10s</div><div>⚠️ Examples only; fees, latency and slippage apply.</div></div></footer>
@@ -3856,62 +3848,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #opps-header{ padding-left:0 !important; }
 }
 </style>
-
-<!-- START: Mobile-only CARD-ONLY override -->
-<style>
-@media (max-width: 768px) {
-
-  /* --- Hide any compact/horizontal/table-based opportunity views --- */
-  #opptable, table#opptable, .opptable,
-  .grid-cards, .cards, .opportunity-list, .compact-list, .op-row, .horizontal-list, .compact-card {
-      display: none !important;
-      visibility: hidden !important;
-      height: 0 !important;
-      overflow: hidden !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      border: none !important;
-  }
-
-  /* --- Prevent page horizontal scrolling on mobile --- */
-  html, body, .opportunities-container, .main, .content, #main {
-      max-width: 100% !important;
-      overflow-x: hidden !important;
-  }
-
-  /* --- Force card/detailed layout to be visible and full-width --- */
-  .card, .opportunity-card, .detailed-opportunity, .big-opportunity-card, .grid-cards .card, .cards .card {
-      display: block !important;
-      width: calc(100% - 24px) !important;
-      max-width: 100% !important;
-      box-sizing: border-box !important;
-      margin: 8px 12px !important;
-      padding: 12px !important;
-      border-radius: 10px !important;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08) !important;
-      background: #fff !important;
-      float: none !important;
-      clear: both !important;
-  }
-
-  /* --- Make sure cells / headers wrap instead of forcing width --- */
-  #opptable td, #opptable th, .opptable td, .opptable th {
-      white-space: normal !important;
-      word-break: break-word !important;
-  }
-
-  /* --- Ensure images and inner elements don't force horizontal overflow --- */
-  img, svg, .thumb, .avatar {
-      max-width: 100% !important;
-      height: auto !important;
-  }
-
-  /* Accessibility: hide elements but keep them readable to screen readers if needed */
-  .sr-hidden-mobile { position: absolute !important; left: -9999px !important; top: auto !important; width: 1px !important; height: 1px !important; overflow: hidden !important; }
-
-}
-</style>
-<!-- END: Mobile-only CARD-ONLY override -->
 </head><body>
 <div class="wrap">
   <div class="header">
