@@ -3953,64 +3953,181 @@ document.addEventListener('click', function(e) {
 </script>
 
 
-<!-- START: Mobile-only targeted override v3 -->
+<!-- START: Mobile-only JS+CSS converter v4 -->
 <style>
 @media (max-width: 768px) {
-  /* Hide the table-based opportunities that the app renders */
-  #opptable, table#opptable, .opptable {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    overflow: hidden !important;
-  }
+  /* Hide original table */
+  #opptable, table#opptable { display: none !important; visibility: hidden !important; height: 0 !important; overflow: hidden !important; }
 
-  /* If there's a grid view, force it to be single-column cards */
-  .grid-cards, .grid-cards .card, .cards, .card {
-    display: block !important;
-    width: calc(100% - 24px) !important;
-    margin: 10px 12px !important;
-    padding: 14px !important;
-    box-sizing: border-box !important;
-    border-radius: 12px !important;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12) !important;
-    background: #fff !important;
-    float: none !important;
-    clear: both !important;
-    text-align: left !important;
-  }
-
-  /* Ensure card children stack cleanly */
-  .grid-cards .card > * {
-    display: block !important;
-    width: auto !important;
-    margin: 6px 0 !important;
-  }
-  .grid-cards .card img, .card img {
-    width: 64px !important;
-    height: 64px !important;
-    object-fit: cover !important;
-    border-radius: 8px !important;
-    float: left !important;
-    margin-right: 10px !important;
-  }
-  .grid-cards .card .title, .card .title {
-    font-weight: 700 !important;
-    font-size: 16px !important;
-    margin: 0 0 6px 0 !important;
-  }
-  /* Make actions full width under content */
-  .card .actions, .grid-cards .card .actions {
+  /* Styling for generated cards */
+  .assistant-opportunity-cards { display: block; padding: 6px 4px; }
+  .assistant-opportunity-card {
     display: flex !important;
-    gap: 8px !important;
-    flex-wrap: wrap !important;
-    margin-top: 10px !important;
+    gap: 12px;
+    align-items: flex-start;
+    width: calc(100% - 24px);
+    margin: 8px 12px;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    background: #ffffff;
+    box-sizing: border-box;
+    color: inherit;
   }
-  .card .actions button, .card .actions a {
-    flex: 1 1 48% !important;
-  }
+  .assistant-opportunity-card img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; flex: 0 0 64px; }
+  .assistant-opportunity-card .aoc-body { flex: 1 1 auto; }
+  .assistant-opportunity-card .aoc-title { font-weight:700; font-size:16px; margin:0 0 6px 0; }
+  .assistant-opportunity-card .aoc-meta { font-size:13px; color:#666; margin:0 0 6px 0; }
+  .assistant-opportunity-card .aoc-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .assistant-opportunity-card .aoc-actions a, .assistant-opportunity-card .aoc-actions button { flex:1 1 48%; min-width:0; }
 }
 </style>
-<!-- END: Mobile-only targeted override v3 -->
+
+<script>
+(function(){
+  // Only run on mobile widths
+  function isMobile() { return window.matchMedia && window.matchMedia('(max-width: 768px)').matches; }
+
+  function textFromCell(td) {
+    if(!td) return '';
+    // prefer textContent, but trim
+    return td.textContent ? td.textContent.trim().replace(/\\s+/g,' ') : '';
+  }
+
+  function makeCardFromRow(tr, headers) {
+    var tds = tr.querySelectorAll('td');
+    var card = document.createElement('div');
+    card.className = 'assistant-opportunity-card';
+    var img = document.createElement('div');
+    img.style.width = '64px';
+    img.style.height = '64px';
+    img.style.background = '#eee';
+    img.style.borderRadius = '8px';
+    img.style.flex = '0 0 64px';
+    // Try to extract pair cell or image-like content
+    var pairText = '';
+    if(tds.length > 0) pairText = textFromCell(tds[0]);
+    var imgEl = document.createElement('img');
+    imgEl.alt = pairText || 'opp';
+    // If a cell contains an <img>, reuse it
+    var foundImg = tr.querySelector('img');
+    if(foundImg && foundImg.src) {
+      imgEl.src = foundImg.src;
+    } else {
+      // create a data URL svg with pair initials for visual fallback
+      var initials = (pairText || '').split(/\\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" fill="#e8eef8"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="20" fill="#4b6cb7" font-family="Arial, sans-serif">'+(initials||'')+'</text></svg>';
+      imgEl.src = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+    }
+
+    var body = document.createElement('div');
+    body.className = 'aoc-body';
+
+    var title = document.createElement('div');
+    title.className = 'aoc-title';
+    // Use the first cell or headers mapping
+    title.textContent = pairText || (tds[0] ? textFromCell(tds[0]) : 'Opportunity');
+
+    var meta = document.createElement('div');
+    meta.className = 'aoc-meta';
+
+    // Build meta from remaining cells with header labels if available
+    var metaParts = [];
+    for(var i=1;i<tds.length;i++){
+      var label = (headers[i] ? headers[i] + ': ' : '');
+      var part = label + textFromCell(tds[i]);
+      if(part && !/(^\\s*$)/.test(part)) metaParts.push(part);
+    }
+    meta.textContent = metaParts.join(' • ');
+
+    var actions = document.createElement('div');
+    actions.className = 'aoc-actions';
+    // Try to copy any links/buttons in the row into actions
+    var links = tr.querySelectorAll('a, button');
+    if(links.length>0){
+      links.forEach(function(l){
+        var clone = l.cloneNode(true);
+        // Reset styles risk: keep clone functional
+        actions.appendChild(clone);
+      });
+    } else {
+      // create a default Details button that scrolls to the original row
+      var btn = document.createElement('button');
+      btn.textContent='Details';
+      btn.onclick = function(){ tr.scrollIntoView({behavior:'smooth', block:'center'}); };
+      actions.appendChild(btn);
+    }
+
+    body.appendChild(title);
+    body.appendChild(meta);
+    body.appendChild(actions);
+
+    card.appendChild(imgEl);
+    card.appendChild(body);
+    return card;
+  }
+
+  function convertTableToCards(table) {
+    if(!table) return;
+    var tbody = table.querySelector('tbody') || table;
+    var rows = tbody.querySelectorAll('tr');
+    if(rows.length === 0) return null;
+    // Grab headers from thead if present
+    var headers = [];
+    var ths = table.querySelectorAll('thead th');
+    if(ths && ths.length) {
+      ths.forEach(function(th){ headers.push((th.textContent||'').trim()); });
+    }
+    // Create container
+    var container = document.createElement('div');
+    container.className = 'assistant-opportunity-cards';
+    // For each row, make a card
+    rows.forEach(function(tr){
+      try {
+        var card = makeCardFromRow(tr, headers);
+        container.appendChild(card);
+      } catch(e){ console.error('card error', e); }
+    });
+    // Insert container after the table
+    table.parentNode.insertBefore(container, table.nextSibling);
+    return container;
+  }
+
+  function ensure() {
+    if(!isMobile()) return;
+    var table = document.getElementById('opptable') || document.querySelector('table.opportunities') || document.querySelector('table');
+    if(!table) return;
+    // If container already exists, don't duplicate
+    if(document.querySelector('.assistant-opportunity-cards')) return;
+    // If rows present, convert now
+    var container = convertTableToCards(table);
+    // Observe tbody for future rows (in case table is filled asynchronously)
+    var tbody = table.querySelector('tbody') || table;
+    if(tbody) {
+      var mo = new MutationObserver(function(mutations){
+        // If cards already created, ignore further mutations
+        if(document.querySelector('.assistant-opportunity-cards')) { mo.disconnect(); return; }
+        for(var i=0;i<mutations.length;i++){
+          if(mutations[i].addedNodes && mutations[i].addedNodes.length>0){
+            var c = convertTableToCards(table);
+            if(c) { mo.disconnect(); break; }
+          }
+        }
+      });
+      mo.observe(tbody, { childList: true, subtree: true });
+    }
+  }
+
+  // Run on DOM ready and on resize
+  if(document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ensure);
+  } else {
+    ensure();
+  }
+  window.addEventListener('resize', ensure);
+})();
+</script>
+<!-- END: Mobile-only JS+CSS converter v4 -->
 </body></html>"""
 
 @app.get("/chat", response_class=HTMLResponse)
