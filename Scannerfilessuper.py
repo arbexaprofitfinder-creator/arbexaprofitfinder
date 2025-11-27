@@ -3953,68 +3953,58 @@ document.addEventListener('click', function(e) {
 </script>
 
 
-<!-- START: Mobile-only JS+CSS converter v4 -->
+<!-- START: Mobile-only aggressive remover + converter v6 -->
 <style>
 @media (max-width: 768px) {
-  /* Hide original table */
-  #opptable, table#opptable { display: none !important; visibility: hidden !important; height: 0 !important; overflow: hidden !important; }
+  /* Defensive hide for known containers to prevent duplicate render */
+  #opptable, table#opptable, .opptable, .opportunity-list, .opportunity-grid, .opportunity-listing, .compact-list, .grid-cards, .cards, .card, .compact-card, .op-row {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
 
   /* Styling for generated cards */
-  .assistant-opportunity-cards { display: block; padding: 6px 4px; }
+  .assistant-opportunity-cards { display: block !important; padding: 6px 4px !important; }
   .assistant-opportunity-card {
     display: flex !important;
-    gap: 12px;
-    align-items: flex-start;
-    width: calc(100% - 24px);
-    margin: 8px 12px;
-    padding: 12px;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-    background: #ffffff;
-    box-sizing: border-box;
-    color: inherit;
+    gap: 12px !important;
+    align-items: flex-start !important;
+    width: calc(100% - 24px) !important;
+    margin: 8px 12px !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08) !important;
+    background: #ffffff !important;
+    box-sizing: border-box !important;
+    color: inherit !important;
   }
-  .assistant-opportunity-card img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; flex: 0 0 64px; }
-  .assistant-opportunity-card .aoc-body { flex: 1 1 auto; }
-  .assistant-opportunity-card .aoc-title { font-weight:700; font-size:16px; margin:0 0 6px 0; }
-  .assistant-opportunity-card .aoc-meta { font-size:13px; color:#666; margin:0 0 6px 0; }
-  .assistant-opportunity-card .aoc-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-  .assistant-opportunity-card .aoc-actions a, .assistant-opportunity-card .aoc-actions button { flex:1 1 48%; min-width:0; }
+  .assistant-opportunity-card img { width: 64px !important; height: 64px !important; object-fit: cover !important; border-radius: 8px !important; flex: 0 0 64px !important; }
+  .assistant-opportunity-card .aoc-body { flex: 1 1 auto !important; }
+  .assistant-opportunity-card .aoc-title { font-weight:700 !important; font-size:16px !important; margin:0 0 6px 0 !important; }
+  .assistant-opportunity-card .aoc-meta { font-size:13px !important; color:#666 !important; margin:0 0 6px 0 !important; }
+  .assistant-opportunity-card .aoc-actions { display:flex !important; gap:8px !important; flex-wrap:wrap !important; margin-top:8px !important; }
+  .assistant-opportunity-card .aoc-actions a, .assistant-opportunity-card .aoc-actions button { flex:1 1 48% !important; min-width:0 !important; }
 }
 </style>
 
 <script>
 (function(){
-  // Only run on mobile widths
   function isMobile() { return window.matchMedia && window.matchMedia('(max-width: 768px)').matches; }
-
-  function textFromCell(td) {
-    if(!td) return '';
-    // prefer textContent, but trim
-    return td.textContent ? td.textContent.trim().replace(/\\s+/g,' ') : '';
-  }
+  function textFromCell(td) { if(!td) return ''; return td.textContent ? td.textContent.trim().replace(/\\s+/g,' ') : ''; }
 
   function makeCardFromRow(tr, headers) {
     var tds = tr.querySelectorAll('td');
     var card = document.createElement('div');
     card.className = 'assistant-opportunity-card';
-    var img = document.createElement('div');
-    img.style.width = '64px';
-    img.style.height = '64px';
-    img.style.background = '#eee';
-    img.style.borderRadius = '8px';
-    img.style.flex = '0 0 64px';
-    // Try to extract pair cell or image-like content
-    var pairText = '';
-    if(tds.length > 0) pairText = textFromCell(tds[0]);
     var imgEl = document.createElement('img');
-    imgEl.alt = pairText || 'opp';
-    // If a cell contains an <img>, reuse it
+    imgEl.alt = 'opp';
+    var pairText = tds.length>0 ? textFromCell(tds[0]) : 'Opportunity';
+    imgEl.alt = pairText;
     var foundImg = tr.querySelector('img');
     if(foundImg && foundImg.src) {
       imgEl.src = foundImg.src;
     } else {
-      // create a data URL svg with pair initials for visual fallback
       var initials = (pairText || '').split(/\\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
       var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="100%" height="100%" fill="#e8eef8"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="20" fill="#4b6cb7" font-family="Arial, sans-serif">'+(initials||'')+'</text></svg>';
       imgEl.src = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
@@ -4025,35 +4015,25 @@ document.addEventListener('click', function(e) {
 
     var title = document.createElement('div');
     title.className = 'aoc-title';
-    // Use the first cell or headers mapping
-    title.textContent = pairText || (tds[0] ? textFromCell(tds[0]) : 'Opportunity');
+    title.textContent = pairText;
 
     var meta = document.createElement('div');
     meta.className = 'aoc-meta';
-
-    // Build meta from remaining cells with header labels if available
     var metaParts = [];
     for(var i=1;i<tds.length;i++){
-      var label = (headers[i] ? headers[i] + ': ' : '');
-      var part = label + textFromCell(tds[i]);
-      if(part && !/(^\\s*$)/.test(part)) metaParts.push(part);
+      var t = textFromCell(tds[i]);
+      if(t) metaParts.push(t);
     }
     meta.textContent = metaParts.join(' • ');
 
     var actions = document.createElement('div');
     actions.className = 'aoc-actions';
-    // Try to copy any links/buttons in the row into actions
     var links = tr.querySelectorAll('a, button');
     if(links.length>0){
-      links.forEach(function(l){
-        var clone = l.cloneNode(true);
-        // Reset styles risk: keep clone functional
-        actions.appendChild(clone);
-      });
+      links.forEach(function(l){ actions.appendChild(l.cloneNode(true)); });
     } else {
-      // create a default Details button that scrolls to the original row
       var btn = document.createElement('button');
-      btn.textContent='Details';
+      btn.textContent = 'Details';
       btn.onclick = function(){ tr.scrollIntoView({behavior:'smooth', block:'center'}); };
       actions.appendChild(btn);
     }
@@ -4067,67 +4047,92 @@ document.addEventListener('click', function(e) {
     return card;
   }
 
+  function removeNodes(selectors) {
+    selectors.forEach(function(sel){
+      try{
+        document.querySelectorAll(sel).forEach(function(n){
+          n.remove ? n.remove() : (n.style && (n.style.display='none'));
+        });
+      } catch(e){ /* ignore */ }
+    });
+  }
+
   function convertTableToCards(table) {
-    if(!table) return;
+    if(!table) return null;
     var tbody = table.querySelector('tbody') || table;
     var rows = tbody.querySelectorAll('tr');
     if(rows.length === 0) return null;
-    // Grab headers from thead if present
     var headers = [];
     var ths = table.querySelectorAll('thead th');
     if(ths && ths.length) {
       ths.forEach(function(th){ headers.push((th.textContent||'').trim()); });
     }
-    // Create container
     var container = document.createElement('div');
     container.className = 'assistant-opportunity-cards';
-    // For each row, make a card
     rows.forEach(function(tr){
       try {
         var card = makeCardFromRow(tr, headers);
         container.appendChild(card);
       } catch(e){ console.error('card error', e); }
     });
-    // Insert container after the table
     table.parentNode.insertBefore(container, table.nextSibling);
     return container;
   }
 
   function ensure() {
     if(!isMobile()) return;
-    var table = document.getElementById('opptable') || document.querySelector('table.opportunities') || document.querySelector('table');
-    if(!table) return;
-    // If container already exists, don't duplicate
-    if(document.querySelector('.assistant-opportunity-cards')) return;
-    // If rows present, convert now
-    var container = convertTableToCards(table);
-    // Observe tbody for future rows (in case table is filled asynchronously)
-    var tbody = table.querySelector('tbody') || table;
-    if(tbody) {
-      var mo = new MutationObserver(function(mutations){
-        // If cards already created, ignore further mutations
-        if(document.querySelector('.assistant-opportunity-cards')) { mo.disconnect(); return; }
-        for(var i=0;i<mutations.length;i++){
-          if(mutations[i].addedNodes && mutations[i].addedNodes.length>0){
-            var c = convertTableToCards(table);
-            if(c) { mo.disconnect(); break; }
-          }
-        }
-      });
-      mo.observe(tbody, { childList: true, subtree: true });
+    // Remove/hide known duplicate containers aggressively
+    var known = ['#opptable', 'table#opptable', '.opptable', '.opportunity-list', '.opportunity-grid', '.opportunity-listing', '.compact-list', '.grid-cards', '.cards', '.compact-card', '.op-row'];
+    removeNodes(known);
+    // Find any table-like structure by header text "Pair" to convert before it's removed
+    var tables = Array.from(document.querySelectorAll('table')).filter(function(t){
+      var th = t.querySelector('thead th');
+      return th && /Pair/i.test(th.textContent || '');
+    });
+    if(tables.length === 0){
+      // maybe a generic table - try first table
+      var t = document.querySelector('table#opptable') || document.querySelector('table');
+      if(t) tables = [t];
     }
+    tables.forEach(function(t){
+      // convert if not already converted
+      if(!document.querySelector('.assistant-opportunity-cards')) {
+        convertTableToCards(t);
+      }
+      // remove the original table to avoid duplicates
+      try { t.remove(); } catch(e){ t.style.display='none'; t.setAttribute('aria-hidden','true'); }
+    });
+
+    // Also remove compact list nodes that might render the second layout
+    removeNodes(['.grid-cards', '.cards', '.compact-list', '.compact-card', '.list-item-compact']);
+
+    // If some original cards remain, hide them but keep their functionality
+    document.querySelectorAll('[class*="compact"], [class*="small"], [class*="mini"]').forEach(function(n){
+      try{ n.style.display='none'; n.setAttribute('aria-hidden','true'); } catch(e){}
+    });
   }
 
-  // Run on DOM ready and on resize
-  if(document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', ensure);
-  } else {
+  function setupObserver() {
+    var body = document.body;
+    if(!body) return;
+    var mo = new MutationObserver(function(mutations){
+      // run ensure on changes (debounced)
+      ensure();
+    });
+    mo.observe(body, { childList: true, subtree: true });
+    // run immediately once
     ensure();
+  }
+
+  if(document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupObserver);
+  } else {
+    setupObserver();
   }
   window.addEventListener('resize', ensure);
 })();
 </script>
-<!-- END: Mobile-only JS+CSS converter v4 -->
+<!-- END: Mobile-only aggressive remover + converter v6 -->
 </body></html>"""
 
 @app.get("/chat", response_class=HTMLResponse)
