@@ -3848,6 +3848,64 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   #opps-header{ padding-left:0 !important; }
 }
 </style>
+
+<!-- START: Mobile-only CARD-ONLY override (inserted by assistant) -->
+<style>
+@media (max-width: 768px) {
+  /* Hide table-based and horizontal compact views */
+  #tblwrap > #opptable,
+  #tblwrap table#opptable,
+  #tblwrap .opptable,
+  #tblwrap .horizontal-list,
+  #tblwrap .compact-list,
+  #tblwrap .grid-cards.compact,
+  .grid-cards.compact,
+  .compact-card,
+  .op-row {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  /* Ensure the cards container is visible and full-width */
+  #tblwrap > .grid-cards,
+  #tblwrap #cards,
+  .grid-cards,
+  #cards {
+    display: block !important;
+    width: calc(100% - 24px) !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 8px 12px !important;
+    padding: 6px 0 !important;
+  }
+
+  /* Prevent page horizontal scrolling */
+  html, body, #tblwrap, .main, .content {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Ensure card elements wrap and do not overflow */
+  .grid-cards .card, .card, .opportunity-card, .detailed-opportunity {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+  }
+
+  /* Images should not force overflow */
+  img, svg, .thumb, .avatar, .exlogo {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}
+</style>
+<!-- END: Mobile-only CARD-ONLY override (inserted by assistant) -->
 </head><body>
 <div class="wrap">
   <div class="header">
