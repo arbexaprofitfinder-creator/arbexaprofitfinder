@@ -922,6 +922,58 @@ def _startup():
 # LOGIN PAGE (front door) — starts in LOGIN mode; toggle to SIGNUP or RESET
 
 PRO_HTML = """<!doctype html><html lang="en"><head>
+
+/* HORIZONTAL-SCROLL-FIXED: enforce vertical card-only opportunities on mobile */
+<style id="hard-stop-horizontal-scroll">
+@media (max-width: 900px) {
+  /* hide any original tabular fallback visuals */
+  #opptable, .opps-table, .opportunities table, .opportunities thead, .opportunities tbody, .opportunities tr, .opportunities td, .opportunities th {
+    display: none !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* ensure all opportunity containers are vertical card stacks */
+  .opp-cards-wrapper, .opportunities, .opportunities-container, .opps-list, .opp-list, .op-row, .opp-row-wrapper {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 8px !important;
+    margin: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    white-space: normal !important;
+    box-sizing: border-box !important;
+  }
+
+  .opp-card, .opp-preserve, .opp-card-wrapper, .opp-card-item {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    margin: 6px 0 !important;
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    background: linear-gradient(180deg, rgba(12,18,30,0.98), rgba(10,14,24,0.98)) !important;
+    border: 1px solid rgba(255,255,255,0.04) !important;
+    color: #e7eefc !important;
+    box-shadow: 0 6px 18px rgba(3,8,20,0.45) !important;
+  }
+
+  /* kill any horizontal scrollbars on the root */
+  html, body { overflow-x: hidden !important; }
+
+  /* defensive: force any grid/flex children to wrap vertically */
+  .opportunities .row, .opportunities .cols, .opp-grid { flex-wrap: wrap !important; flex-direction: column !important; }
+}
+</style>
+
+
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Arbexa — Go Pro</title>
 <style>
