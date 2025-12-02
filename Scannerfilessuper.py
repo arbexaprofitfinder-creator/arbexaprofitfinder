@@ -926,15 +926,12 @@ PRO_HTML = """<!doctype html><html lang="en"><head>
 /* HORIZONTAL-SCROLL-FIXED: enforce vertical card-only opportunities on mobile */
 <style id="hard-stop-horizontal-scroll">
 @media (max-width: 900px) {
-  /* hide any original tabular fallback visuals */
   #opptable, .opps-table, .opportunities table, .opportunities thead, .opportunities tbody, .opportunities tr, .opportunities td, .opportunities th {
     display: none !important;
     max-width: 100% !important;
     overflow: hidden !important;
   }
-
-  /* ensure all opportunity containers are vertical card stacks */
-  .opp-cards-wrapper, .opportunities, .opportunities-container, .opps-list, .opp-list, .op-row, .opp-row-wrapper {
+  .opp-cards-wrapper, .opportunities, .opportunities-container, .opps-list, .opp-list, .opp-row, .opp-row-wrapper {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -947,7 +944,6 @@ PRO_HTML = """<!doctype html><html lang="en"><head>
     white-space: normal !important;
     box-sizing: border-box !important;
   }
-
   .opp-card, .opp-preserve, .opp-card-wrapper, .opp-card-item {
     display: block !important;
     width: 100% !important;
@@ -964,11 +960,7 @@ PRO_HTML = """<!doctype html><html lang="en"><head>
     color: #e7eefc !important;
     box-shadow: 0 6px 18px rgba(3,8,20,0.45) !important;
   }
-
-  /* kill any horizontal scrollbars on the root */
   html, body { overflow-x: hidden !important; }
-
-  /* defensive: force any grid/flex children to wrap vertically */
   .opportunities .row, .opportunities .cols, .opp-grid { flex-wrap: wrap !important; flex-direction: column !important; }
 }
 </style>
