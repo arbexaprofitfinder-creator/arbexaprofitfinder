@@ -1172,6 +1172,84 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+
+<!-- FORCING REMOVAL OF HORIZONTAL / SIDEWAYS SCROLLER ON MOBILE -->
+<style id="force-remove-horizontal-final">
+@media (max-width: 920px) {
+  /* Hide any known horizontal/table/grid scrollers */
+  #opptable,
+  .opps-table,
+  .opportunities table,
+  .opportunities thead,
+  .opportunities tbody,
+  table,
+  .table,
+  .grid-cards,
+  .grid-cards *,
+  .horizontal-scroll,
+  .h-scroll,
+  .sideways,
+  .opps-grid,
+  .carousel,
+  .slick-track,
+  .slick-list {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  /* Force the card wrapper and cards to stack vertically and take full width */
+  .opp-cards-wrapper,
+  .opportunities,
+  .opportunities-container,
+  .opps-list,
+  .opp-list,
+  .opp-cards {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    white-space: normal !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .opp-card,
+  .card,
+  .grid-card,
+  .opportunity-card,
+  .opportunity {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Prevent page-level horizontal scrolling */
+  html, body { overflow-x: hidden !important; }
+
+  /* Defensive: ensure no child element keeps forcing width */
+  * { min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; }
+
+  /* Remove scrollbar behavior that enables sideways scrolling */
+  .opportunities, .opportunities-container, .opps-list, .grid-cards {
+    -webkit-overflow-scrolling: auto !important;
+    scroll-snap-type: none !important;
+  }
+}
+</style>
+
 </body></html>"""
 
 LOGIN_HTML = """<!doctype html><html lang="en"><head>
@@ -3899,58 +3977,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 
 
 
-
-/* === STRONG MOBILE OVERRIDE — FORCE DETAILED CARD LAYOUT & REMOVE HORIZONTAL SCROLL ===
-   This block is injected to ensure on mobile the sideways/horizontal scroller is completely removed
-   and only the detailed card layout is visible. It is non-destructive: uses !important only for safety.
-*/
-<style id="force-no-horizontal">
-@media (max-width: 920px) {
-  /* Hide any table-based or grid/horizontal scroller fallbacks */
-  #opptable, .opps-table, .opportunities table, .grid-cards, .horizontal-scroll, .h-scroll, .sideways, .opps-grid {
-    display: none !important;
-  }
-
-  /* Ensure card wrapper is vertical, full-width and never scrolls horizontally */
-  .opp-cards-wrapper, .opportunities, .opportunities-container, .opps-list, .opp-list, .opps-grid {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    overflow-x: hidden !important;
-    overflow-y: visible !important;
-    white-space: normal !important;
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-  }
-
-  /* Make each card full-width and wrap content */
-  .opp-card, .card, .grid-card, .opportunity-card {
-    display: block !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    white-space: normal !important;
-    overflow-wrap: anywhere !important;
-    word-break: break-word !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-  }
-
-  /* Defensive: ensure no child uses horizontal flex-flow */
-  .opp-cards-wrapper > * { flex: none !important; }
-
-  /* Prevent the page itself from scrolling horizontally */
-  html, body { overflow-x: hidden !important; }
-
-  /* Remove any overflow styles that might re-enable sideways scrolling */
-  .opportunities, .opportunities-container, .opps-list, .grid-cards { -webkit-overflow-scrolling: auto !important; scroll-snap-type: none !important; }
-
-  /* Ensure tables are hidden to prevent fallback horizontal scroll */
-  table, thead, tbody, tr, td, th { display: none !important; }
-}
-</style>
 <!-- CARDIFY: global styles to force card appearance and remove scrolling -->
 <style id="cardify-global-styles">
   /* Hide original table visuals */
