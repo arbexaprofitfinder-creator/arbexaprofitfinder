@@ -922,50 +922,6 @@ def _startup():
 # LOGIN PAGE (front door) — starts in LOGIN mode; toggle to SIGNUP or RESET
 
 PRO_HTML = """<!doctype html><html lang="en"><head>
-
-/* HORIZONTAL-SCROLL-FIXED: enforce vertical card-only opportunities on mobile */
-<style id="hard-stop-horizontal-scroll">
-@media (max-width: 900px) {
-  #opptable, .opps-table, .opportunities table, .opportunities thead, .opportunities tbody, .opportunities tr, .opportunities td, .opportunities th {
-    display: none !important;
-    max-width: 100% !important;
-    overflow: hidden !important;
-  }
-  .opp-cards-wrapper, .opportunities, .opportunities-container, .opps-list, .opp-list, .opp-row, .opp-row-wrapper {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-    padding: 8px !important;
-    margin: 0 !important;
-    overflow-x: hidden !important;
-    overflow-y: visible !important;
-    white-space: normal !important;
-    box-sizing: border-box !important;
-  }
-  .opp-card, .opp-preserve, .opp-card-wrapper, .opp-card-item {
-    display: block !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
-    word-break: break-word !important;
-    white-space: normal !important;
-    overflow-wrap: anywhere !important;
-    margin: 6px 0 !important;
-    padding: 10px 12px !important;
-    border-radius: 12px !important;
-    background: linear-gradient(180deg, rgba(12,18,30,0.98), rgba(10,14,24,0.98)) !important;
-    border: 1px solid rgba(255,255,255,0.04) !important;
-    color: #e7eefc !important;
-    box-shadow: 0 6px 18px rgba(3,8,20,0.45) !important;
-  }
-  html, body { overflow-x: hidden !important; }
-  .opportunities .row, .opportunities .cols, .opp-grid { flex-wrap: wrap !important; flex-direction: column !important; }
-}
-</style>
-
-
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Arbexa — Go Pro</title>
 <style>
@@ -3943,6 +3899,58 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 
 
 
+
+/* === STRONG MOBILE OVERRIDE — FORCE DETAILED CARD LAYOUT & REMOVE HORIZONTAL SCROLL ===
+   This block is injected to ensure on mobile the sideways/horizontal scroller is completely removed
+   and only the detailed card layout is visible. It is non-destructive: uses !important only for safety.
+*/
+<style id="force-no-horizontal">
+@media (max-width: 920px) {
+  /* Hide any table-based or grid/horizontal scroller fallbacks */
+  #opptable, .opps-table, .opportunities table, .grid-cards, .horizontal-scroll, .h-scroll, .sideways, .opps-grid {
+    display: none !important;
+  }
+
+  /* Ensure card wrapper is vertical, full-width and never scrolls horizontally */
+  .opp-cards-wrapper, .opportunities, .opportunities-container, .opps-list, .opp-list, .opps-grid {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    white-space: normal !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  /* Make each card full-width and wrap content */
+  .opp-card, .card, .grid-card, .opportunity-card {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* Defensive: ensure no child uses horizontal flex-flow */
+  .opp-cards-wrapper > * { flex: none !important; }
+
+  /* Prevent the page itself from scrolling horizontally */
+  html, body { overflow-x: hidden !important; }
+
+  /* Remove any overflow styles that might re-enable sideways scrolling */
+  .opportunities, .opportunities-container, .opps-list, .grid-cards { -webkit-overflow-scrolling: auto !important; scroll-snap-type: none !important; }
+
+  /* Ensure tables are hidden to prevent fallback horizontal scroll */
+  table, thead, tbody, tr, td, th { display: none !important; }
+}
+</style>
 <!-- CARDIFY: global styles to force card appearance and remove scrolling -->
 <style id="cardify-global-styles">
   /* Hide original table visuals */
