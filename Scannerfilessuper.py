@@ -1250,6 +1250,50 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 </style>
 
+
+<!-- DYNAMIC REMOVER: hide any horizontal scroller list (mobile) that matches opp-list patterns -->
+<script id="auto-hide-horizontal">
+(function(){
+  function hideCandidates(){
+    try{
+      var els = Array.from(document.querySelectorAll('body *'));
+      els.forEach(function(el){
+        try{
+          var style = window.getComputedStyle(el);
+          if(!style) return;
+          // only consider visible block elements
+          if(style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return;
+          var cw = el.clientWidth || 0;
+          var sw = el.scrollWidth || 0;
+          if(sw > cw + 10){
+            // additional heuristics: element contains many rows or contains trading pair format (e.g., '/USDT')
+            var text = (el.innerText||'').slice(0,500).toUpperCase();
+            var manyChildren = el.children && el.children.length >= 6;
+            var containsPair = text.indexOf('/') !== -1 && (text.indexOf('USDT') !== -1 || text.indexOf('BTC') !== -1 || text.indexOf('ETH') !== -1);
+            if(manyChildren || containsPair){
+              // hide it
+              el.style.display = 'none';
+              el.setAttribute('data-auto-hidden','true');
+              console && console.log && console.log('Auto-hidden horizontal scroller:', el, 'cw',cw,'sw',sw,'children',el.children.length);
+            }
+          }
+        }catch(e){};
+      });
+    }catch(e){console && console.warn && console.warn('hideCandidates error', e);}
+  }
+  // run after load
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hideCandidates);
+  else hideCandidates();
+  // observe DOM changes and re-hide newly added horizontal lists
+  var mo = new MutationObserver(function(muts){
+    hideCandidates();
+  });
+  mo.observe(document.documentElement || document.body, { childList:true, subtree:true });
+  // also expose function for manual run
+  window.hideHorizontalOpps = hideCandidates;
+})();
+</script>
+
 </body></html>"""
 
 LOGIN_HTML = """<!doctype html><html lang="en"><head>
