@@ -1173,92 +1173,162 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<!-- === USER LOCK: MOBILE-ONLY — FORCED CARD-ONLY (CSS + JS) === -->
-<style id="user-mobile-card-only-lock-v2">
+<!-- === USER LOCK: MOBILE-ONLY — FORCED CARD-ONLY (AGGRESSIVE v3) === -->
+<style id="user-mobile-card-only-lock-v3">
+/* Strong mobile-only enforcement */
 @media (max-width:820px) {
-  /* Broad hide of known horizontal/grid classes */
-  .horizontal-opps, .opps-row, .cards-row, .cards-wrap, .opps-list, .opportunities-list,
-  .grid-cards, .opps-grid, .carousel, .slick-slider, .swiper-container, .opps-scroll { display: none !important; }
+  /* Hide common horizontal/carousel/grid classes aggressively */
+  [class*="carousel"], [class*="slide"], [class*="slick"], [class*="swiper"], [class*="horizontal"],
+  [class*="row"], [class*="scroll"], [class*="ticker"], [class*="grid"], [class*="list-inline"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+  }
 
-  /* Ensure detailed card containers show */
-  .opp-card, .opp-detailed, .detailed-card, .opp-card-info, .card-detail { display: block !important; width:100% !important; max-width:100% !important; box-sizing:border-box !important; }
+  /* Ensure cards are visible and stacked */
+  .opp-card, .opp-detailed, .detailed-card, .card-detail, .opportunity-card, .opp-card * {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
 
-  html, body { overflow-x:hidden !important; }
+  html, body { overflow-x: hidden !important; }
 }
 </style>
 
-<script id="user-mobile-card-only-script">
+<script id="user-mobile-card-only-script-v3">
 (function(){
   try {
-    function enforceCardOnly(){
-      if (window.innerWidth && window.innerWidth > 820) return;
-      var selectorsToRemove = [
-        '.horizontal-opps', '.opps-row', '.cards-row', '.cards-wrap', '.opps-list', '.opportunities-list',
-        '.grid-cards', '.opps-grid', '.carousel', '.slick-slider', '.swiper-container', '.opps-scroll',
-        '#opptable', 'table.opportunities'
-      ];
-      selectorsToRemove.forEach(function(sel){
-        document.querySelectorAll(sel).forEach(function(el){ el.remove(); });
-      });
+    if (window.innerWidth && window.innerWidth > 820) return;
 
-      // Find all detailed/opportunity cards by common names
-      var cardSelectors = ['.opp-card', '.opp-detailed', '.detailed-card', '.card-detail', '.opportunity-card'];
-      var cards = [];
-      cardSelectors.forEach(function(sel){
-        document.querySelectorAll(sel).forEach(function(c){ if (cards.indexOf(c) === -1) cards.push(c); });
-      });
+    var heuristics = {
+      classSubstrings: ['carousel','slide','slick','swiper','horizontal','row','scroll','ticker','grid','list-inline','cards-row','cards-wrap','opps-row'],
+      idSubstrings: ['carousel','slider','opps','cards','row','scroll']
+    };
 
-      // If we found cards, ensure they are direct children of a single wrapper
-      if (cards.length){
-        var wrapper = document.querySelector('.opp-cards-wrapper') || document.querySelector('#opps-wrapper') || document.getElementById('opp-cards-wrapper-created-by-fix');
-        if (!wrapper){
-          wrapper = document.createElement('div');
-          wrapper.id = 'opp-cards-wrapper-created-by-fix';
-          document.body.appendChild(wrapper);
+    function looksHorizontal(el){
+      try {
+        var cls = (el.className || '').toString().toLowerCase();
+        for(var i=0;i<heuristics.classSubstrings.length;i++){
+          if (cls.indexOf(heuristics.classSubstrings[i])!==-1) return true;
         }
-        wrapper.style.display = 'block';
-        wrapper.style.width = '100%';
-        wrapper.style.boxSizing = 'border-box';
-        // Move cards into wrapper and normalize styles
-        cards.forEach(function(c){
+        var id = (el.id || '').toString().toLowerCase();
+        for(var j=0;j<heuristics.idSubstrings.length;j++){
+          if (id.indexOf(heuristics.idSubstrings[j])!==-1) return true;
+        }
+        var s = window.getComputedStyle(el);
+        if (!s) return false;
+        // Flex-row with horizontal overflow often used for sideways lists
+        if (s.display && s.display.indexOf('flex')!==-1 && (s.flexDirection === 'row' || s.flexDirection === 'row-reverse')) {
+          if (el.scrollWidth > el.clientWidth + 2) return true;
+        }
+        if (s.overflowX && s.overflowX !== 'visible') {
+          if (el.scrollWidth > el.clientWidth + 2) return true;
+        }
+        if (s.whiteSpace === 'nowrap' && el.scrollWidth > el.clientWidth + 2) return true;
+      } catch(e){}
+      return false;
+    }
+
+    function removeHorizontals(root){
+      try {
+        var all = (root||document).querySelectorAll('*');
+        for(var i=0;i<all.length;i++){
+          var el = all[i];
+          if (looksHorizontal(el)){
+            try { el.parentNode && el.parentNode.removeChild(el); } catch(e){}
+          }
+        }
+        var broad = ['.horizontal-opps', '.opps-row', '.cards-row', '.cards-wrap', '.opps-list', '.opportunities-list',
+                     '.grid-cards', '.opps-grid', '.carousel', '.slick-slider', '.swiper-container', '.opps-scroll',
+                     '#opptable', 'table.opportunities', '.opps-slider', '.cards-slider'];
+        broad.forEach(function(sel){
+          document.querySelectorAll(sel).forEach(function(e){ try { e.remove(); } catch(e){} });
+        });
+      } catch(e){ console.error('removeHorizontals error', e); }
+    }
+
+    function normalizeCards(){
+      try {
+        var cardSel = ['.opp-card', '.opp-detailed', '.detailed-card', '.card-detail', '.opportunity-card', '.oppItem'];
+        var cards = [];
+        cardSel.forEach(function(sel){
+          document.querySelectorAll(sel).forEach(function(c){ if (cards.indexOf(c)===-1) cards.push(c); });
+        });
+        if (cards.length){
+          var wrapper = document.querySelector('.opp-cards-wrapper') || document.getElementById('opp-cards-wrapper-created-by-fix') || document.querySelector('#opps-wrapper') || document.createElement('div');
+          if (!wrapper.parentNode) {
+            wrapper.id = 'opp-cards-wrapper-created-by-fix';
+            document.body.appendChild(wrapper);
+          }
+          wrapper.style.display = 'block';
+          wrapper.style.width = '100%';
+          wrapper.style.boxSizing = 'border-box';
+          cards.forEach(function(c){
+            try {
+              wrapper.appendChild(c);
+              c.style.display = 'block';
+              c.style.width = '100%';
+              c.style.maxWidth = '100%';
+              c.style.boxSizing = 'border-box';
+              c.style.margin = '8px 6px';
+              c.style.padding = '10px 12px';
+              c.style.overflow = 'visible';
+              c.style.whiteSpace = 'normal';
+            } catch(e){}
+          });
+        }
+      } catch(e){ console.error('normalizeCards error', e); }
+    }
+
+    function runAll(){
+      removeHorizontals(document);
+      normalizeCards();
+      ['.opportunities', '.opportunities-container', '.cards-wrap', '.carousel-wrap'].forEach(function(sel){
+        document.querySelectorAll(sel).forEach(function(el){
           try {
-            wrapper.appendChild(c);
-            c.style.display = 'block';
-            c.style.width = '100%';
-            c.style.maxWidth = '100%';
-            c.style.boxSizing = 'border-box';
-            c.style.margin = '8px 6px';
-            c.style.padding = '10px 12px';
-            c.style.overflow = 'visible';
-            c.style.whiteSpace = 'normal';
+            el.style.transform = 'none';
+            el.style.whiteSpace = 'normal';
+            el.style.overflowX = 'hidden';
+            el.style.display = 'none';
           } catch(e){}
         });
-      }
-
-      // Defensive: collapse any leftover transform/translate that could reveal hidden horizontal lists
-      ['.opportunities', '.opportunities-container', '.cards-wrap'].forEach(function(sel){
-        document.querySelectorAll(sel).forEach(function(el){
-          el.style.transform = 'none';
-          el.style.whiteSpace = 'normal';
-          el.style.overflowX = 'hidden';
-        });
       });
     }
 
-    if (document.readyState === 'loading'){
-      document.addEventListener('DOMContentLoaded', enforceCardOnly);
-    } else {
-      enforceCardOnly();
-    }
+    runAll();
 
-    // Also run on resize (debounced)
+    var mo = new MutationObserver(function(muts){
+      try {
+        muts.forEach(function(m){
+          if (m.addedNodes && m.addedNodes.length){
+            runAll();
+          }
+        });
+      } catch(e){}
+    });
+    mo.observe(document.documentElement || document.body, { childList: true, subtree: true });
+
+    var runs = 0;
+    var interval = setInterval(function(){
+      runAll();
+      runs++;
+      if (runs>20) clearInterval(interval);
+    }, 500);
+
     var t;
     window.addEventListener('resize', function(){
       clearTimeout(t);
-      t = setTimeout(enforceCardOnly, 200);
+      t = setTimeout(runAll, 200);
     });
-  } catch (e) {
-    console.error('mobile card-only script error', e);
+
+  } catch (e){
+    console.error('mobile card-only v3 error', e);
   }
 })();
 </script>
