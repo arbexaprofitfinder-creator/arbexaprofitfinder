@@ -32,6 +32,10 @@ import json as _json
 from collections import deque as _deque
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
+
+# MOBILE-ONLY TOGGLE: keep computing opportunities but DO NOT send them to UI
+SEND_OPPS = False  # set True to allow sending opps to clients
+
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", os.getenv("SUPABASE_SERVICE_KEY", ""))
 
 _sb_queue = _deque(maxlen=2000)   # simple in-memory queue
@@ -3677,6 +3681,14 @@ def data(request: Request,
     user = current_user_from_auth_header(request, db)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    # MOBILE_SUPPRESS_SEND_OPPS: server keeps computing opps but returns an empty rows list to clients
+    try:
+        if not SEND_OPPS:
+            server_time_utc_iso = dt.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+            return JSONResponse({"rows": [], "cycle": cycle_no, "summary": last_cycle_summary, "serverTimeUTC": server_time_utc_iso})
+    except Exception:
+        pass
+
 
     ex_filter = set([e for e in ex.split(",") if e]) if ex else set()
     with lock:
