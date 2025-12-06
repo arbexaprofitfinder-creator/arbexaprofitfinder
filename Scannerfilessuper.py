@@ -987,9 +987,9 @@ a{color:var(--acc);text-decoration:none}
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+  /* REMOVED to disable horizontal scroll (mobile card-only) */
+table, .table { display: none !important; }
+th, td { white-space: normal !important; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -1172,167 +1172,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
-
-<!-- === USER LOCK: MOBILE-ONLY — FORCED CARD-ONLY (AGGRESSIVE v3) === -->
-<style id="user-mobile-card-only-lock-v3">
-/* Strong mobile-only enforcement */
-@media (max-width:820px) {
-  /* Hide common horizontal/carousel/grid classes aggressively */
-  [class*="carousel"], [class*="slide"], [class*="slick"], [class*="swiper"], [class*="horizontal"],
-  [class*="row"], [class*="scroll"], [class*="ticker"], [class*="grid"], [class*="list-inline"] {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    width: 0 !important;
-    overflow: hidden !important;
-  }
-
-  /* Ensure cards are visible and stacked */
-  .opp-card, .opp-detailed, .detailed-card, .card-detail, .opportunity-card, .opp-card * {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    white-space: normal !important;
-    overflow: visible !important;
-  }
-
-  html, body { overflow-x: hidden !important; }
-}
-</style>
-
-<script id="user-mobile-card-only-script-v3">
-(function(){
-  try {
-    if (window.innerWidth && window.innerWidth > 820) return;
-
-    var heuristics = {
-      classSubstrings: ['carousel','slide','slick','swiper','horizontal','row','scroll','ticker','grid','list-inline','cards-row','cards-wrap','opps-row'],
-      idSubstrings: ['carousel','slider','opps','cards','row','scroll']
-    };
-
-    function looksHorizontal(el){
-      try {
-        var cls = (el.className || '').toString().toLowerCase();
-        for(var i=0;i<heuristics.classSubstrings.length;i++){
-          if (cls.indexOf(heuristics.classSubstrings[i])!==-1) return true;
-        }
-        var id = (el.id || '').toString().toLowerCase();
-        for(var j=0;j<heuristics.idSubstrings.length;j++){
-          if (id.indexOf(heuristics.idSubstrings[j])!==-1) return true;
-        }
-        var s = window.getComputedStyle(el);
-        if (!s) return false;
-        // Flex-row with horizontal overflow often used for sideways lists
-        if (s.display && s.display.indexOf('flex')!==-1 && (s.flexDirection === 'row' || s.flexDirection === 'row-reverse')) {
-          if (el.scrollWidth > el.clientWidth + 2) return true;
-        }
-        if (s.overflowX && s.overflowX !== 'visible') {
-          if (el.scrollWidth > el.clientWidth + 2) return true;
-        }
-        if (s.whiteSpace === 'nowrap' && el.scrollWidth > el.clientWidth + 2) return true;
-      } catch(e){}
-      return false;
-    }
-
-    function removeHorizontals(root){
-      try {
-        var all = (root||document).querySelectorAll('*');
-        for(var i=0;i<all.length;i++){
-          var el = all[i];
-          if (looksHorizontal(el)){
-            try { el.parentNode && el.parentNode.removeChild(el); } catch(e){}
-          }
-        }
-        var broad = ['.horizontal-opps', '.opps-row', '.cards-row', '.cards-wrap', '.opps-list', '.opportunities-list',
-                     '.grid-cards', '.opps-grid', '.carousel', '.slick-slider', '.swiper-container', '.opps-scroll',
-                     '#opptable', 'table.opportunities', '.opps-slider', '.cards-slider'];
-        broad.forEach(function(sel){
-          document.querySelectorAll(sel).forEach(function(e){ try { e.remove(); } catch(e){} });
-        });
-      } catch(e){ console.error('removeHorizontals error', e); }
-    }
-
-    function normalizeCards(){
-      try {
-        var cardSel = ['.opp-card', '.opp-detailed', '.detailed-card', '.card-detail', '.opportunity-card', '.oppItem'];
-        var cards = [];
-        cardSel.forEach(function(sel){
-          document.querySelectorAll(sel).forEach(function(c){ if (cards.indexOf(c)===-1) cards.push(c); });
-        });
-        if (cards.length){
-          var wrapper = document.querySelector('.opp-cards-wrapper') || document.getElementById('opp-cards-wrapper-created-by-fix') || document.querySelector('#opps-wrapper') || document.createElement('div');
-          if (!wrapper.parentNode) {
-            wrapper.id = 'opp-cards-wrapper-created-by-fix';
-            document.body.appendChild(wrapper);
-          }
-          wrapper.style.display = 'block';
-          wrapper.style.width = '100%';
-          wrapper.style.boxSizing = 'border-box';
-          cards.forEach(function(c){
-            try {
-              wrapper.appendChild(c);
-              c.style.display = 'block';
-              c.style.width = '100%';
-              c.style.maxWidth = '100%';
-              c.style.boxSizing = 'border-box';
-              c.style.margin = '8px 6px';
-              c.style.padding = '10px 12px';
-              c.style.overflow = 'visible';
-              c.style.whiteSpace = 'normal';
-            } catch(e){}
-          });
-        }
-      } catch(e){ console.error('normalizeCards error', e); }
-    }
-
-    function runAll(){
-      removeHorizontals(document);
-      normalizeCards();
-      ['.opportunities', '.opportunities-container', '.cards-wrap', '.carousel-wrap'].forEach(function(sel){
-        document.querySelectorAll(sel).forEach(function(el){
-          try {
-            el.style.transform = 'none';
-            el.style.whiteSpace = 'normal';
-            el.style.overflowX = 'hidden';
-            el.style.display = 'none';
-          } catch(e){}
-        });
-      });
-    }
-
-    runAll();
-
-    var mo = new MutationObserver(function(muts){
-      try {
-        muts.forEach(function(m){
-          if (m.addedNodes && m.addedNodes.length){
-            runAll();
-          }
-        });
-      } catch(e){}
-    });
-    mo.observe(document.documentElement || document.body, { childList: true, subtree: true });
-
-    var runs = 0;
-    var interval = setInterval(function(){
-      runAll();
-      runs++;
-      if (runs>20) clearInterval(interval);
-    }, 500);
-
-    var t;
-    window.addEventListener('resize', function(){
-      clearTimeout(t);
-      t = setTimeout(runAll, 200);
-    });
-
-  } catch (e){
-    console.error('mobile card-only v3 error', e);
-  }
-})();
-</script>
-
 </body></html>"""
 
 LOGIN_HTML = """<!doctype html><html lang="en"><head>
@@ -1390,9 +1229,9 @@ LOGIN_HTML = """<!doctype html><html lang="en"><head>
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+  /* REMOVED to disable horizontal scroll (mobile card-only) */
+table, .table { display: none !important; }
+th, td { white-space: normal !important; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -1752,9 +1591,9 @@ a{color:var(--acc);text-decoration:none}
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+  /* REMOVED to disable horizontal scroll (mobile card-only) */
+table, .table { display: none !important; }
+th, td { white-space: normal !important; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -2402,9 +2241,9 @@ img.exlogo{width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+  /* REMOVED to disable horizontal scroll (mobile card-only) */
+table, .table { display: none !important; }
+th, td { white-space: normal !important; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -3978,9 +3817,9 @@ a{color:var(--acc);text-decoration:none}
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+  /* REMOVED to disable horizontal scroll (mobile card-only) */
+table, .table { display: none !important; }
+th, td { white-space: normal !important; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
