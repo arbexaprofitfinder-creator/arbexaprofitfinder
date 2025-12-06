@@ -2241,9 +2241,9 @@ img.exlogo{width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* REMOVED to disable horizontal scroll (mobile card-only) */
-table, .table { display: none !important; }
-th, td { white-space: normal !important; }
+  /* Tables scroll horizontally on narrow screens */
+  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
+  th, td { white-space: nowrap; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -3817,9 +3817,9 @@ a{color:var(--acc);text-decoration:none}
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* REMOVED to disable horizontal scroll (mobile card-only) */
-table, .table { display: none !important; }
-th, td { white-space: normal !important; }
+  /* Tables scroll horizontally on narrow screens */
+  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
+  th, td { white-space: nowrap; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
