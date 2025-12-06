@@ -1052,55 +1052,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
-
-/* === USER LOCK: MOBILE-ONLY — FORCE DETAILED CARD VIEW ONLY ===
-   Inserted by assistant per user request: remove any other opportunity style except detailed card
-   This CSS is intentionally strong (uses !important) and scoped to max-width:820px (mobile).
-*/
-<style id="user-mobile-card-only-lock">
-@media (max-width:820px) {
-  /* Hide alternate/opinionated horizontal or grid views */
-  .grid-cards, .cards, .card-list, .horizontal-opps, .opps-list, .opportunities-list,
-  .opps-grid, .opportunities .grid, #cards, .grid-cards, .cards-row, .opps-row { display: none !important; }
-
-  /* Hide the original table fallback (ensure only cards are visible) */
-  #opptable, table.opportunities, .opportunities table, thead, tbody, tr, td, th { display: none !important; }
-
-  /* Force the card-wrapper to be vertical and full-width */
-  .opp-cards-wrapper, .opp-cards-wrapper * {
-    display: block !important;
-    flex-direction: column !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
-    overflow: visible !important;
-    white-space: normal !important;
-  }
-
-  .opp-card {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
-    word-break: break-word !important;
-    margin: 8px 6px !important;
-    padding: 10px 12px !important;
-  }
-
-  /* Prevent any horizontal page scrolling caused by wide elements */
-  html, body { overflow-x: hidden !important; }
-
-  /* Defensive: remove transforms/translate that may reveal hidden horizontal lists */
-  .opportunities, .opportunities-container, .opps-list, .cards-row, .cards-wrap {
-    transform: none !important;
-    white-space: normal !important;
-    overflow-x: hidden !important;
-  }
-}
-</style>
-
 </head><body>
 <div class="wrap">
   <div class="header">
@@ -1221,6 +1172,97 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+
+<!-- === USER LOCK: MOBILE-ONLY — FORCED CARD-ONLY (CSS + JS) === -->
+<style id="user-mobile-card-only-lock-v2">
+@media (max-width:820px) {
+  /* Broad hide of known horizontal/grid classes */
+  .horizontal-opps, .opps-row, .cards-row, .cards-wrap, .opps-list, .opportunities-list,
+  .grid-cards, .opps-grid, .carousel, .slick-slider, .swiper-container, .opps-scroll { display: none !important; }
+
+  /* Ensure detailed card containers show */
+  .opp-card, .opp-detailed, .detailed-card, .opp-card-info, .card-detail { display: block !important; width:100% !important; max-width:100% !important; box-sizing:border-box !important; }
+
+  html, body { overflow-x:hidden !important; }
+}
+</style>
+
+<script id="user-mobile-card-only-script">
+(function(){
+  try {
+    function enforceCardOnly(){
+      if (window.innerWidth && window.innerWidth > 820) return;
+      var selectorsToRemove = [
+        '.horizontal-opps', '.opps-row', '.cards-row', '.cards-wrap', '.opps-list', '.opportunities-list',
+        '.grid-cards', '.opps-grid', '.carousel', '.slick-slider', '.swiper-container', '.opps-scroll',
+        '#opptable', 'table.opportunities'
+      ];
+      selectorsToRemove.forEach(function(sel){
+        document.querySelectorAll(sel).forEach(function(el){ el.remove(); });
+      });
+
+      // Find all detailed/opportunity cards by common names
+      var cardSelectors = ['.opp-card', '.opp-detailed', '.detailed-card', '.card-detail', '.opportunity-card'];
+      var cards = [];
+      cardSelectors.forEach(function(sel){
+        document.querySelectorAll(sel).forEach(function(c){ if (cards.indexOf(c) === -1) cards.push(c); });
+      });
+
+      // If we found cards, ensure they are direct children of a single wrapper
+      if (cards.length){
+        var wrapper = document.querySelector('.opp-cards-wrapper') || document.querySelector('#opps-wrapper') || document.getElementById('opp-cards-wrapper-created-by-fix');
+        if (!wrapper){
+          wrapper = document.createElement('div');
+          wrapper.id = 'opp-cards-wrapper-created-by-fix';
+          document.body.appendChild(wrapper);
+        }
+        wrapper.style.display = 'block';
+        wrapper.style.width = '100%';
+        wrapper.style.boxSizing = 'border-box';
+        // Move cards into wrapper and normalize styles
+        cards.forEach(function(c){
+          try {
+            wrapper.appendChild(c);
+            c.style.display = 'block';
+            c.style.width = '100%';
+            c.style.maxWidth = '100%';
+            c.style.boxSizing = 'border-box';
+            c.style.margin = '8px 6px';
+            c.style.padding = '10px 12px';
+            c.style.overflow = 'visible';
+            c.style.whiteSpace = 'normal';
+          } catch(e){}
+        });
+      }
+
+      // Defensive: collapse any leftover transform/translate that could reveal hidden horizontal lists
+      ['.opportunities', '.opportunities-container', '.cards-wrap'].forEach(function(sel){
+        document.querySelectorAll(sel).forEach(function(el){
+          el.style.transform = 'none';
+          el.style.whiteSpace = 'normal';
+          el.style.overflowX = 'hidden';
+        });
+      });
+    }
+
+    if (document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', enforceCardOnly);
+    } else {
+      enforceCardOnly();
+    }
+
+    // Also run on resize (debounced)
+    var t;
+    window.addEventListener('resize', function(){
+      clearTimeout(t);
+      t = setTimeout(enforceCardOnly, 200);
+    });
+  } catch (e) {
+    console.error('mobile card-only script error', e);
+  }
+})();
+</script>
+
 </body></html>"""
 
 LOGIN_HTML = """<!doctype html><html lang="en"><head>
