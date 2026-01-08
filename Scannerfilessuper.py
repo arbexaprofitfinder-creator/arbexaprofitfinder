@@ -1142,6 +1142,18 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     });
   } catch(e){}
 })();
+
+/* === MOBILE PATCH: disable last-updated bar JS on mobile === */
+(function(){
+  try{
+    if (window.innerWidth <= 820){
+      window.ensureLastBox = function(){ return null; };
+      window.setLastUpdatedUTCFromISO = function(){};
+      window.setOppCount = function(){};
+    }
+  }catch(e){}
+})();
+
 </script>
 
 
@@ -3860,9 +3872,16 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 /* MOBILE-ONLY-PATCH: START */
 <style>
 
-/* === REMOVE TOP STATUS BAR (Last updated / opp count) — MOBILE ONLY === */
+/* === REMOVE TOP STATUS BAR (Last updated / opp count) — MOBILE ONLY (FORCED) === */
 @media (max-width: 820px){
-  #lastBox{ display:none !important; }
+  #lastBox,
+  .lastbox{
+    display:none !important;
+    visibility:hidden !important;
+    height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
 }
 
 </style>
