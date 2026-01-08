@@ -3858,6 +3858,15 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 </style>
 
 /* MOBILE-ONLY-PATCH: START */
+<style>
+
+/* === REMOVE TOP STATUS BAR (Last updated / opp count) — MOBILE ONLY === */
+@media (max-width: 820px){
+  #lastBox{ display:none !important; }
+}
+
+</style>
+
 <style id="mobile-only-patch-styles">
 @media (max-width:820px) {
   .bottom-nav .ms-btn, .bottom-nav .navbtn, .bottom-nav .profile-btn {
