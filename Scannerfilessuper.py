@@ -2431,7 +2431,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     <div class="block hide-on-mobile"><details id="tradeDD"><summary class="btnpdf">TRADE DETAILS‼️</summary><div class="tradecontent" id="tradeContent"></div></details></div>
     <div class="block hide-on-mobile">
       <details id="msgDD"><summary id="msgSummary" class="btnpdf">📩Message</summary>
-        <div class="tradecontent">Make sure to apply the ⚠️Trade Cautions before each trade!</div>
+        <div class="tradecontent">Make sure to apply Trade Guide before each trade!</div>
       </details>
     </div>
   </div>
@@ -2450,7 +2450,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 
 <!-- Reminder modal -->
 <div id="remindModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="remindText">
-  <div class="box"><p id="remindText">⚠️Make sure to apply trade details before each trade!</p>
+  <div class="box"><p id="remindText">⚠️Make sure to apply trade guide before each trade!</p>
     <div class="actions"><button id="remindOk" class="btnpdf" type="button">Okay</button><button id="remindSkip" class="btnpdf" type="button">Do not remind me today</button></div>
   </div>
 </div>
