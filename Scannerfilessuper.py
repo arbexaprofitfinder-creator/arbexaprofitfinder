@@ -2361,11 +2361,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   <div class="brandrow">
     <img src="/brandlogo" alt="Arbexa Profit Finder" class="brandlogo">
     <a class="brandurl" href="https://arbexaprofitfinder.com" target="_blank" rel="noopener">ARBEXAPROFITFINDER.COM</a>
-    <div class="lastbox" id="lastBox">
-      <span class="lastlabel">Last updated</span>
-      <span id="lastUTCtime" class="lasttime">--:-- AM</span>
-      <span id="oppCount" class="oppcount">· -- possible opportunities</span>
-    </div>
+    
 
     <div class="menu-anchor">
       <details id="menuDD">
