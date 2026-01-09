@@ -1052,39 +1052,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
-
-<!-- === MOBILE-ONLY UI REMOVAL PATCH (LOCKED) === -->
-<style>
-@media (max-width: 820px){
-  /* Top status / info block */
-  #lastBox,
-  .lastbox,
-  .brandrow .info,
-  .brandrow .ai,
-  .brandrow .ai-badge,
-  .brandrow .info-btn {
-    display:none !important;
-    height:0 !important;
-    margin:0 !important;
-    padding:0 !important;
-  }
-
-  /* Free-plan message and green informational text */
-  .free-plan,
-  .free-plan-msg,
-  .plan-info,
-  .green-info,
-  .notice,
-  .notice.green {
-    display:none !important;
-    height:0 !important;
-    margin:0 !important;
-    padding:0 !important;
-  }
-}
-</style>
-<!-- === END MOBILE-ONLY UI REMOVAL PATCH === -->
-
 </head><body>
 <div class="wrap">
   <div class="header">
@@ -1175,18 +1142,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     });
   } catch(e){}
 })();
-
-/* === MOBILE PATCH: disable last-updated bar JS on mobile === */
-(function(){
-  try{
-    if (window.innerWidth <= 820){
-      window.ensureLastBox = function(){ return null; };
-      window.setLastUpdatedUTCFromISO = function(){};
-      window.setOppCount = function(){};
-    }
-  }catch(e){}
-})();
-
 </script>
 
 
@@ -2598,10 +2553,7 @@ function renderTradeDetails(){const box=qs('#tradeContent'); if(box) box.innerHT
 
 /* ====== SERVER CLOCK: AFRICA/LAGOS (no seconds) ====== */
 let baseServerMs=null, baseClientMs=null, clockTicker=null;
-function ensureLastBox(){
-return null;
-
-let b=qs('#lastBox'), t=qs('#lastUTCtime'); if(!b){const br=qs('.brandrow'); if(!br) return; b=document.createElement('div'); b.className='lastbox'; b.id='lastBox'; b.innerHTML=`<span class="lastlabel">Last updated</span><span id="lastUTCtime" class="lasttime">--:-- AM</span><span id="oppCount" class="oppcount">· -- possible opportunities</span>`; br.appendChild(b); t=qs('#lastUTCtime');} return t||qs('#lastUTCtime');}
+function ensureLastBox(){let b=qs('#lastBox'), t=qs('#lastUTCtime'); if(!b){const br=qs('.brandrow'); if(!br) return; b=document.createElement('div'); b.className='lastbox'; b.id='lastBox'; b.innerHTML=`<span class="lastlabel">Last updated</span><span id="lastUTCtime" class="lasttime">--:-- AM</span><span id="oppCount" class="oppcount">· -- possible opportunities</span>`; br.appendChild(b); t=qs('#lastUTCtime');} return t||qs('#lastUTCtime');}
 function fmtLagos(d){
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone:'Africa/Lagos',
@@ -3906,22 +3858,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 </style>
 
 /* MOBILE-ONLY-PATCH: START */
-<style>
-
-/* === REMOVE TOP STATUS BAR (Last updated / opp count) — MOBILE ONLY (FORCED) === */
-@media (max-width: 820px){
-  #lastBox,
-  .lastbox{
-    display:none !important;
-    visibility:hidden !important;
-    height:0 !important;
-    margin:0 !important;
-    padding:0 !important;
-  }
-}
-
-</style>
-
 <style id="mobile-only-patch-styles">
 @media (max-width:820px) {
   .bottom-nav .ms-btn, .bottom-nav .navbtn, .bottom-nav .profile-btn {
