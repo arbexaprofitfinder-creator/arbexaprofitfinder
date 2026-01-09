@@ -1626,7 +1626,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 <header class="nav">
   <div class="brand">
     <img src="/brandlogo" alt="Arbexa">
-    <span class="tag">ARBEXAPROFITFINDER.COM</span>
+    
   </div>
   <div class="links">
     <a class="btn" href="https://www.dropbox.com/scl/fi/paqtorxp2q2couih5z5vs/Guide-All-You-Need-To-Know-From-ArbexaProfitFinder.pdf?dl=0" target="_blank" rel="noopener">Guide</a>
