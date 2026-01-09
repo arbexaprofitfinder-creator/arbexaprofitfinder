@@ -2565,7 +2565,10 @@ function renderTradeDetails(){const box=qs('#tradeContent'); if(box) box.innerHT
 
 /* ====== SERVER CLOCK: AFRICA/LAGOS (no seconds) ====== */
 let baseServerMs=null, baseClientMs=null, clockTicker=null;
-function ensureLastBox(){let b=qs('#lastBox'), t=qs('#lastUTCtime'); if(!b){const br=qs('.brandrow'); if(!br) return; b=document.createElement('div'); b.className='lastbox'; b.id='lastBox'; b.innerHTML=`<span class="lastlabel">Last updated</span><span id="lastUTCtime" class="lasttime">--:-- AM</span><span id="oppCount" class="oppcount">· -- possible opportunities</span>`; br.appendChild(b); t=qs('#lastUTCtime');} return t||qs('#lastUTCtime');}
+function ensureLastBox(){
+return null;
+
+let b=qs('#lastBox'), t=qs('#lastUTCtime'); if(!b){const br=qs('.brandrow'); if(!br) return; b=document.createElement('div'); b.className='lastbox'; b.id='lastBox'; b.innerHTML=`<span class="lastlabel">Last updated</span><span id="lastUTCtime" class="lasttime">--:-- AM</span><span id="oppCount" class="oppcount">· -- possible opportunities</span>`; br.appendChild(b); t=qs('#lastUTCtime');} return t||qs('#lastUTCtime');}
 function fmtLagos(d){
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone:'Africa/Lagos',
