@@ -1184,6 +1184,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
+
+<script>
+/* === LOCKED MOBILE-ONLY REMOVALS (DOM SOURCE FIX) === */
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    if (window.innerWidth > 820) return;
+
+    // Remove top status/info block
+    var lastBox = document.getElementById('lastBox');
+    if (lastBox) lastBox.remove();
+
+    // Remove Info dropdown
+    var infoDD = document.getElementById('infoDD');
+    if (infoDD) infoDD.remove();
+
+    // Remove free-plan banner and green tip (KEEP GO PRO)
+    var freeBanner = document.getElementById('freeBanner');
+    if (freeBanner) freeBanner.remove();
+
+    var dashTip = document.querySelector('.dash-tip');
+    if (dashTip) dashTip.remove();
+
+  }catch(e){}
+});
+</script>
+
 </body></html>"""
 
 LOGIN_HTML = """<!doctype html><html lang="en"><head>
