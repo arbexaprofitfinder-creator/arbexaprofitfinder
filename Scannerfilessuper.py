@@ -1052,6 +1052,39 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   .bottom-nav .profile-btn { box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
 }
 </style>
+
+<!-- === MOBILE-ONLY UI REMOVAL PATCH (LOCKED) === -->
+<style>
+@media (max-width: 820px){
+  /* Top status / info block */
+  #lastBox,
+  .lastbox,
+  .brandrow .info,
+  .brandrow .ai,
+  .brandrow .ai-badge,
+  .brandrow .info-btn {
+    display:none !important;
+    height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  /* Free-plan message and green informational text */
+  .free-plan,
+  .free-plan-msg,
+  .plan-info,
+  .green-info,
+  .notice,
+  .notice.green {
+    display:none !important;
+    height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+}
+</style>
+<!-- === END MOBILE-ONLY UI REMOVAL PATCH === -->
+
 </head><body>
 <div class="wrap">
   <div class="header">
