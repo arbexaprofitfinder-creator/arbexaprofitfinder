@@ -2468,9 +2468,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
   <a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
 
     
-</header>
-<div id="freeBanner" class="free-banner hide">You’re currently on the free plan with limited features, subscribe to unlock full potentials.</div>
-<div class="dash-tip">Most Profitable and executable Opportunities last no more than 10-15 Minutes so act fast,but carefully!</div>
 
 
 <!-- Loading overlay -->
