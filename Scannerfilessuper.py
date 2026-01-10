@@ -2412,20 +2412,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     </div>
   </div>
 
-  <details id="infoDD" class="info-dropdown">
-  <summary class="btnpdf" title="Info">Info ▾</summary>
-  <div class="info-panel">
-    <a id="extDoc" class="btnpdf" href="#" target="_blank" rel="noopener" style="display:none"></a>
-    <details id="tradeDD">
-      <summary class="btnpdf">Trade Details ▾</summary>
-      <div class="tradecontent" id="tradeContent"></div>
-    </details>
-    <details id="msgDD">
-      <summary id="msgSummary" class="btnpdf">Message ▾</summary>
-      <div class="tradecontent">Make sure to apply the Trade Cautions before each trade!</div>
-    </details>
-  </div>
-</details>
     <div class="block hide-on-mobile"><details id="tradeDD"><summary class="btnpdf">TRADE DETAILS‼️</summary><div class="tradecontent" id="tradeContent"></div></details></div>
     <div class="block hide-on-mobile">
       <details id="msgDD"><summary id="msgSummary" class="btnpdf">📩Message</summary>
@@ -2436,10 +2422,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 
   <a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
 
-    
-
-
-<!-- Loading overlay -->
+    <!-- Loading overlay -->
 <div id="loadOverlay" class="hidden" aria-hidden="true">
   <div class="logoWrap"><img class="logoPulse" src="/brandlogo" alt="Loading…" /></div>
   <div class="loadCaption">Loading latest opportunities…</div>
