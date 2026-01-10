@@ -987,17 +987,7 @@ a{color:var(--acc);text-decoration:none}
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
-  /* Panels */
-  .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
-  /* Orderbook/trades reasonable heights */
-  .orderbook, .order-book, .order_book, .trades, .trade-history { max-height: 50vh; overflow:auto; }
-  /* Utility spacing */
-  .hide-on-mobile { display: none !important; }
-  .pad { padding: 12px; }
-}
+  
 @media (min-width: 901px) {
   .drawer { transform: none; position: static; width: auto; border-left: none; }
 }
