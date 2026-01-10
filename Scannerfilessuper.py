@@ -3844,10 +3844,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 
 /* Arbexa Mobile Tweaks: info dropdown + remove 'A' + compact spacing */
 @media (max-width: 768px){
-  .info-dropdown{ border:1px solid rgba(255,255,255,0.08); border-radius:12px; background:#0e2230; overflow:hidden; margin:8px 0 10px; }
-  .info-dropdown > summary{ list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:12px 14px; font-weight:800; font-size:14px; }
-  .info-panel{ display:grid; gap:8px; padding:10px 12px 12px; }
-  .info-panel > a.btnpdf{ display:block; width:100%; text-align:center; font-weight:800; }
+  
   #tradeDD > summary.btnpdf, #msgDD > summary.btnpdf{ width:100%; text-align:center; }
 
   .free-banner, .banner-blue, .free-plan-note, .notice{ margin:8px 0 10px !important; padding:10px 12px !important; }
