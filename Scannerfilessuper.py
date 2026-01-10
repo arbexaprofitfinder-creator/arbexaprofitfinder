@@ -987,7 +987,17 @@ a{color:var(--acc);text-decoration:none}
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  
+  /* REMOVED to disable horizontal scroll (mobile card-only) */
+table, .table { display: none !important; }
+th, td { white-space: normal !important; }
+  /* Panels */
+  .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
+  /* Orderbook/trades reasonable heights */
+  .orderbook, .order-book, .order_book, .trades, .trade-history { max-height: 50vh; overflow:auto; }
+  /* Utility spacing */
+  .hide-on-mobile { display: none !important; }
+  .pad { padding: 12px; }
+}
 @media (min-width: 901px) {
   .drawer { transform: none; position: static; width: auto; border-left: none; }
 }
@@ -1132,18 +1142,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     });
   } catch(e){}
 })();
-
-/* === MOBILE PATCH: disable last-updated bar JS on mobile === */
-(function(){
-  try{
-    if (window.innerWidth <= 820){
-      window.ensureLastBox = function(){ return null; };
-      window.setLastUpdatedUTCFromISO = function(){};
-      window.setOppCount = function(){};
-    }
-  }catch(e){}
-})();
-
 </script>
 
 
@@ -1174,7 +1172,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
-
 </body></html>"""
 
 LOGIN_HTML = """<!doctype html><html lang="en"><head>
@@ -1232,9 +1229,9 @@ LOGIN_HTML = """<!doctype html><html lang="en"><head>
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+  /* REMOVED to disable horizontal scroll (mobile card-only) */
+table, .table { display: none !important; }
+th, td { white-space: normal !important; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -1594,9 +1591,9 @@ a{color:var(--acc);text-decoration:none}
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+  /* REMOVED to disable horizontal scroll (mobile card-only) */
+table, .table { display: none !important; }
+th, td { white-space: normal !important; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -1616,7 +1613,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 <header class="nav">
   <div class="brand">
     <img src="/brandlogo" alt="Arbexa">
-    
+    <span class="tag">ARBEXAPROFITFINDER.COM</span>
   </div>
   <div class="links">
     <a class="btn" href="https://www.dropbox.com/scl/fi/paqtorxp2q2couih5z5vs/Guide-All-You-Need-To-Know-From-ArbexaProfitFinder.pdf?dl=0" target="_blank" rel="noopener">Guide</a>
@@ -2244,9 +2241,9 @@ img.exlogo{width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+  /* REMOVED to disable horizontal scroll (mobile card-only) */
+table, .table { display: none !important; }
+th, td { white-space: normal !important; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -2325,7 +2322,13 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 <header>
   <div class="brandrow">
     <img src="/brandlogo" alt="Arbexa Profit Finder" class="brandlogo">
-    
+    <a class="brandurl" href="https://arbexaprofitfinder.com" target="_blank" rel="noopener">ARBEXAPROFITFINDER.COM</a>
+    <div class="lastbox" id="lastBox">
+      <span class="lastlabel">Last updated</span>
+      <span id="lastUTCtime" class="lasttime">--:-- AM</span>
+      <span id="oppCount" class="oppcount">· -- possible opportunities</span>
+    </div>
+
     <div class="menu-anchor">
       <details id="menuDD">
         <summary class="btnpdf" title="Menu">☰ Menu ▾</summary>
@@ -2402,17 +2405,37 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
     </div>
   </div>
 
+  <details id="infoDD" class="info-dropdown">
+  <summary class="btnpdf" title="Info">Info ▾</summary>
+  <div class="info-panel">
+    <a id="extDoc" class="btnpdf" href="#" target="_blank" rel="noopener" style="display:none"></a>
+    <details id="tradeDD">
+      <summary class="btnpdf">Trade Details ▾</summary>
+      <div class="tradecontent" id="tradeContent"></div>
+    </details>
+    <details id="msgDD">
+      <summary id="msgSummary" class="btnpdf">Message ▾</summary>
+      <div class="tradecontent">Make sure to apply the Trade Cautions before each trade!</div>
+    </details>
+  </div>
+</details>
     <div class="block hide-on-mobile"><details id="tradeDD"><summary class="btnpdf">TRADE DETAILS‼️</summary><div class="tradecontent" id="tradeContent"></div></details></div>
     <div class="block hide-on-mobile">
       <details id="msgDD"><summary id="msgSummary" class="btnpdf">📩Message</summary>
-        <div class="tradecontent">Make sure to apply Trade Guide before each trade!</div>
+        <div class="tradecontent">Make sure to apply the ⚠️Trade Cautions before each trade!</div>
       </details>
     </div>
   </div>
 
   <a id="btnGoPro" class="btn-pro" href="/pro" title="Upgrade to Pro">GO PRO👑</a>
 
-    <!-- Loading overlay -->
+    
+</header>
+<div id="freeBanner" class="free-banner hide">You’re currently on the free plan with limited features, subscribe to unlock full potentials.</div>
+<div class="dash-tip">Most Profitable and executable Opportunities last no more than 10-15 Minutes so act fast,but carefully!</div>
+
+
+<!-- Loading overlay -->
 <div id="loadOverlay" class="hidden" aria-hidden="true">
   <div class="logoWrap"><img class="logoPulse" src="/brandlogo" alt="Loading…" /></div>
   <div class="loadCaption">Loading latest opportunities…</div>
@@ -2421,7 +2444,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 
 <!-- Reminder modal -->
 <div id="remindModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="remindText">
-  <div class="box"><p id="remindText">⚠️Make sure to apply trade guide before each trade!</p>
+  <div class="box"><p id="remindText">⚠️Make sure to apply trade details before each trade!</p>
     <div class="actions"><button id="remindOk" class="btnpdf" type="button">Okay</button><button id="remindSkip" class="btnpdf" type="button">Do not remind me today</button></div>
   </div>
 </div>
@@ -2530,10 +2553,7 @@ function renderTradeDetails(){const box=qs('#tradeContent'); if(box) box.innerHT
 
 /* ====== SERVER CLOCK: AFRICA/LAGOS (no seconds) ====== */
 let baseServerMs=null, baseClientMs=null, clockTicker=null;
-function ensureLastBox(){
-return null;
-
-let b=qs('#lastBox'), t=qs('#lastUTCtime'); if(!b){const br=qs('.brandrow'); if(!br) return; b=document.createElement('div'); b.className='lastbox'; b.id='lastBox'; b.innerHTML=`<span class="lastlabel">Last updated</span><span id="lastUTCtime" class="lasttime">--:-- AM</span><span id="oppCount" class="oppcount">· -- possible opportunities</span>`; br.appendChild(b); t=qs('#lastUTCtime');} return t||qs('#lastUTCtime');}
+function ensureLastBox(){let b=qs('#lastBox'), t=qs('#lastUTCtime'); if(!b){const br=qs('.brandrow'); if(!br) return; b=document.createElement('div'); b.className='lastbox'; b.id='lastBox'; b.innerHTML=`<span class="lastlabel">Last updated</span><span id="lastUTCtime" class="lasttime">--:-- AM</span><span id="oppCount" class="oppcount">· -- possible opportunities</span>`; br.appendChild(b); t=qs('#lastUTCtime');} return t||qs('#lastUTCtime');}
 function fmtLagos(d){
   const parts = new Intl.DateTimeFormat('en-GB', {
     timeZone:'Africa/Lagos',
@@ -3797,9 +3817,9 @@ a{color:var(--acc);text-decoration:none}
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+  /* REMOVED to disable horizontal scroll (mobile card-only) */
+table, .table { display: none !important; }
+th, td { white-space: normal !important; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -3817,7 +3837,10 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 
 /* Arbexa Mobile Tweaks: info dropdown + remove 'A' + compact spacing */
 @media (max-width: 768px){
-  
+  .info-dropdown{ border:1px solid rgba(255,255,255,0.08); border-radius:12px; background:#0e2230; overflow:hidden; margin:8px 0 10px; }
+  .info-dropdown > summary{ list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:12px 14px; font-weight:800; font-size:14px; }
+  .info-panel{ display:grid; gap:8px; padding:10px 12px 12px; }
+  .info-panel > a.btnpdf{ display:block; width:100%; text-align:center; font-weight:800; }
   #tradeDD > summary.btnpdf, #msgDD > summary.btnpdf{ width:100%; text-align:center; }
 
   .free-banner, .banner-blue, .free-plan-note, .notice{ margin:8px 0 10px !important; padding:10px 12px !important; }
@@ -3835,22 +3858,6 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 </style>
 
 /* MOBILE-ONLY-PATCH: START */
-<style>
-
-/* === REMOVE TOP STATUS BAR (Last updated / opp count) — MOBILE ONLY (FORCED) === */
-@media (max-width: 820px){
-  #lastBox,
-  .lastbox{
-    display:none !important;
-    visibility:hidden !important;
-    height:0 !important;
-    margin:0 !important;
-    padding:0 !important;
-  }
-}
-
-</style>
-
 <style id="mobile-only-patch-styles">
 @media (max-width:820px) {
   .bottom-nav .ms-btn, .bottom-nav .navbtn, .bottom-nav .profile-btn {
@@ -4363,3 +4370,127 @@ def payments_list(request: Request, db: Session = Depends(get_db)):
     except Exception as _e:
         print("[supabase] PAYMENTS fetch error:", _e)
         return JSONResponse({"items": []})
+
+
+
+# ============================ DEV: FAKE PAYMENT TEST (local only) ============================
+# Purpose: create a *fake* payments row in Supabase so you can test the flow end-to-end.
+# Security: uses SERVICE ROLE (server only). Keep for local/dev.
+# Usage (CLI):
+#   $env:SUPABASE_URL="https://<proj>.supabase.co"; $env:SUPABASE_SERVICE_ROLE_KEY="<key>"
+#   python Scannerfilesuper_PAYMENTS_WIRED_EMAILPATCH_READY_FAKEPAY.py --make --mark-paid
+#
+# Optional dev HTTP route (enable first): set DEV_FAKEPAY_ROUTE=1 to enable /dev/fake-payment
+
+import uuid as _uuid
+import os as _os
+import json as _json2
+
+def _dev_insert_fake_payment_row(_email: str|None=None, _plan_name="Monthly (TEST)", _plan_days=30, _amount=20.00,
+                                 _sr_value: str|None=None) -> dict:
+    base = (SUPABASE_URL or "").rstrip("/") + "/rest/v1/payments"
+    key  = SUPABASE_SERVICE_ROLE_KEY
+    if not (base and key):
+        return {"ok": False, "row": None, "error": "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY"}
+    if not _email:
+        _email = f"test+{_uuid.uuid4().hex[:6]}@example.com"
+    if not _sr_value:
+        _sr_value = "sr_fake_" + _uuid.uuid4().hex[:10]
+
+    row = {
+        "user_id": None,
+        "user_email": _email,
+        "plan_name": _plan_name,
+        "plan_duration": int(_plan_days),
+        "amount": float(_amount),
+        "currency": "USD",
+        "status": "pending",
+        "provider": "cryptocloud",
+        "provider_invoice_id": None,
+        "sr_invoice_id": _sr_value,
+        "note": "DEV FAKE ROW — safe to delete",
+        "meta": {"source": "fake-dev", "ts": int(time.time())}
+    }
+    try:
+        _hdrs = {
+            "apikey": key,
+            "Authorization": f"Bearer {key}",
+            "Content-Type": "application/json",
+            "Prefer": "return=representation",
+            "Accept": "application/json",
+        }
+        r = requests.post(base, headers=_hdrs, data=_json.dumps(row), timeout=12)
+        if r.status_code not in (200,201):
+            return {"ok": False, "row": None, "error": f"HTTP {r.status_code}: {r.text[:300]}"}
+        js = r.json()
+        if isinstance(js, list) and js:
+            return {"ok": True, "row": js[0], "error": None}
+        if isinstance(js, dict):
+            return {"ok": True, "row": js, "error": None}
+        return {"ok": True, "row": None, "error": None}
+    except Exception as e:
+        return {"ok": False, "row": None, "error": f"{type(e).__name__}: {e}"}
+
+def _dev_mark_paid_via_webhook(_sr_value: str, _provider_inv: str|None=None) -> dict:
+    base = _os.getenv("NGROK_URL") or _os.getenv("LOCAL_URL") or "http://127.0.0.1:8000"
+    url  = base.rstrip("/") + "/webhooks/cryptocloud"
+    body = {
+        "status": "paid",
+        "invoice_id": _provider_inv or ("INV-" + _uuid.uuid4().hex[:8]),
+        "sr_invoice_id": _sr_value
+    }
+    try:
+        r = requests.post(url, headers={"Content-Type":"application/json"}, data=_json.dumps(body), timeout=12)
+        ok = r.status_code in (200,201)
+        try:
+            js = r.json()
+        except Exception:
+            js = {"text": r.text[:300]}
+        return {"ok": ok, "status": r.status_code, "response": js}
+    except Exception as e:
+        return {"ok": False, "status": 0, "response": {"error": f"{type(e).__name__}: {e}"}}
+
+from fastapi import Body as _Body
+if _os.getenv("DEV_FAKEPAY_ROUTE") == "1":
+    @app.post("/dev/fake-payment")
+    def dev_fake_payment(payload: dict = _Body(default={})):
+        email = (payload or {}).get("email")
+        plan  = (payload or {}).get("plan") or "Monthly (TEST)"
+        days  = int((payload or {}).get("days") or 30)
+        amt   = float((payload or {}).get("amount") or 20.00)
+        mark  = bool((payload or {}).get("mark_paid") or False)
+
+        ins = _dev_insert_fake_payment_row(email, plan, days, amt)
+        if not ins.get("ok"):
+            raise HTTPException(status_code=400, detail=ins.get("error") or "insert failed")
+        sr_val = (ins.get("row") or {}).get("sr_invoice_id")
+        resp = {"inserted": ins.get("row"), "webhook": None}
+        if mark and sr_val:
+            resp["webhook"] = _dev_mark_paid_via_webhook(sr_val)
+        return JSONResponse(resp)
+
+if __name__ == "__main__":
+    import argparse as _arg
+    p = _arg.ArgumentParser(description="Dev: create a fake payments row (and optionally mark paid via webhook).")
+    p.add_argument("--make", action="store_true", help="Insert a fake row into public.payments")
+    p.add_argument("--email", type=str, default=None, help="Override test email")
+    p.add_argument("--plan", type=str, default="Monthly (TEST)")
+    p.add_argument("--days", type=int, default=30)
+    p.add_argument("--amount", type=float, default=20.00)
+    p.add_argument("--mark-paid", action="store_true", help="Also POST to /webhooks/cryptocloud to mark as paid")
+    args = p.parse_args()
+
+    if not args.make:
+        print("Nothing to do. Use --make to insert a fake row.")
+        raise SystemExit(0)
+
+    ins = _dev_insert_fake_payment_row(args.email, args.plan, args.days, args.amount)
+    print("[fake] insert ->", ins)
+    if ins.get("ok") and args.mark_paid:
+        sr = (ins.get("row") or {}).get("sr_invoice_id")
+        if sr:
+            res = _dev_mark_paid_via_webhook(sr)
+            print("[fake] webhook ->", res)
+        else:
+            print("[fake] no sr_invoice_id on inserted row; cannot mark paid")
+# ============================ /DEV: FAKE PAYMENT TEST ============================
