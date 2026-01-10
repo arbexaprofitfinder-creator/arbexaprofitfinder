@@ -2335,9 +2335,7 @@ img, canvas, video, svg { max-width: 100%; height: auto; }
 <header>
   <div class="brandrow">
     <img src="/brandlogo" alt="Arbexa Profit Finder" class="brandlogo">
-    <a class="brandurl" href="https://arbexaprofitfinder.com" target="_blank" rel="noopener">ARBEXAPROFITFINDER.COM</a>
     
-
     <div class="menu-anchor">
       <details id="menuDD">
         <summary class="btnpdf" title="Menu">☰ Menu ▾</summary>
