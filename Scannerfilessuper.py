@@ -988,7 +988,7 @@ a{color:var(--acc);text-decoration:none}
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
   /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%;  border-collapse: collapse; }
+  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
   th, td { white-space: nowrap; }
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
