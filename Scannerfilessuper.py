@@ -987,9 +987,7 @@ a{color:var(--acc);text-decoration:none}
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+ 
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -1242,9 +1240,7 @@ LOGIN_HTML = """<!doctype html><html lang="en"><head>
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-
-  th, td { white-space: nowrap; }
+  
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -1604,9 +1600,7 @@ a{color:var(--acc);text-decoration:none}
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -2254,9 +2248,7 @@ img.exlogo{width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
@@ -3807,9 +3799,7 @@ a{color:var(--acc);text-decoration:none}
   /* Cards */
   .cards { display: grid; gap: 12px; }
   .card { border-radius: 12px; overflow: hidden; }
-  /* Tables scroll horizontally on narrow screens */
-  table, .table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { white-space: nowrap; }
+
   /* Panels */
   .panel, .widget, .box { border-radius: 12px; overflow: hidden; }
   /* Orderbook/trades reasonable heights */
