@@ -997,6 +997,20 @@ a{color:var(--acc);text-decoration:none}
   /* Utility spacing */
   .hide-on-mobile { display: none !important; }
   .pad { padding: 12px; }
+  /* 🔒 BLOCK horizontal opportunity layout on mobile ONLY */
+@media (max-width: 900px) {
+  .opps,
+  .opps-row,
+  .opps-scroll,
+  .horizontal-opps,
+  .cards-row,
+  .row.opps,
+  .row.cards {
+    display: none !important;
+    overflow-x: hidden !important;
+  }
+  }
+
 }
 @media (min-width: 901px) {
   .drawer { transform: none; position: static; width: auto; border-left: none; }
